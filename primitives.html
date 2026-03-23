@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Java Primitive Trainer</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+
+    body{
+    font-family:'Fredoka',sans-serif;
+    background:#f2f6ff;
+    margin:0;
+    text-align:center;
+    }
+
+    header{
+    background:#4a6cf7;
+    color:white;
+    padding:15px;
+    font-size:24px;
+    }
+
+    #levelBar{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    padding:10px;
+    flex-wrap:wrap;
+    }
+
+    .levelBtn{
+    padding:8px 15px;
+    border-radius:10px;
+    border:none;
+    background:#ddd;
+    cursor:pointer;
+    }
+
+    .levelBtn.active{
+    background:#4a6cf7;
+    color:white;
+    }
+
+    .container{
+    max-width:750px;
+    margin:auto;
+    padding:20px;
+    }
+
+    .card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    button{
+    padding:10px 20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#4a6cf7;
+    color:white;
+    font-size:16px;
+    }
+
+    .option{
+    display:block;
+    margin:6px;
+    padding:10px;
+    border-radius:8px;
+    background:#eee;
+    cursor:pointer;
+    }
+
+    .option.selected{
+    background:#4a6cf7;
+    color:white;
+    }
+
+    #nameGate{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+    }
+
+    textarea{
+    width:100%;
+    height:120px;
+    font-family:monospace;
+    font-size:14px;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    }
+
+    .code{
+    background:#222;
+    color:#0f0;
+    padding:10px;
+    border-radius:8px;
+    text-align:left;
+    white-space:pre;
+    font-family:monospace;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<header>☕ Java Primitive Trainer</header>
+
+<div id="levelBar">
+  <button class="levelBtn active" onclick="setLevel(1)">Level 1</button>
+  <button class="levelBtn" onclick="setLevel(2)">Level 2</button>
+  <button class="levelBtn" onclick="setLevel(3)">Level 3</button>
+</div>
+
+<div class="container">
+
+  <div class="card">
+
+    <h2 id="question"></h2>
+
+    <div id="options"></div>
+
+    <textarea id="codeAnswer" style="display:none"></textarea>
+
+    <br><br>
+
+    <button onclick="submitAnswer()">Submit</button>
+
+    <p id="feedback"></p>
+
+    <p>Score: <span id="score">0</span></p>
+
+    <p>Questions in level: <span id="progress">0</span>/20</p>
+
+  </div>
+
+</div>
+
+<div id="nameGate">
+  <div>
+    <h2>Enter your name</h2>
+    <input id="studentNameInput">
+    <br><br>
+    <button onclick="saveName()">Start</button>
+  </div>
+</div>
+
+<script>
+
+  const GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbwqW5pL7IkOWEzhxphMfOWYhltA1n8HCSOQG7dFDicG0wPr0rR4NwilotAVOGk4TqL9/exec";
+
+  let studentName="";
+  let level=1;
+
+  let correct=0;
+  let attempts=0;
+  let questionsInLevel=0;
+
+  let currentAnswer="";
+  let selectedAnswer="";
+
+  function saveName(){
+
+  const name=document.getElementById("studentNameInput").value.trim();
+
+  if(!name) return;
+
+  studentName=name;
+
+  localStorage.setItem("javaStudent",name);
+
+  document.getElementById("nameGate").style.display="none";
+
+  generateQuestion();
+  }
+
+  function checkName(){
+
+  const stored=localStorage.getItem("javaStudent");
+
+  if(stored){
+  studentName=stored;
+  document.getElementById("nameGate").style.display="none";
+  }
+
+  }
+
+  document.addEventListener("DOMContentLoaded",checkName);
+
+  function setLevel(l){
+
+  level=l;
+
+  correct=0;
+  attempts=0;
+  questionsInLevel=0;
+
+  document.getElementById("score").innerText=0;
+  document.getElementById("progress").innerText=0;
+
+  document.querySelectorAll(".levelBtn")
+  .forEach(b=>b.classList.remove("active"));
+
+  document.querySelectorAll(".levelBtn")[l-1].classList.add("active");
+
+  generateQuestion();
+  }
+
+  function createOption(text){
+
+  const div=document.createElement("div");
+  div.className="option";
+  div.innerText=text;
+
+  div.onclick=()=>{
+
+  document.querySelectorAll(".option")
+  .forEach(o=>o.classList.remove("selected"));
+
+  div.classList.add("selected");
+
+  selectedAnswer=text;
+
+  };
+
+  return div;
+  }
+
+  function generateQuestion(){
+
+  document.getElementById("feedback").innerText="";
+  document.getElementById("options").innerHTML="";
+  document.getElementById("codeAnswer").style.display="none";
+
+  if(level===1) level1();
+  if(level===2) level2();
+  if(level===3) level3();
+
+  }
+
+  function level1(){
+
+  const values=[
+  3.14,25,true,false,10000000000,"Hello",'A',0.5,12.7,5,8,100,"BabyOil","true","false","0",-567,-2147483647, 2147483649,0,"a",",?,'.',67,68.5,3000000000000,300000000000.5,0.00000001,"+56",
+  ];
+
+  const v=values[Math.floor(Math.random()*values.length)];
+
+  document.getElementById("question").innerText=
+  "What Java type should store value: "+v+" ?";
+
+  let answer="int";
+
+  if(typeof v==="boolean") answer="boolean";
+  else if(typeof v==="number" && String(v).includes(".")) answer="double";
+  else if(v>2147483647) answer="long";
+  else if(typeof v==="string" && v.length===1) answer="char";
+  else if(typeof v==="string") answer="String";
+
+  currentAnswer=answer;
+
+  const options=[
+  "byte","int","long","double","char","boolean","String"
+  ];
+
+  options.forEach(o=>{
+  document.getElementById("options")
+  .appendChild(createOption(o));
+  });
+  }
+
+  function level2(){
+
+  const vars=[
+  {n:"firstName",t:"String"},
+  {n:"lastName",t:"String"},
+  {n:"ageOfYourPet",t:"int"},
+  {n:"isAccountActive",t:"boolean"},
+  {n:"priceOfCoffee",t:"BigDecimal"},
+  {n:"temperatureOutside",t:"double"},
+  {n:"userInitial",t:"char"},
+  {n:"totalCartPrice",t:"BigDecimal"},
+  {n:"distanceInMeters",t:"int"},
+  {n:"numberOfStudents",t:"int"},
+  {n:"nickName",t:"String"},
+  {n:"street",t:"String"},
+  {n:"numberOfSiblings",t:"int"},
+  {n:"isDoorOpen",t:"boolean"},
+  {n:"totalDiscountInDollars",t:"BigDecimal"},
+  {n:"percentOfRightAnswers",t:"double"},
+  {n:"studentQuizGrade",t:"char"},
+  {n:"familyDebtInCAD",t:"BigDecimal"},
+  {n:"speedAverage",t:"int"},
+  {n:"missingStudentNumber",t:"int"}
+  ];
+
+  const ex=vars[Math.floor(Math.random()*vars.length)];
+
+  document.getElementById("question").innerText=
+  "What type should variable '"+ex.n+"' be?";
+
+  currentAnswer=ex.t;
+
+  const options=[
+  "byte","short","int","long",
+  "float","double",
+  "char","boolean",
+  "String","BigDecimal"
+  ];
+
+  options.forEach(o=>{
+  document.getElementById("options")
+  .appendChild(createOption(o));
+  });
+  }
+
+  function level3(){
+
+  const bugs=[
+  {
+  bug:`int age = "25";`,
+  fix:`int age = 25;`
+  },
+  {
+  bug:`char grade = "A";`,
+  fix:`char grade = 'A';`
+  },
+  {
+  bug:`char initials = 'A''B';`,
+  fix:`String initials = "AB";`
+  },
+  {
+  bug:`boolean active = "true";`,
+  fix:`boolean active = true;`
+  },
+  {
+  bug:`boolean activeCommand = "true";`,
+  fix:`String activeCommand = "true";`
+  },
+  {
+  bug:`int temperature = 36.6;`,
+  fix:`double temperature = 36.6;`
+  },
+  {
+  bug:`byte speedKmH = 240;`,
+  fix:`int speedKmH = 240;`
+  },
+  {
+  bug:`char initials = 'AX';`,
+  fix:`String initials = "AX";`
+  },
+  {
+  bug:`String studentGrade = 'B';`,
+  fix:`char studentGrade = 'B';`
+  },
+  {
+  bug:`int speedOfLight = 300000000;`,
+  fix:`long speedOfLight = 300000000;`
+  },
+  {
+  bug:`double salaryPerYearInCAD = 130000.89;`,
+  fix:`BigDecimal salaryPerYearInCAD = 130000.89;`
+  },
+  {
+  bug:`char finishedMark = ✅;`,
+  fix:`String finishedMark = "✅";`
+  },
+  {
+  bug:`int indexRate = 9.99;`,
+  fix:`double indexRate = 9.99;;`
+  },
+  {
+  bug:`char multiplicationFactor = '9';`,
+  fix:`int multiplicationFactor = 9;`
+  },
+  {
+  bug:`int answer = '56D';`,
+  fix:`String answer = "56D";`
+  },
+  {
+  bug:`String questionMark = '?';`,
+  fix:`char questionMark = '?';`
+  },
+  {
+  bug:`int depth = 1234567890;
+  int counter = 123;
+  int result = depth * counter;
+  `,
+  fix:`int depth = 1234567890;
+  int counter = 123;
+  long result = depth * counter;`
+  }
+  ];
+
+  const b=bugs[Math.floor(Math.random()*bugs.length)];
+
+  document.getElementById("question").innerText="Fix the bug in code:";
+
+  const code=document.createElement("div");
+  code.className="code";
+  code.innerText=b.bug;
+
+  document.getElementById("options").appendChild(code);
+
+  document.getElementById("codeAnswer").style.display="block";
+  document.getElementById("codeAnswer").value=b.bug;
+
+  currentAnswer=b.fix;
+
+  }
+
+  function submitAnswer(){
+
+  attempts++;
+  questionsInLevel++;
+
+  let user="";
+
+  if(level===3){
+
+  user=document.getElementById("codeAnswer").value.trim();
+
+  }else{
+
+  user=selectedAnswer;
+
+  }
+
+  if(!user) return;
+
+  if(user.replace(/\s/g,"")==currentAnswer.replace(/\s/g,"")){
+
+  correct++;
+  document.getElementById("feedback").innerText="✅ Correct";
+
+  }else{
+
+  document.getElementById("feedback").innerText=
+  "❌ Correct answer:\n"+currentAnswer;
+
+  }
+
+  document.getElementById("score").innerText=correct;
+  document.getElementById("progress").innerText=questionsInLevel;
+
+  checkLevelFinish();
+
+  generateQuestion();
+  }
+
+  function checkLevelFinish(){
+
+  if(questionsInLevel<20) return;
+
+  const accuracy=Math.round((correct/attempts)*100);
+
+  if(accuracy>=90){
+
+  document.getElementById("feedback").innerText=
+  "🎉 Level Passed! Accuracy "+accuracy+"%";
+
+  sendResult();
+
+  }else{
+
+  document.getElementById("feedback").innerText=
+  "❌ Level failed. Accuracy "+accuracy+"% (need 90%)";
+
+  }
+
+  correct=0;
+  attempts=0;
+  questionsInLevel=0;
+
+  document.getElementById("score").innerText=0;
+  document.getElementById("progress").innerText=0;
+
+  }
+
+  function sendResult(){
+
+  const accuracy=Math.round((correct/attempts)*100);
+
+  fetch(GOOGLE_SCRIPT_URL,{
+  method:"POST",
+  body:JSON.stringify({
+  name:studentName,
+  level:"Java Level "+level,
+  mode:"practice",
+  correct:correct,
+  attempts:attempts,
+  accuracy:accuracy
+  })
+  });
+
+  }
+
+  generateQuestion();
+
+</script>
+
+</body>
+</html>

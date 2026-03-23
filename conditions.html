@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Java Conditions Practice</title>
+
+  <style>
+
+    body{
+    font-family:Arial;
+    background:#eef2ff;
+    text-align:center;
+    }
+
+    .container{
+    background:white;
+    max-width:900px;
+    margin:auto;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+    }
+
+    button{
+    padding:12px 20px;
+    margin:6px;
+    border:none;
+    border-radius:6px;
+    font-size:18px;
+    cursor:pointer;
+    }
+
+    .levelBtn{
+    background:#3f51b5;
+    color:white;
+    }
+
+    .locked{
+    background:#bdbdbd;
+    color:#444;
+    }
+
+    .code{
+    background:#f4f4f4;
+    padding:20px;
+    border-radius:6px;
+    font-family:monospace;
+    font-size:28px;
+    line-height:1.6;
+    display:inline-block;
+    margin:20px;
+    white-space:pre-line;
+    }
+
+    input{
+    padding:10px;
+    font-size:18px;
+    width:160px;
+    }
+
+    #feedback{
+    font-size:20px;
+    font-weight:bold;
+    margin-top:10px;
+    }
+
+    #pinPanel{
+    display:none;
+    margin-top:20px;
+    background:#fff3cd;
+    padding:15px;
+    border-radius:6px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>Java Conditions Practice</h2>
+
+  <div id="levelSelect">
+
+    <h3>Select Level</h3>
+
+    <button class="levelBtn" onclick="selectLevel(1)">Level 1</button>
+    <button class="levelBtn locked" onclick="selectLevel(2)" id="btn2">🔒 Level 2</button>
+    <button class="levelBtn locked" onclick="selectLevel(3)" id="btn3">🔒 Level 3</button>
+    <button class="levelBtn locked" onclick="selectLevel(4)" id="btn4">🔒 Level 4</button>
+    <button class="levelBtn locked" onclick="selectLevel(5)" id="btn5">🔒 Level 5</button>
+
+    <p>Unlock next level after 40 correct answers or teacher PIN</p>
+
+  </div>
+
+  <div id="pinPanel">
+
+    <p>Enter Teacher PIN to unlock this level</p>
+
+    <input id="pinInput" type="password" placeholder="Enter PIN"
+           onkeypress="if(event.key==='Enter'){checkPin()}">
+
+    <button onclick="checkPin()">Unlock</button>
+
+  </div>
+
+  <div id="quiz" style="display:none">
+
+    <h3 id="levelTitle"></h3>
+
+    <div id="question" class="code"></div>
+
+    <div id="answers"></div>
+
+    <div id="feedback"></div>
+
+    <p>Correct answers: <span id="score">0</span> / 40</p>
+
+    <button onclick="nextQuestion()">Next Question</button>
+    <button onclick="goBack()">Back</button>
+
+  </div>
+
+</div>
+
+<script>
+
+  let level=1
+  let score=0
+  let questionCount=0
+  let correctAnswer=null
+  let answered=false
+
+  let unlockedLevels=[true,false,false,false,false]
+  let requestedLevel=null
+
+  function selectLevel(l){
+
+  if(unlockedLevels[l-1]){
+  startQuiz(l)
+  return
+  }
+
+  requestedLevel=l
+  document.getElementById("pinPanel").style.display="block"
+
+  }
+
+  function checkPin(){
+
+  let input=document.getElementById("pinInput")
+  let pin=input.value
+
+  input.value=""
+
+  if(pin==="1502"){
+
+  unlockedLevels[requestedLevel-1]=true
+
+  let btn=document.getElementById("btn"+requestedLevel)
+
+  btn.classList.remove("locked")
+  btn.innerText="Level "+requestedLevel
+
+  document.getElementById("pinPanel").style.display="none"
+
+  startQuiz(requestedLevel)
+
+  }else{
+
+  alert("Wrong PIN")
+
+  }
+
+  }
+
+  function startQuiz(l){
+
+  level=l
+  score=0
+  questionCount=0
+
+  document.getElementById("score").innerText=score
+  document.getElementById("quiz").style.display="block"
+  document.getElementById("levelSelect").style.display="none"
+
+  nextQuestion()
+
+  }
+
+  function goBack(){
+
+  document.getElementById("quiz").style.display="none"
+  document.getElementById("levelSelect").style.display="block"
+
+  }
+
+  function rand(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min
+  }
+
+  function nextQuestion(){
+
+  answered=false
+
+  questionCount++
+
+  if(questionCount>200){
+  alert("200 questions finished")
+  goBack()
+  return
+  }
+
+  document.getElementById("feedback").innerText=""
+
+  if(level==1) level1()
+  if(level==2) level2()
+  if(level==3) level3()
+  if(level==4) level4()
+  if(level==5) level5()
+
+  }
+
+  function level1(){
+
+  let a=rand(1,50)
+  let b=rand(1,50)
+  let ops=[">","<",">=","<=","==","!="]
+  let op=ops[rand(0,5)]
+
+  document.getElementById("question").innerHTML=
+  `int a = ${a};
+
+  if (a ${op} ${b})`
+
+  correctAnswer=eval(`${a}${op}${b}`)
+
+  renderTrueFalse()
+
+  }
+
+  function level2(){
+
+  let a=rand(1,30)
+  let b=rand(1,30)
+
+  document.getElementById("question").innerHTML=
+  `int a = ${a};
+  int b = ${b};
+
+  boolean result = (a > b);`
+
+  correctAnswer=(a>b)
+
+  renderTyped()
+
+  }
+
+  /* ✅ UPDATED LEVEL 3 */
+  function level3(){
+
+  let questions = [
+  /* ===== .equals (Java style) ===== */
+  { q: `String word = "cat";
+
+  if (word.equals("cat"))`, a: true },
+
+  { q: `String word = "dog";
+
+  if (word.equals("cat"))`, a: false },
+
+  { q: `String word = "blue";
+
+  if (word.equals("blue"))`, a: true },
+
+  { q: `String word = "red";
+
+  if (word.equals("blue"))`, a: false },
+
+  { q: `String word = "apple";
+
+  if (word.equals("apple"))`, a: true },
+
+  { q: `String word = "car";
+
+  if (word.equals("bike"))`, a: false },
+
+  /* ===== == (Java / JS loose thinking) ===== */
+  { q: `String word = "cat";
+
+  if (word == "cat")`, a: true },
+
+  { q: `String word = "dog";
+
+  if (word == "cat")`, a: false },
+
+  { q: `String word = "hello";
+
+  if (word == "hello")`, a: true },
+
+  { q: `String word = "java";
+
+  if (word == "javascript")`, a: false },
+
+  /* tricky conceptual ones */
+  { q: `String a = new String("cat");
+  String b = new String("cat");
+
+  if (a == b)`, a: false },
+
+  { q: `String a = "dog";
+  String b = "dog";
+
+  if (a == b)`, a: true },
+
+  { q: `String a = "hi";
+  String b = new String("hi");
+
+  if (a == b)`, a: false },
+
+  /* ===== === (JavaScript strict equality) ===== */
+  { q: `let word = "cat";
+
+  if (word === "cat")`, a: true },
+
+  { q: `let word = "dog";
+
+  if (word === "cat")`, a: false },
+
+  { q: `let word = "5";
+
+  if (word === 5)`, a: false },
+
+  { q: `let word = 5;
+
+  if (word === 5)`, a: true },
+
+  { q: `let word = 10;
+
+  if (word === "10")`, a: false },
+
+  /* ===== mix with == in JavaScript ===== */
+  { q: `let word = "5";
+
+  if (word == 5)`, a: true },
+
+  { q: `let word = 0;
+
+  if (word == false)`, a: true },
+
+  { q: `let word = "";
+
+  if (word == false)`, a: true },
+
+  { q: `let word = null;
+
+  if (word == undefined)`, a: true },
+
+  { q: `let word = "true";
+
+  if (word == true)`, a: false },
+
+  /* ===== mixed difficulty ===== */
+  { q: `String word = "sun";
+
+  if (word.equals("sun"))`, a: true },
+
+  { q: `String word = "moon";
+
+  if (word == "sun")`, a: false },
+
+  { q: `let word = "moon";
+
+  if (word === "moon")`, a: true },
+
+  { q: `let word = "1";
+
+  if (word == 1)`, a: true },
+
+  { q: `let word = "1";
+
+  if (word === 1)`, a: false },
+
+  { q: `String a = "A";
+  String b = "B";
+
+  if (a.equals(b))`, a: false },
+
+  { q: `let a = 0;
+
+  if (a === false)`, a: false },
+
+  { q: `let a = 0;
+
+  if (a == false)`, a: true },
+
+  { q: `let a = " ";
+
+  if (a == false)`, a: true },
+
+  { q: `let a = " ";
+
+  if (a === false)`, a: false }
+  ]
+
+  // pick random predefined question
+  let q = questions[rand(0, questions.length - 1)]
+
+  document.getElementById("question").innerHTML = q.q
+
+  correctAnswer = q.a
+
+  renderTrueFalse()
+
+  }
+
+  function level4(){
+
+  let a=rand(1,20)
+  let b=rand(1,20)
+
+  document.getElementById("question").innerHTML=
+  `Fix the condition so it becomes TRUE
+
+  int a = ${a};
+  int b = ${b};
+
+  if (a ? b)`
+
+  document.getElementById("answers").innerHTML=
+
+  `<p>Type correct operator</p>
+  <input id="typedAnswer" placeholder=">, <, == etc">
+  <button onclick="checkFix(${a},${b})">Submit</button>`
+
+  }
+
+  function level5(){
+
+
+  let questions = [
+  /* ===== Integers ===== */
+  { q: `int x = 5;
+
+  if (x == 5)`, a: true },
+
+  { q: `int x = 7;
+
+  if (x == 10)`, a: false },
+
+  { q: `int a = 3;
+  int b = 4;
+
+  if (a + b == 7)`, a: true },
+
+  { q: `int a = 2;
+  int b = 5;
+
+  if (a + b == 10)`, a: false },
+
+  { q: `int a = 10;
+  int b = 3;
+
+  if (a - b == 7)`, a: true },
+
+  { q: `int a = 8;
+  int b = 5;
+
+  if (a - b == 4)`, a: false },
+
+  { q: `int x = 0;
+
+  if (x == 0)`, a: true },
+
+  { q: `int x = -5;
+
+  if (x < 0)`, a: true },
+
+  { q: `int x = 7;
+
+  if (x > 10)`, a: false },
+
+  { q: `int x = 10;
+
+  if (x >= 10)`, a: true },
+
+  { q: `int x = 3;
+
+  if (x <= 2)`, a: false },
+
+  { q: `int a = 5;
+  int b = 5;
+
+  if (a + b != 11)`, a: true },
+
+  { q: `int a = 4;
+  int b = 6;
+
+  if (a - b != -2)`, a: false },
+
+  /* ===== Booleans ===== */
+  { q: `boolean isOn = true;
+
+  if (isOn)`, a: true },
+
+  { q: `boolean isOn = false;
+
+  if (isOn)`, a: false },
+
+  { q: `boolean hasKey = true;
+
+  if (!hasKey)`, a: false },
+
+  { q: `boolean hasKey = false;
+
+  if (!hasKey)`, a: true },
+
+  { q: `boolean a = true;
+
+  if (!a)`, a: false },
+
+  { q: `boolean a = false;
+
+  if (!a)`, a: true },
+
+  { q: `boolean b = true;
+
+  if (b == true)`, a: true },
+
+  { q: `boolean b = false;
+
+  if (b == true)`, a: false },
+
+  { q: `boolean c = false;
+
+  if (c == false)`, a: true },
+
+  { q: `boolean c = true;
+
+  if (c == false)`, a: false },
+
+  /* ===== Arithmetic comparisons ===== */
+  { q: `int num = 7;
+
+  if (num + 3 == 10)`, a: true },
+
+  { q: `int num = 5;
+
+  if (num + 4 == 10)`, a: false },
+
+  { q: `int num = 12;
+
+  if (num - 5 == 7)`, a: true },
+
+  { q: `int num = 9;
+
+  if (num - 2 == 10)`, a: false },
+
+  { q: `int value = 0;
+
+  if (value - 1 < 0)`, a: true },
+
+  { q: `int value = 3;
+
+  if (value - 5 > 0)`, a: false },
+
+  { q: `int value = 8;
+
+  if (value + 2 >= 10)`, a: true },
+
+  { q: `int value = 7;
+
+  if (value + 2 > 10)`, a: false },
+
+  { q: `int value = 5;
+
+  if (value - 5 <= 0)`, a: true },
+
+  { q: `int value = 6;
+
+  if (value - 3 < 2)`, a: false }
+  ]
+
+  // pick random predefined question
+  let q = questions[rand(0, questions.length - 1)]
+
+  document.getElementById("question").innerHTML = q.q
+
+  correctAnswer = q.a
+
+  renderTyped()
+
+  }
+
+
+
+  function renderTrueFalse(){
+
+  document.getElementById("answers").innerHTML=
+  `<button onclick="checkAnswer(true)">TRUE</button>
+  <button onclick="checkAnswer(false)">FALSE</button>`
+
+  }
+
+  function renderTyped(){
+
+  document.getElementById("answers").innerHTML=
+  `<input id="typedAnswer" placeholder="true or false">
+  <button onclick="checkTyped()">Submit</button>`
+
+  }
+
+  function disableAnswers(){
+
+  let buttons=document.querySelectorAll("#answers button")
+  buttons.forEach(b=>b.disabled=true)
+
+  let input=document.getElementById("typedAnswer")
+  if(input) input.disabled=true
+
+  }
+
+  function checkAnswer(ans){
+
+  if(answered) return
+  answered=true
+
+  if(ans===correctAnswer){
+  score++
+  document.getElementById("feedback").innerText="Correct!"
+  }else{
+  document.getElementById("feedback").innerText="Wrong"
+  }
+
+  disableAnswers()
+
+  document.getElementById("score").innerText=score
+
+  if(score>=40) unlockNext()
+
+  }
+
+  function checkTyped(){
+
+  if(answered) return
+  answered=true
+
+  let val=document.getElementById("typedAnswer").value.toLowerCase()
+
+  if(val==correctAnswer.toString()){
+  score++
+  document.getElementById("feedback").innerText="Correct!"
+  }else{
+  document.getElementById("feedback").innerText="Wrong"
+  }
+
+  disableAnswers()
+
+  document.getElementById("score").innerText=score
+
+  if(score>=40) unlockNext()
+
+  }
+
+  function checkFix(a,b){
+
+  if(answered) return
+  answered=true
+
+  let op=document.getElementById("typedAnswer").value
+
+  try{
+
+  let result=eval(`${a}${op}${b}`)
+
+  if(result){
+  score++
+  document.getElementById("feedback").innerText="Correct!"
+  }else{
+  document.getElementById("feedback").innerText="Not correct"
+  }
+
+  }catch{
+  document.getElementById("feedback").innerText="Invalid operator"
+  }
+
+  disableAnswers()
+
+  document.getElementById("score").innerText=score
+
+  if(score>=40) unlockNext()
+
+  }
+
+  function unlockNext(){
+
+  alert("Next level unlocked!")
+
+  if(level<5){
+
+  unlockedLevels[level]=true
+
+  let btn=document.getElementById("btn"+(level+1))
+
+  if(btn){
+  btn.classList.remove("locked")
+  btn.innerText="Level "+(level+1)
+  }
+
+  }
+
+  goBack()
+
+  }
+
+</script>
+
+</body>
+</html>
