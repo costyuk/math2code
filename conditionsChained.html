@@ -94,6 +94,8 @@
         <button class="levelBtn locked" onclick="selectLevel(2)" id="btn2">🔒 Level 2</button>
         <button class="levelBtn locked" onclick="selectLevel(3)" id="btn3">🔒 Level 3</button>
         <button class="levelBtn locked" onclick="selectLevel(4)" id="btn4">🔒 Level 4</button>
+        <button class="levelBtn locked" onclick="selectLevel(5)" id="btn5">🔒 Level 5</button>
+        <button class="levelBtn locked" onclick="selectLevel(6)" id="btn6">🔒 Level 6</button>
 
         <p>Unlock next level after 40 correct answers or teacher PIN</p>
 
@@ -137,7 +139,7 @@
     let correctAnswer=null
     let answered=false
 
-    let unlockedLevels=[true,false,false,false,false]
+    let unlockedLevels=[true,false,false,false,false,false]
     let requestedLevel=null
 
     function selectLevel(l){
@@ -224,10 +226,48 @@
     if(level==3) level3()
     if(level==4) level4()
     if(level==5) level5()
+    if(level==6) level6()
 
     }
 
+    // NEW Level 1 – !(number op number), student picks TRUE / FALSE
     function level1(){
+
+    let ops = ['<','>','<=','>=','==','!=']
+    let a = rand(1,10)
+    let b = rand(1,10)
+    let op = ops[rand(0,ops.length-1)]
+    let inner = eval(`${a} ${op} ${b}`)
+    correctAnswer = !inner
+
+    document.getElementById("question").innerHTML =
+    `if (!(${a} ${op} ${b}))`
+
+    renderTrueFalse()
+
+    }
+
+    // NEW Level 2 – !(variable op number), student picks TRUE / FALSE
+    function level2(){
+
+    let ops = ['<','>','<=','>=','==','!=']
+    let a = rand(1,10)
+    let b = rand(1,10)
+    let op = ops[rand(0,ops.length-1)]
+    let inner = eval(`${a} ${op} ${b}`)
+    correctAnswer = !inner
+
+    document.getElementById("question").innerHTML =
+    `int a = ${a};
+
+    if (!(a ${op} ${b}))`
+
+    renderTrueFalse()
+
+    }
+
+    // OLD Level 1 → now Level 3
+    function level3(){
 
     let expressions = [
     "5 > 3", "2 < 1", "7 == 7", "4 != 4",
@@ -333,7 +373,8 @@
 
     }
 
-    function level2(){
+    // OLD Level 2 → now Level 4
+    function level4(){
 
     let a = rand(1,10)
     let b = rand(1,10)
@@ -442,8 +483,8 @@
 
     }
 
-    /* ✅ UPDATED LEVEL 3: Chained Conditions */
-    function level3(){
+    /* OLD Level 3 → now Level 5: Chained Conditions */
+    function level5(){
 
       let questions = [
         // Integers with && and ||
@@ -839,13 +880,14 @@
     return Q
     }
 
-    function level4(){
+    // OLD Level 4 → now Level 6
+    function level6(){
 
-      if(!window.level4Questions){
-        window.level4Questions = generateLevel4Questions()
+      if(!window.level6Questions){
+        window.level6Questions = generateLevel4Questions()
       }
 
-      let q = window.level4Questions[rand(0, window.level4Questions.length-1)]
+      let q = window.level6Questions[rand(0, window.level6Questions.length-1)]
 
       window.currentTests = q.test
       window.currentVars = q.vars
@@ -1027,7 +1069,7 @@
 
     alert("Next level unlocked!")
 
-    if(level<5){
+    if(level<6){
 
     unlockedLevels[level]=true
 
