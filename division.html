@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Math2Code Division Practice</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Comic Sans MS", "Comic Neue", cursive;
+      text-align: center;
+      background: linear-gradient(45deg, #d4fc79, #96e6a1);
+      transition: 0.5s;
+      overflow-x: hidden;
+    }
+    .container {
+      width: 95%;
+      max-width: 700px;
+      margin: 20px auto;
+      box-sizing: border-box;
+      background: white;
+      padding: 25px;
+      border-radius: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .level-btn.locked  { opacity: 0.3; cursor: pointer; }
+    .level-btn.unlocked { opacity: 1; }
+    .level-bar {
+      background: white;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .level-btn {
+      font-size: 32px;
+      padding: 10px 15px;
+      border-radius: 15px;
+      cursor: pointer;
+      border: none;
+      background: white;
+      transition: 0.3s;
+    }
+    .level-btn.unlocked:hover {
+      animation: float 2s infinite ease-in-out;
+      transform: scale(1.2);
+    }
+    .mode-indicator {
+      font-weight: bold;
+      padding: 5px;
+      border-radius: 10px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    .practice  { background: #4caf50; color: white; }
+    .challenge { background: #ff9800; color: white; }
+    .question  { font-size: 42px; margin: 20px; }
+    input {
+      font-size: 28px;
+      padding: 10px;
+      width: 150px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    button.action {
+      font-size: 18px;
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 12px;
+      background: #2196f3;
+      color: white;
+      cursor: pointer;
+    }
+    .timer     { font-size: 20px; margin-top: 10px; }
+    .stars     { font-size: 28px; margin: 10px; }
+    .character { font-size: 50px; text-align: right; }
+    .character:hover { animation: float 2s infinite ease-in-out; }
+    @keyframes float {
+      0%   { transform: translateY(0px); }
+      50%  { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    #parentPanel {
+      position: fixed;
+      top: 70px;
+      right: 10px;
+      width: 320px;
+      max-height: 80vh;
+      overflow-y: auto;
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+    .hidden { display: none; }
+    .gate {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10000;
+    }
+    .gateBox {
+      text-align: center; padding: 30px;
+      background: #f9f9f9; border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+    .gate input  { font-size: 18px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+    .gate button { margin-top: 10px; padding: 10px 20px; font-size: 18px; }
+  </style>
+</head>
+<body>
+
+<div id="unlockModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:20000;align-items:center;justify-content:center;">
+  <div style="background:white;padding:28px 32px;border-radius:16px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.3);min-width:260px;">
+    <h3 style="margin:0 0 8px">🔐 Unlock Level</h3>
+    <p style="color:#666;margin:0 0 14px;font-size:15px">Enter teacher PIN:</p>
+    <input type="password" id="unlockPinInput" maxlength="4"
+      style="font-size:22px;width:90px;padding:8px;border-radius:8px;border:2px solid #ccc;text-align:center;"
+      onkeydown="if(event.key==='Enter')confirmUnlock()">
+    <br><br>
+    <button onclick="confirmUnlock()" style="background:#2196f3;color:white;border:none;border-radius:8px;padding:8px 18px;font-size:15px;cursor:pointer;margin-right:8px;">Unlock</button>
+    <button onclick="closeUnlockModal()" style="background:#ccc;color:#333;border:none;border-radius:8px;padding:8px 18px;font-size:15px;cursor:pointer;">Cancel</button>
+    <div id="unlockMessage" style="margin-top:10px;font-weight:bold;min-height:20px;"></div>
+  </div>
+</div>
+
+<div id="nameGate" class="gate">
+  <div class="gateBox">
+    <h2>👋 Welcome!</h2>
+    <p>Enter your name to start:</p>
+    <input id="studentNameInput" placeholder="Your name"
+      onkeydown="if(event.key==='Enter')saveStudentName()">
+    <button onclick="saveStudentName()">Start 🚀</button>
+  </div>
+</div>
+
+<div class="level-bar" id="levelBar"></div>
+
+<div class="container">
+  <div id="character" class="character">🐣</div>
+  <div id="modeIndicator" class="mode-indicator practice">Practice Mode</div>
+
+  <h2 id="levelTitle">Choose a Level</h2>
+
+  <button class="action" onclick="startPractice()">Practice</button>
+  <button class="action" onclick="startChallenge()">Challenge</button>
+
+  <div class="timer hidden" id="timer"></div>
+
+  <div class="question" id="question"></div>
+  <input id="answer" type="number" disabled>
+
+  <div id="feedback"></div>
+  <div class="stars" id="stars">☆☆☆</div>
+  <div id="message" style="margin:10px;font-weight:bold;"></div>
+
+  <button id="finishBtn" class="action hidden" onclick="finishLevel()">Finish Level ✅</button>
+
+  <button class="action" id="parentBtn">📊</button>
+  <div id="parentPanel" class="hidden"></div>
+</div>
+
+<script>
+  const RESET_PIN = "1502";
+  const UNLOCK_STORAGE_KEY = "unlockOverrides_division";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqW5pL7IkOWEzhxphMfOWYhltA1n8HCSOQG7dFDicG0wPr0rR4NwilotAVOGk4TqL9/exec";
+
+  const levels = [
+    { emoji:"🐣", name:"Divide by 1–3",        minDiv:1, maxDiv:3,  maxQ:10, challengeDuration:60, minQuestions:12, minAccuracy:85 },
+    { emoji:"🐤", name:"Divide by 2, 5, 10",   minDiv:1, maxDiv:10, maxQ:10, easyDiv:true, challengeDuration:60, minQuestions:15, minAccuracy:85 },
+    { emoji:"🐥", name:"Divide by 1–5",         minDiv:1, maxDiv:5,  maxQ:10, challengeDuration:60, minQuestions:15, minAccuracy:85 },
+    { emoji:"🦆", name:"Divide by 1–10",        minDiv:1, maxDiv:10, maxQ:10, challengeDuration:60, minQuestions:15, minAccuracy:90 },
+    { emoji:"🦉", name:"Divide by 1–12",        minDiv:1, maxDiv:12, maxQ:12, challengeDuration:60, minQuestions:15, minAccuracy:90 },
+    { emoji:"🦅", name:"Divide by 1–15",        minDiv:1, maxDiv:15, maxQ:15, challengeDuration:60, minQuestions:12, minAccuracy:90 },
+    { emoji:"🐉", name:"Division Challenge 1–20", minDiv:1, maxDiv:20, maxQ:20, challengeDuration:60, minQuestions:10, minAccuracy:90 },
+  ];
+
+  const question  = document.getElementById("question");
+  const answer    = document.getElementById("answer");
+  const stars     = document.getElementById("stars");
+  const finishBtn = document.getElementById("finishBtn");
+  const timer     = document.getElementById("timer");
+  const dashboard = document.getElementById("parentPanel");
+
+  let currentLevel    = 0;
+  let correct         = 0;
+  let total           = 0;
+  let challenge       = false;
+  let timerInterval   = null;
+  let timeLeft        = levels[0].challengeDuration;
+  let practiceStart   = 0;
+  let correctAnswer   = 0;
+  let maxUnlockedLevel = 0;
+  let parentHideTimer = null;
+  let studentName     = "";
+
+  // ── unlock helpers ───────────────────────────────────────────────────────
+
+  let unlockTargetLevel = null;
+
+  function getUnlockOverrides() {
+    return JSON.parse(localStorage.getItem(UNLOCK_STORAGE_KEY) || "[]");
+  }
+  function saveUnlockOverrides(ov) {
+    localStorage.setItem(UNLOCK_STORAGE_KEY, JSON.stringify(ov));
+  }
+  function promptUnlock(index) {
+    unlockTargetLevel = index;
+    document.getElementById("unlockModal").style.display = "flex";
+    document.getElementById("unlockPinInput").value = "";
+    document.getElementById("unlockMessage").innerText = "";
+    setTimeout(() => document.getElementById("unlockPinInput").focus(), 50);
+  }
+  function closeUnlockModal() {
+    document.getElementById("unlockModal").style.display = "none";
+    unlockTargetLevel = null;
+  }
+  function confirmUnlock() {
+    const pin = document.getElementById("unlockPinInput").value;
+    const msg = document.getElementById("unlockMessage");
+    if (pin === RESET_PIN) {
+      const ov = getUnlockOverrides();
+      if (!ov.includes(unlockTargetLevel)) { ov.push(unlockTargetLevel); saveUnlockOverrides(ov); }
+      msg.style.color = "green";
+      msg.innerText = "✅ Level unlocked!";
+      setTimeout(() => { closeUnlockModal(); renderLevels(); selectLevel(unlockTargetLevel); }, 700);
+    } else {
+      msg.style.color = "red";
+      msg.innerText = "❌ Incorrect PIN";
+    }
+  }
+
+  // ── name gate ────────────────────────────────────────────────────────────
+
+  function saveStudentName() {
+    const input = document.getElementById("studentNameInput").value.trim();
+    if (!input) { alert("Please enter your name"); return; }
+    studentName = input;
+    localStorage.setItem("studentName", studentName);
+    document.getElementById("nameGate").style.display = "none";
+  }
+
+  function checkStudentName() {
+    const stored = localStorage.getItem("studentName");
+    if (stored) { studentName = stored; document.getElementById("nameGate").style.display = "none"; }
+  }
+
+  // ── level rendering ──────────────────────────────────────────────────────
+
+  function renderLevels(selectMax = false) {
+    const container = document.getElementById("levelBar");
+    container.innerHTML = "";
+    const stats = getStats();
+    const overrides = getUnlockOverrides();
+    maxUnlockedLevel = 0;
+
+    levels.forEach((lvl, index) => {
+      const btn = document.createElement("button");
+      btn.className = "level-btn";
+      btn.innerText = lvl.emoji;
+
+      const prevPassed = index === 0 ? true : stats[getLevelKey(index - 1)]?.passed;
+      const unlocked   = index === 0 || prevPassed || overrides.includes(index);
+
+      if (unlocked) {
+        btn.classList.add("unlocked");
+        btn.onclick = () => selectLevel(index);
+        maxUnlockedLevel = index;
+      } else {
+        btn.classList.add("locked");
+        btn.onclick = () => promptUnlock(index);
+      }
+      container.appendChild(btn);
+    });
+
+    document.getElementById("character").innerText = levels[maxUnlockedLevel].emoji;
+    if (selectMax) selectLevel(maxUnlockedLevel);
+  }
+
+  function selectLevel(index) {
+    currentLevel = Number(index);
+    ensureLevelStats();
+    document.getElementById("levelTitle").innerText =
+      "Level " + (currentLevel + 1) + " – " + levels[currentLevel].name;
+    startPractice();
+  }
+
+  function getLevelKey(index = currentLevel) { return "level_" + index; }
+
+  // ── game modes ───────────────────────────────────────────────────────────
+
+  function startPractice() {
+    stopAllModes();
+    challenge = false;
+    document.getElementById("modeIndicator").className = "mode-indicator practice";
+    document.getElementById("modeIndicator").innerText = "Practice Mode";
+    document.getElementById("timer").classList.add("hidden");
+    document.getElementById("message").innerText = "";
+    stars.innerText = "☆☆☆";
+    practiceStart = Date.now();
+    answer.disabled = false;
+    answer.value = "";
+    generateQuestion();
+  }
+
+  function startChallenge() {
+    stopAllModes();
+    challenge = true;
+    document.getElementById("modeIndicator").className = "mode-indicator challenge";
+    document.getElementById("modeIndicator").innerText = "Challenge Mode";
+    document.getElementById("timer").classList.remove("hidden");
+    document.getElementById("message").innerText = "";
+    correct = 0; total = 0;
+    timeLeft = levels[currentLevel].challengeDuration;
+    timer.innerText = "Time: " + timeLeft;
+    answer.disabled = false;
+    answer.value = "";
+    generateQuestion();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      timer.innerText = "Time: " + timeLeft;
+      if (timeLeft <= 0) finishLevel();
+    }, 1000);
+  }
+
+  function stopAllModes() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    finishBtn.classList.add("hidden");
+    if (!challenge && practiceStart) {
+      const stats = getStats();
+      const key = getLevelKey();
+      ensureLevelStats();
+      stats[key].practiceTime += Math.floor((Date.now() - practiceStart) / 1000);
+      saveStats(stats);
+    }
+    practiceStart = 0;
+    correct = 0;
+    total = 0;
+  }
+
+  // ── question generation ──────────────────────────────────────────────────
+
+  function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  function generateQuestion() {
+    const lvl = levels[currentLevel];
+    let divisor;
+
+    if (lvl.easyDiv) {
+      const easy = [2, 5, 10];
+      divisor = easy[Math.floor(Math.random() * easy.length)];
+    } else {
+      divisor = randomInt(lvl.minDiv, lvl.maxDiv);
+    }
+
+    const quotient = randomInt(1, lvl.maxQ);
+    const dividend = divisor * quotient;
+    correctAnswer  = quotient;
+
+    question.innerText = `${dividend} ÷ ${divisor} = ?`;
+    setTimeout(() => answer.focus(), 50);
+  }
+
+  // ── answer checking ──────────────────────────────────────────────────────
+
+  function checkAnswer() {
+    const val = parseInt(answer.value);
+    if (isNaN(val)) return;
+
+    ensureLevelStats();
+    const stats = getStats();
+    const key   = getLevelKey();
+
+    if (challenge) {
+      total++;
+      if (val === correctAnswer) correct++;
+      updateStars();
+    } else {
+      stats[key].practiceTotal++;
+      if (val === correctAnswer) { stats[key].practiceCorrect++; stars.innerText = "👍"; }
+      else                       { stars.innerText = "😕"; }
+      saveStats(stats);
+    }
+
+    answer.value = "";
+    generateQuestion();
+
+    if (total >= levels[currentLevel].minQuestions && accuracy() >= levels[currentLevel].minAccuracy) {
+      finishBtn.classList.remove("hidden");
+    }
+  }
+
+  function accuracy() { return total === 0 ? 0 : Math.round((correct / total) * 100); }
+
+  function saveChallengeResults() {
+    ensureLevelStats();
+    const stats = getStats();
+    const key   = getLevelKey();
+    const acc   = accuracy();
+    const lvl   = levels[currentLevel];
+    if (acc > stats[key].challengeBestAccuracy) {
+      stats[key].challengeBestAccuracy = acc;
+      stats[key].challengeBestCorrect  = correct;
+    }
+    if (total >= lvl.minQuestions && acc >= lvl.minAccuracy) stats[key].passed = true;
+    saveStats(stats);
+  }
+
+  function finishLevel() {
+    const key = getLevelKey(currentLevel);
+    if (!key || !challenge) return;
+    clearInterval(timerInterval);
+    timerInterval = null;
+    finishBtn.classList.add("hidden");
+
+    const lvl    = levels[currentLevel];
+    const passed = total >= lvl.minQuestions && accuracy() >= lvl.minAccuracy;
+
+    const stats = getStats();
+    ensureLevelStats();
+    stats[key].passed = passed;
+    saveStats(stats);
+
+    if (passed) {
+      document.getElementById("message").innerText = "🎉 Level Passed! Next level unlocked!";
+    } else {
+      document.getElementById("message").innerText =
+        `You need ${lvl.minAccuracy}% accuracy and at least ${lvl.minQuestions} questions.`;
+    }
+
+    saveChallengeResults();
+    sendResultToSheet(lvl.name, "challenge", correct, total);
+    renderLevels(true);
+  }
+
+  function updateFinishButton() {
+    if (challenge && total >= levels[currentLevel].minQuestions && accuracy() >= levels[currentLevel].minAccuracy) {
+      finishBtn.classList.remove("hidden");
+    }
+  }
+
+  function updateStars() {
+    const acc = accuracy();
+    stars.innerText =
+      acc >= 100 ? "⭐⭐⭐" :
+      acc >= 95  ? "⭐⭐☆" :
+      acc >= levels[currentLevel].minAccuracy ? "⭐☆☆" :
+      "☆☆☆";
+  }
+
+  // ── stats helpers ────────────────────────────────────────────────────────
+
+  function getStats()       { return JSON.parse(localStorage.getItem("divisionStats") || "{}"); }
+  function saveStats(stats) { localStorage.setItem("divisionStats", JSON.stringify(stats)); }
+
+  function ensureLevelStats() {
+    const stats = getStats();
+    const key   = getLevelKey();
+    if (!stats[key]) {
+      stats[key] = { practiceTime:0, practiceCorrect:0, practiceTotal:0, challengeBestAccuracy:0, challengeBestCorrect:0, passed:false };
+      saveStats(stats);
+    }
+  }
+
+  function sendResultToSheet(level, mode, correct, attempts) {
+    const payload = {
+      name: studentName, level, mode, correct, attempts,
+      accuracy: attempts > 0 ? Math.round((correct / attempts) * 100) : 0,
+    };
+    fetch(GOOGLE_SCRIPT_URL, { method:"POST", body:JSON.stringify(payload) })
+      .catch(err => console.log("Sheet send failed:", err));
+  }
+
+  // ── parent dashboard ─────────────────────────────────────────────────────
+
+  function toggleParent() {
+    dashboard.classList.toggle("hidden");
+    if (!dashboard.classList.contains("hidden")) {
+      const stats = getStats();
+      let html = "<h3>📊 Progress Report</h3>";
+      for (let key in stats) {
+        const s = stats[key];
+        html += `
+          <div style="margin-bottom:10px;padding:8px;border-bottom:1px solid #ccc">
+            <strong>${key}</strong><br>
+            🧠 Practice time: ${s.practiceTime}s<br>
+            👍 Practice correct: ${s.practiceCorrect} / ${s.practiceTotal}<br>
+            🎯 Best challenge accuracy: ${s.challengeBestAccuracy}%<br>
+            🏆 Best challenge correct: ${s.challengeBestCorrect}<br>
+            ${s.passed ? "✅ Passed" : "🔓 Not passed yet"}
+          </div>`;
+      }
+      html += `
+        <div style="margin-top:20px;text-align:center;">
+          <button onclick="showResetPrompt()"
+            style="background:#ff4d4d;color:white;padding:8px 15px;border:none;border-radius:8px;cursor:pointer;">
+            🔐 Reset All Statistics
+          </button>
+          <div id="resetArea" style="margin-top:10px;"></div>
+        </div>`;
+      dashboard.innerHTML = html;
+      if (parentHideTimer) clearTimeout(parentHideTimer);
+      parentHideTimer = setTimeout(() => dashboard.classList.add("hidden"), 20000);
+    } else {
+      if (parentHideTimer) clearTimeout(parentHideTimer);
+    }
+  }
+
+  function showResetPrompt() {
+    document.getElementById("resetArea").innerHTML = `
+      <div style="margin-top:10px;">
+        Enter PIN:
+        <input type="password" id="resetPinInput"
+          style="padding:5px;border-radius:5px;border:1px solid #ccc;width:80px;">
+        <button onclick="confirmReset()"
+          style="margin-left:5px;padding:5px 10px;border-radius:5px;border:none;background:#444;color:white;">
+          Confirm
+        </button>
+        <div id="resetMessage" style="margin-top:5px;font-weight:bold;"></div>
+      </div>`;
+  }
+
+  function confirmReset() {
+    const input   = document.getElementById("resetPinInput").value;
+    const message = document.getElementById("resetMessage");
+    if (input === RESET_PIN) {
+      localStorage.removeItem("divisionStats");
+      localStorage.removeItem(UNLOCK_STORAGE_KEY);
+      message.innerText = "✅ Statistics Reset Successfully!";
+      message.style.color = "green";
+      renderLevels();
+      selectLevel(0);
+    } else {
+      message.innerText = "❌ Incorrect PIN";
+      message.style.color = "red";
+    }
+  }
+
+  // ── init ─────────────────────────────────────────────────────────────────
+
+  answer.addEventListener("keyup", e => {
+    if (e.key === "Enter") { checkAnswer(); updateFinishButton(); }
+  });
+
+  dashboard.addEventListener("mouseenter", () => { if (parentHideTimer) clearTimeout(parentHideTimer); });
+  dashboard.addEventListener("mouseleave", () => {
+    parentHideTimer = setTimeout(() => dashboard.classList.add("hidden"), 20000);
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    checkStudentName();
+    document.getElementById("parentBtn").addEventListener("click", toggleParent);
+    renderLevels(true);
+  });
+</script>
+</body>
+</html>
