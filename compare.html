@@ -288,19 +288,19 @@
 
   <div class="level-grid">
     <div class="level-card" id="card1" onclick="startLevel(1)">
-      <div class="big-icon">🍎➕</div>
-      <div class="lv-title">Level 1</div>
-      <div class="lv-desc">Add emoji &amp; compare</div>
-    </div>
-    <div class="level-card locked" id="card2" onclick="startLevel(2)">
       <div class="big-icon">🍎</div>
-      <div class="lv-title">Level 2</div>
+      <div class="lv-title">Level 1</div>
       <div class="lv-desc">Count the pictures</div>
     </div>
-    <div class="level-card locked" id="card3" onclick="startLevel(3)">
+    <div class="level-card locked" id="card2" onclick="startLevel(2)">
       <div class="big-icon">🔢</div>
-      <div class="lv-title">Level 3</div>
+      <div class="lv-title">Level 2</div>
       <div class="lv-desc">Compare numbers</div>
+    </div>
+    <div class="level-card locked" id="card3" onclick="startLevel(3)">
+      <div class="big-icon">🍎➕</div>
+      <div class="lv-title">Level 3</div>
+      <div class="lv-desc">Add emoji &amp; compare</div>
     </div>
     <div class="level-card locked" id="card4" onclick="startLevel(4)">
       <div class="big-icon">➕</div>
@@ -453,9 +453,9 @@
 
     const labels = [
       "",
-      "Add the pictures and compare! 🍎➕🍎",
       "Count the pictures! 🍎",
       "Compare the numbers! 🔢",
+      "Add the pictures and compare! 🍎➕🍎",
       "Math vs number! ➕",
       "Math vs math! ⚡"
     ];
@@ -494,17 +494,17 @@
     document.getElementById("signInput").disabled = false;
     document.getElementById("signInput").focus();
 
-    if      (currentLevel === 1) genLevel1();
-    else if (currentLevel === 2) genLevel2();
-    else if (currentLevel === 3) genLevel3();
-    else if (currentLevel === 4) genLevel4();
-    else if (currentLevel === 5) genLevel5();
+    if      (currentLevel === 1) genEmoji();
+    else if (currentLevel === 2) genNumbers();
+    else if (currentLevel === 3) genEmojiAdd();
+    else if (currentLevel === 4) genExprVsNum();
+    else if (currentLevel === 5) genExprVsExpr();
   }
 
-  // Level 1 – emoji addition vs emoji group
+  // Level 3 – emoji addition vs emoji group
   // Left: [A emoji] + [B emoji]   Right: [C emoji]
   // Compare (A+B) vs C
-  function genLevel1() {
+  function genEmojiAdd() {
     const emoji = EMOJIS[rand(0, EMOJIS.length - 1)];
     const a = rand(1, 4);
     const b = rand(1, 4);
@@ -522,8 +522,8 @@
       `<div class="side-box">${renderEmoji(emoji, c)}</div>`;
   }
 
-  // Level 2 – compare two emoji groups
-  function genLevel2() {
+  // Level 1 – compare two emoji groups
+  function genEmoji() {
     const emoji = EMOJIS[rand(0, EMOJIS.length - 1)];
     const a = rand(1, 9);
     const b = rand(1, 9);
@@ -532,8 +532,8 @@
     document.getElementById("rightSide").innerHTML = `<div class="side-box">${renderEmoji(emoji, b)}</div>`;
   }
 
-  // Level 3 – compare two single-digit numbers
-  function genLevel3() {
+  // Level 2 – compare two single-digit numbers
+  function genNumbers() {
     const a = rand(1, 9);
     const b = rand(1, 9);
     setSign(a, b);
@@ -542,7 +542,7 @@
   }
 
   // Level 4 – expression vs plain number
-  function genLevel4() {
+  function genExprVsNum() {
     const { expr, val } = randExpr();
     const right = rand(1, 9);
     setSign(val, right);
@@ -551,7 +551,7 @@
   }
 
   // Level 5 – expression vs expression
-  function genLevel5() {
+  function genExprVsExpr() {
     const L = randExpr();
     const R = randExpr();
     setSign(L.val, R.val);
