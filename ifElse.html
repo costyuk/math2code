@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>If/Else Practice</title>
+  <style>
+    body { font-family: Arial; background: #eef2ff; text-align: center; margin: 0; padding: 10px; }
+    .container { background: white; max-width: 860px; margin: auto; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { color: #333; }
+    button { padding: 10px 18px; margin: 6px; border: none; border-radius: 6px; font-size: 17px; cursor: pointer; }
+    .levelBtn { background: #3f51b5; color: white; }
+    .locked    { background: #bdbdbd; color: #444; }
+    pre.code {
+      background: #f4f4f4; padding: 18px; border-radius: 8px;
+      font-family: monospace; font-size: 17px; line-height: 1.7;
+      text-align: left; display: block; margin: 16px auto;
+      max-width: 680px; overflow-x: auto; white-space: pre;
+      border-left: 4px solid #3f51b5;
+    }
+    .rules-box {
+      background: #e8f5e9; border-left: 4px solid #4caf50;
+      padding: 14px 18px; border-radius: 8px;
+      font-family: monospace; font-size: 15px; line-height: 1.9;
+      text-align: left; display: block; margin: 10px auto;
+      max-width: 680px;
+    }
+    .vars-box {
+      background: #fff8e1; border-left: 4px solid #ff9800;
+      padding: 12px 18px; border-radius: 8px;
+      font-family: monospace; font-size: 18px; line-height: 1.7;
+      text-align: left; display: block; margin: 10px auto;
+      max-width: 680px;
+    }
+    .q-label { font-size: 15px; color: #666; margin-bottom: 6px; }
+    input[type="text"] {
+      padding: 10px 14px; font-size: 18px; width: 220px;
+      border: 2px solid #ccc; border-radius: 8px; margin: 8px;
+      font-family: monospace;
+    }
+    input[type="text"]:focus { outline: none; border-color: #3f51b5; }
+    #feedback { font-size: 20px; font-weight: bold; margin: 10px 0; min-height: 28px; }
+    .tf-btn { font-size: 20px; padding: 14px 40px; border-radius: 8px; font-weight: bold; }
+    .tf-true  { background: #4caf50; color: white; }
+    .tf-false { background: #f44336; color: white; }
+    .tf-true:hover  { background: #388e3c; }
+    .tf-false:hover { background: #c62828; }
+    #pinPanel { display: none; margin-top: 20px; background: #fff3cd; padding: 15px; border-radius: 8px; }
+    .score-bar { font-size: 17px; color: #555; margin: 8px 0; }
+    .next-btn { background: #3f51b5; color: white; font-size: 17px; padding: 10px 28px; border-radius: 8px; margin-top: 8px; }
+    .back-btn { background: #9e9e9e; color: white; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h2>🧠 If/Else Code Practice</h2>
+
+  <!-- Level select -->
+  <div id="levelSelect">
+    <h3>Select Level</h3>
+    <button class="levelBtn" onclick="selectLevel(1)">Level 1 — True / False</button><br>
+    <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">🔒 Level 2 — Simple if/else</button><br>
+    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">🔒 Level 3 — if / else if / else</button><br>
+    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">🔒 Level 4 — Dog Name Challenge</button>
+    <p style="color:#888;font-size:14px">Pass a level by scoring 40 correct answers, or ask your teacher for the PIN.</p>
+    <div id="pinPanel">
+      <p>Enter Teacher PIN to unlock:</p>
+      <input id="pinInput" type="password" placeholder="PIN"
+             onkeypress="if(event.key==='Enter')checkPin()" style="font-size:17px;width:100px;padding:8px;border-radius:6px;border:1px solid #ccc">
+      <button onclick="checkPin()">Unlock</button>
+    </div>
+  </div>
+
+  <!-- Quiz area -->
+  <div id="quiz" style="display:none">
+    <h3 id="levelTitle"></h3>
+    <div id="questionArea"></div>
+    <div id="feedback"></div>
+    <div class="score-bar">Correct: <span id="score">0</span> / 40</div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()" style="display:none">Next →</button>
+    <br>
+    <button class="back-btn" onclick="goBack()">← Back</button>
+  </div>
+
+</div>
+
+<script>
+// ── state ─────────────────────────────────────────────────────────────────────
+let level = 1;
+let score = 0;
+let answered = false;
+let qIdx = 0;          // question index (cycles)
+let requestedLevel = null;
+let unlockedLevels = [true, false, false, false];
+
+// ── navigation ────────────────────────────────────────────────────────────────
+function selectLevel(l) {
+  if (!unlockedLevels[l - 1]) {
+    requestedLevel = l;
+    document.getElementById("pinPanel").style.display = "block";
+    return;
+  }
+  startQuiz(l);
+}
+
+function checkPin() {
+  const pin = document.getElementById("pinInput").value;
+  document.getElementById("pinInput").value = "";
+  if (pin === "1502") {
+    unlockedLevels[requestedLevel - 1] = true;
+    const btn = document.getElementById("btn" + requestedLevel);
+    btn.classList.remove("locked");
+    btn.innerText = "Level " + requestedLevel + " — " + levelLabel(requestedLevel);
+    document.getElementById("pinPanel").style.display = "none";
+    startQuiz(requestedLevel);
+  } else {
+    alert("Wrong PIN");
+  }
+}
+
+function levelLabel(l) {
+  return ["True / False","Simple if/else","if / else if / else","Dog Name Challenge"][l-1] || "";
+}
+
+function startQuiz(l) {
+  level = l;
+  score = 0;
+  qIdx = 0;
+  document.getElementById("score").innerText = 0;
+  document.getElementById("quiz").style.display = "block";
+  document.getElementById("levelSelect").style.display = "none";
+  document.getElementById("levelTitle").innerText = "Level " + l + " — " + levelLabel(l);
+  nextQuestion();
+}
+
+function goBack() {
+  document.getElementById("quiz").style.display = "none";
+  document.getElementById("levelSelect").style.display = "block";
+}
+
+function nextQuestion() {
+  answered = false;
+  document.getElementById("feedback").innerText = "";
+  document.getElementById("nextBtn").style.display = "none";
+  if (level === 1) showLevel1();
+  else if (level === 2) showLevel2();
+  else if (level === 3) showLevel3();
+  else if (level === 4) showLevel4();
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+function normalizeAnswer(s) {
+  return String(s).trim().toLowerCase().replace(/^"+|"+$/g, "");
+}
+
+function onCorrect() {
+  score++;
+  document.getElementById("score").innerText = score;
+  document.getElementById("feedback").style.color = "#4caf50";
+  document.getElementById("feedback").innerText = "✓ Correct!";
+  document.getElementById("nextBtn").style.display = "inline-block";
+  if (score >= 40) unlockNext();
+}
+
+function onWrong(correctVal) {
+  document.getElementById("feedback").style.color = "#f44336";
+  document.getElementById("feedback").innerText = `✗ Wrong! Answer: "${correctVal}"`;
+  document.getElementById("nextBtn").style.display = "inline-block";
+}
+
+function unlockNext() {
+  if (level < 4) {
+    unlockedLevels[level] = true;
+    const btn = document.getElementById("btn" + (level + 1));
+    if (btn) { btn.classList.remove("locked"); btn.innerText = "Level " + (level+1) + " — " + levelLabel(level+1); }
+    document.getElementById("feedback").innerText += "  🎉 Level " + (level+1) + " unlocked!";
+  } else {
+    document.getElementById("feedback").innerText += "  🏆 You completed all levels!";
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 1 — evaluate a boolean expression: True / False buttons
+// ══════════════════════════════════════════════════════════════════════════════
+const L1 = [
+  { code: "int a = 5;\nint b = 3;\nif (a > b)",                                      ans: true  },
+  { code: "int a = 2;\nint b = 8;\nif (a > b)",                                      ans: false },
+  { code: "boolean isDog = true;\nif (isDog)",                                        ans: true  },
+  { code: "boolean isDog = false;\nif (isDog)",                                       ans: false },
+  { code: "int x = 10;\nif (x == 10)",                                               ans: true  },
+  { code: "int x = 7;\nif (x == 10)",                                                ans: false },
+  { code: "boolean isRaining = true;\nif (!isRaining)",                              ans: false },
+  { code: "boolean isRaining = false;\nif (!isRaining)",                             ans: true  },
+  { code: "int a = 5;\nint b = 3;\nif (a > b && true)",                              ans: true  },
+  { code: "int a = 2;\nint b = 8;\nif (a > b && true)",                              ans: false },
+  { code: "boolean a = true;\nboolean b = false;\nif (a && b)",                      ans: false },
+  { code: "boolean a = true;\nboolean b = true;\nif (a && b)",                       ans: true  },
+  { code: "boolean a = false;\nboolean b = false;\nif (a || b)",                     ans: false },
+  { code: "boolean a = true;\nboolean b = false;\nif (a || b)",                      ans: true  },
+  { code: "int x = 7;\nboolean isGood = true;\nif (x > 5 && isGood)",               ans: true  },
+  { code: "int x = 3;\nboolean isGood = true;\nif (x > 5 && isGood)",               ans: false },
+  { code: "int x = 7;\nboolean isGood = false;\nif (x > 5 && isGood)",              ans: false },
+  { code: "int x = 3;\nboolean isGood = false;\nif (x > 5 || isGood)",              ans: false },
+  { code: "int x = 3;\nboolean isGood = true;\nif (x > 5 || isGood)",               ans: true  },
+  { code: "boolean isDog = true;\nboolean isCat = false;\nif (isDog && !isCat)",     ans: true  },
+  { code: "boolean isDog = false;\nboolean isCat = false;\nif (isDog && !isCat)",    ans: false },
+  { code: "int n = 4;\nif (n % 2 == 0)",                                            ans: true  },
+  { code: "int n = 5;\nif (n % 2 == 0)",                                            ans: false },
+  { code: "int a = 5;\nint b = 5;\nif (a >= b)",                                    ans: true  },
+  { code: "int a = 4;\nint b = 5;\nif (a >= b)",                                    ans: false },
+  { code: "int a = 5;\nint b = 5;\nif (a != b)",                                    ans: false },
+  { code: "int a = 5;\nint b = 3;\nif (a != b)",                                    ans: true  },
+  { code: "boolean flag = false;\nif (flag || !flag)",                               ans: true  },
+  { code: "boolean flag = true;\nif (!flag && flag)",                                ans: false },
+  { code: "int x = 10;\nint y = 10;\nif (x == y && x > 0)",                        ans: true  },
+];
+
+let l1CorrectAnswer;
+
+function showLevel1() {
+  const q = L1[qIdx % L1.length];
+  qIdx++;
+  l1CorrectAnswer = q.ans;
+  document.getElementById("questionArea").innerHTML = `
+    <p class="q-label">What is the result of this condition?</p>
+    <pre class="code">${escHtml(q.code)}</pre>
+    <div>
+      <button class="tf-btn tf-true"  onclick="checkLevel1(true)">True</button>
+      <button class="tf-btn tf-false" onclick="checkLevel1(false)">False</button>
+    </div>`;
+}
+
+function checkLevel1(val) {
+  if (answered) return;
+  answered = true;
+  if (val === l1CorrectAnswer) onCorrect();
+  else onWrong(l1CorrectAnswer ? "True" : "False");
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 2 — simple if/else, type the returned value
+// ══════════════════════════════════════════════════════════════════════════════
+const L2 = [
+  { code: "boolean isDog = true;\nif (isDog) {\n  return \"Woofer\";\n} else {\n  return \"Meow\";\n}",                               ans: "Woofer"     },
+  { code: "boolean isDog = false;\nif (isDog) {\n  return \"Woofer\";\n} else {\n  return \"Meow\";\n}",                              ans: "Meow"       },
+  { code: "boolean isRaining = true;\nif (isRaining) {\n  return \"umbrella\";\n} else {\n  return \"sunglasses\";\n}",               ans: "umbrella"   },
+  { code: "boolean isRaining = false;\nif (isRaining) {\n  return \"umbrella\";\n} else {\n  return \"sunglasses\";\n}",              ans: "sunglasses" },
+  { code: "int x = 10;\nif (x > 5) {\n  return \"big\";\n} else {\n  return \"small\";\n}",                                          ans: "big"        },
+  { code: "int x = 3;\nif (x > 5) {\n  return \"big\";\n} else {\n  return \"small\";\n}",                                           ans: "small"      },
+  { code: "int age = 18;\nif (age >= 18) {\n  return \"adult\";\n} else {\n  return \"minor\";\n}",                                   ans: "adult"      },
+  { code: "int age = 15;\nif (age >= 18) {\n  return \"adult\";\n} else {\n  return \"minor\";\n}",                                   ans: "minor"      },
+  { code: "boolean hasTicket = true;\nif (!hasTicket) {\n  return \"stay home\";\n} else {\n  return \"enter\";\n}",                  ans: "enter"      },
+  { code: "boolean hasTicket = false;\nif (!hasTicket) {\n  return \"stay home\";\n} else {\n  return \"enter\";\n}",                 ans: "stay home"  },
+  { code: "String animal = \"dog\";\nif (animal.equals(\"dog\")) {\n  return \"Woofer\";\n} else {\n  return \"Other\";\n}",          ans: "Woofer"     },
+  { code: "String animal = \"cat\";\nif (animal.equals(\"dog\")) {\n  return \"Woofer\";\n} else {\n  return \"Other\";\n}",          ans: "Other"      },
+  { code: "int n = 7;\nif (n == 7) {\n  return \"lucky\";\n} else {\n  return \"normal\";\n}",                                       ans: "lucky"      },
+  { code: "int n = 4;\nif (n == 7) {\n  return \"lucky\";\n} else {\n  return \"normal\";\n}",                                       ans: "normal"      },
+  { code: "boolean isBoy = true;\nboolean isTall = true;\nif (isBoy && isTall) {\n  return \"Hunter\";\n} else {\n  return \"Piper\";\n}",  ans: "Hunter" },
+  { code: "boolean isBoy = true;\nboolean isTall = false;\nif (isBoy && isTall) {\n  return \"Hunter\";\n} else {\n  return \"Piper\";\n}", ans: "Piper"  },
+  { code: "boolean isBoy = false;\nboolean isTall = true;\nif (isBoy && isTall) {\n  return \"Hunter\";\n} else {\n  return \"Piper\";\n}", ans: "Piper"  },
+  { code: "boolean isHappy = true;\nboolean isExcited = false;\nif (isHappy || isExcited) {\n  return \"smile\";\n} else {\n  return \"frown\";\n}", ans: "smile" },
+  { code: "boolean isHappy = false;\nboolean isExcited = false;\nif (isHappy || isExcited) {\n  return \"smile\";\n} else {\n  return \"frown\";\n}", ans: "frown" },
+  { code: "boolean isHappy = false;\nboolean isExcited = true;\nif (isHappy || isExcited) {\n  return \"smile\";\n} else {\n  return \"frown\";\n}",  ans: "smile" },
+  { code: "int score = 55;\nif (score >= 50) {\n  return \"pass\";\n} else {\n  return \"fail\";\n}",                                 ans: "pass"       },
+  { code: "int score = 45;\nif (score >= 50) {\n  return \"pass\";\n} else {\n  return \"fail\";\n}",                                 ans: "fail"       },
+  { code: "boolean isOnSale = true;\nif (isOnSale) {\n  return \"50\";\n} else {\n  return \"100\";\n}",                              ans: "50"         },
+  { code: "boolean isOnSale = false;\nif (isOnSale) {\n  return \"50\";\n} else {\n  return \"100\";\n}",                             ans: "100"        },
+  { code: "String color = \"red\";\nif (color.equals(\"red\")) {\n  return \"stop\";\n} else {\n  return \"go\";\n}",                 ans: "stop"       },
+  { code: "String color = \"green\";\nif (color.equals(\"red\")) {\n  return \"stop\";\n} else {\n  return \"go\";\n}",               ans: "go"         },
+  { code: "boolean isEmpty = true;\nif (!isEmpty) {\n  return \"full\";\n} else {\n  return \"empty\";\n}",                           ans: "empty"      },
+  { code: "boolean isEmpty = false;\nif (!isEmpty) {\n  return \"full\";\n} else {\n  return \"empty\";\n}",                          ans: "full"       },
+  { code: "int temp = 30;\nif (temp > 25) {\n  return \"hot\";\n} else {\n  return \"cool\";\n}",                                    ans: "hot"        },
+  { code: "int temp = 20;\nif (temp > 25) {\n  return \"hot\";\n} else {\n  return \"cool\";\n}",                                    ans: "cool"       },
+  { code: "boolean isMale = true;\nif (!isMale) {\n  return \"Piper\";\n} else {\n  return \"Rex\";\n}",                             ans: "Rex"        },
+  { code: "boolean isMale = false;\nif (!isMale) {\n  return \"Piper\";\n} else {\n  return \"Rex\";\n}",                            ans: "Piper"      },
+  { code: "int weight = 8;\nif (weight < 5) {\n  return \"small\";\n} else {\n  return \"big\";\n}",                                 ans: "big"        },
+  { code: "int weight = 3;\nif (weight < 5) {\n  return \"small\";\n} else {\n  return \"big\";\n}",                                 ans: "small"      },
+  { code: "String breed = \"labrador\";\nif (breed.equals(\"labrador\")) {\n  return \"Nimbus\";\n} else {\n  return \"Hunter\";\n}", ans: "Nimbus"     },
+  { code: "String breed = \"poodle\";\nif (breed.equals(\"labrador\")) {\n  return \"Nimbus\";\n} else {\n  return \"Hunter\";\n}",   ans: "Hunter"     },
+];
+
+let l2CorrectAnswer;
+
+function showLevel2() {
+  const q = L2[qIdx % L2.length];
+  qIdx++;
+  l2CorrectAnswer = q.ans;
+  document.getElementById("questionArea").innerHTML = `
+    <p class="q-label">What value does this code return?</p>
+    <pre class="code">${escHtml(q.code)}</pre>
+    <input type="text" id="ans2" placeholder='type answer…'
+           onkeypress="if(event.key==='Enter')checkLevel2()">
+    <button onclick="checkLevel2()">Check</button>`;
+  setTimeout(() => { const el = document.getElementById("ans2"); if(el) el.focus(); }, 50);
+}
+
+function checkLevel2() {
+  if (answered) return;
+  const val = document.getElementById("ans2").value;
+  if (!val.trim()) return;
+  answered = true;
+  if (normalizeAnswer(val) === normalizeAnswer(l2CorrectAnswer)) onCorrect();
+  else onWrong(l2CorrectAnswer);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 3 — if / else if / else, type the returned value
+// ══════════════════════════════════════════════════════════════════════════════
+const L3 = [
+  { code: "int score = 85;\nif (score >= 90) {\n  return \"A\";\n} else if (score >= 80) {\n  return \"B\";\n} else {\n  return \"C\";\n}",                                        ans: "B" },
+  { code: "int score = 95;\nif (score >= 90) {\n  return \"A\";\n} else if (score >= 80) {\n  return \"B\";\n} else {\n  return \"C\";\n}",                                        ans: "A" },
+  { code: "int score = 72;\nif (score >= 90) {\n  return \"A\";\n} else if (score >= 80) {\n  return \"B\";\n} else {\n  return \"C\";\n}",                                        ans: "C" },
+  { code: "int score = 68;\nif (score >= 90) {\n  return \"A\";\n} else if (score >= 80) {\n  return \"B\";\n} else if (score >= 70) {\n  return \"C\";\n} else {\n  return \"F\";\n}", ans: "F" },
+  { code: "int score = 75;\nif (score >= 90) {\n  return \"A\";\n} else if (score >= 80) {\n  return \"B\";\n} else if (score >= 70) {\n  return \"C\";\n} else {\n  return \"F\";\n}", ans: "C" },
+  { code: "int temp = 35;\nif (temp > 30) {\n  return \"hot\";\n} else if (temp > 20) {\n  return \"warm\";\n} else if (temp > 10) {\n  return \"cool\";\n} else {\n  return \"cold\";\n}", ans: "hot"  },
+  { code: "int temp = 25;\nif (temp > 30) {\n  return \"hot\";\n} else if (temp > 20) {\n  return \"warm\";\n} else if (temp > 10) {\n  return \"cool\";\n} else {\n  return \"cold\";\n}", ans: "warm" },
+  { code: "int temp = 15;\nif (temp > 30) {\n  return \"hot\";\n} else if (temp > 20) {\n  return \"warm\";\n} else if (temp > 10) {\n  return \"cool\";\n} else {\n  return \"cold\";\n}", ans: "cool" },
+  { code: "int temp = 5;\nif (temp > 30) {\n  return \"hot\";\n} else if (temp > 20) {\n  return \"warm\";\n} else if (temp > 10) {\n  return \"cool\";\n} else {\n  return \"cold\";\n}",  ans: "cold" },
+  { code: "int weight = 3;\nif (weight < 5) {\n  return \"tiny\";\n} else if (weight < 20) {\n  return \"small\";\n} else if (weight < 50) {\n  return \"medium\";\n} else {\n  return \"large\";\n}", ans: "tiny"   },
+  { code: "int weight = 12;\nif (weight < 5) {\n  return \"tiny\";\n} else if (weight < 20) {\n  return \"small\";\n} else if (weight < 50) {\n  return \"medium\";\n} else {\n  return \"large\";\n}", ans: "small"  },
+  { code: "int weight = 35;\nif (weight < 5) {\n  return \"tiny\";\n} else if (weight < 20) {\n  return \"small\";\n} else if (weight < 50) {\n  return \"medium\";\n} else {\n  return \"large\";\n}", ans: "medium" },
+  { code: "int weight = 80;\nif (weight < 5) {\n  return \"tiny\";\n} else if (weight < 20) {\n  return \"small\";\n} else if (weight < 50) {\n  return \"medium\";\n} else {\n  return \"large\";\n}", ans: "large"  },
+  { code: "int age = 2;\nif (age < 3) {\n  return \"baby\";\n} else if (age < 13) {\n  return \"child\";\n} else if (age < 18) {\n  return \"teen\";\n} else {\n  return \"adult\";\n}", ans: "baby"  },
+  { code: "int age = 8;\nif (age < 3) {\n  return \"baby\";\n} else if (age < 13) {\n  return \"child\";\n} else if (age < 18) {\n  return \"teen\";\n} else {\n  return \"adult\";\n}", ans: "child" },
+  { code: "int age = 16;\nif (age < 3) {\n  return \"baby\";\n} else if (age < 13) {\n  return \"child\";\n} else if (age < 18) {\n  return \"teen\";\n} else {\n  return \"adult\";\n}", ans: "teen"  },
+  { code: "int age = 25;\nif (age < 3) {\n  return \"baby\";\n} else if (age < 13) {\n  return \"child\";\n} else if (age < 18) {\n  return \"teen\";\n} else {\n  return \"adult\";\n}", ans: "adult" },
+  { code: "boolean isBoy = true;\nString color = \"brown\";\nif (!isBoy) {\n  return \"Piper\";\n} else if (color.equals(\"brown\")) {\n  return \"Nimbus\";\n} else {\n  return \"Hunter\";\n}", ans: "Nimbus" },
+  { code: "boolean isBoy = false;\nString color = \"brown\";\nif (!isBoy) {\n  return \"Piper\";\n} else if (color.equals(\"brown\")) {\n  return \"Nimbus\";\n} else {\n  return \"Hunter\";\n}", ans: "Piper"  },
+  { code: "boolean isBoy = true;\nString color = \"black\";\nif (!isBoy) {\n  return \"Piper\";\n} else if (color.equals(\"brown\")) {\n  return \"Nimbus\";\n} else {\n  return \"Hunter\";\n}", ans: "Hunter" },
+  { code: "int speed = 120;\nif (speed > 130) {\n  return \"very fast\";\n} else if (speed > 100) {\n  return \"fast\";\n} else if (speed > 60) {\n  return \"normal\";\n} else {\n  return \"slow\";\n}", ans: "fast"      },
+  { code: "int speed = 145;\nif (speed > 130) {\n  return \"very fast\";\n} else if (speed > 100) {\n  return \"fast\";\n} else if (speed > 60) {\n  return \"normal\";\n} else {\n  return \"slow\";\n}", ans: "very fast" },
+  { code: "int speed = 80;\nif (speed > 130) {\n  return \"very fast\";\n} else if (speed > 100) {\n  return \"fast\";\n} else if (speed > 60) {\n  return \"normal\";\n} else {\n  return \"slow\";\n}",  ans: "normal"    },
+  { code: "int speed = 40;\nif (speed > 130) {\n  return \"very fast\";\n} else if (speed > 100) {\n  return \"fast\";\n} else if (speed > 60) {\n  return \"normal\";\n} else {\n  return \"slow\";\n}",  ans: "slow"      },
+  { code: "String breed = \"husky\";\nif (breed.equals(\"labrador\")) {\n  return \"Nimbus\";\n} else if (breed.equals(\"husky\")) {\n  return \"Storm\";\n} else {\n  return \"Buddy\";\n}",     ans: "Storm" },
+  { code: "String breed = \"labrador\";\nif (breed.equals(\"labrador\")) {\n  return \"Nimbus\";\n} else if (breed.equals(\"husky\")) {\n  return \"Storm\";\n} else {\n  return \"Buddy\";\n}", ans: "Nimbus"},
+  { code: "String breed = \"poodle\";\nif (breed.equals(\"labrador\")) {\n  return \"Nimbus\";\n} else if (breed.equals(\"husky\")) {\n  return \"Storm\";\n} else {\n  return \"Buddy\";\n}",   ans: "Buddy" },
+  { code: "int stars = 5;\nif (stars == 5) {\n  return \"excellent\";\n} else if (stars >= 4) {\n  return \"good\";\n} else if (stars >= 3) {\n  return \"ok\";\n} else {\n  return \"bad\";\n}",  ans: "excellent" },
+  { code: "int stars = 4;\nif (stars == 5) {\n  return \"excellent\";\n} else if (stars >= 4) {\n  return \"good\";\n} else if (stars >= 3) {\n  return \"ok\";\n} else {\n  return \"bad\";\n}",   ans: "good"      },
+  { code: "int stars = 3;\nif (stars == 5) {\n  return \"excellent\";\n} else if (stars >= 4) {\n  return \"good\";\n} else if (stars >= 3) {\n  return \"ok\";\n} else {\n  return \"bad\";\n}",   ans: "ok"        },
+  { code: "int stars = 2;\nif (stars == 5) {\n  return \"excellent\";\n} else if (stars >= 4) {\n  return \"good\";\n} else if (stars >= 3) {\n  return \"ok\";\n} else {\n  return \"bad\";\n}",   ans: "bad"       },
+];
+
+let l3CorrectAnswer;
+
+function showLevel3() {
+  const q = L3[qIdx % L3.length];
+  qIdx++;
+  l3CorrectAnswer = q.ans;
+  document.getElementById("questionArea").innerHTML = `
+    <p class="q-label">What value does this code return?</p>
+    <pre class="code">${escHtml(q.code)}</pre>
+    <input type="text" id="ans3" placeholder='type answer…'
+           onkeypress="if(event.key==='Enter')checkLevel3()">
+    <button onclick="checkLevel3()">Check</button>`;
+  setTimeout(() => { const el = document.getElementById("ans3"); if(el) el.focus(); }, 50);
+}
+
+function checkLevel3() {
+  if (answered) return;
+  const val = document.getElementById("ans3").value;
+  if (!val.trim()) return;
+  answered = true;
+  if (normalizeAnswer(val) === normalizeAnswer(l3CorrectAnswer)) onCorrect();
+  else onWrong(l3CorrectAnswer);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 4 — Dog Name Challenge: 40 sequential tasks
+// ══════════════════════════════════════════════════════════════════════════════
+// Naming rules:
+//   female (isBoy=false)                       → "Piper"
+//   male + breed=labrador + color=brown        → "Nimbus"
+//   male + breed=husky                         → "Storm"
+//   male + breed=poodle                        → "Fluffy"
+//   male + breed=bulldog                       → "Buster"
+//   male + breed=beagle + color=black          → "Shadow"
+//   all other males                            → "Hunter"
+
+const L4 = [
+  { isBoy:false, color:"brown",  breed:"labrador" , ans:"Piper"  },
+  { isBoy:true,  color:"brown",  breed:"labrador" , ans:"Nimbus" },
+  { isBoy:false, color:"black",  breed:"poodle"   , ans:"Piper"  },
+  { isBoy:true,  color:"black",  breed:"poodle"   , ans:"Fluffy" },
+  { isBoy:false, color:"golden", breed:"bulldog"  , ans:"Piper"  },
+  { isBoy:true,  color:"golden", breed:"bulldog"  , ans:"Buster" },
+  { isBoy:false, color:"brown",  breed:"husky"    , ans:"Piper"  },
+  { isBoy:true,  color:"brown",  breed:"husky"    , ans:"Storm"  },
+  { isBoy:false, color:"black",  breed:"beagle"   , ans:"Piper"  },
+  { isBoy:true,  color:"black",  breed:"beagle"   , ans:"Shadow" },
+  { isBoy:false, color:"golden", breed:"labrador" , ans:"Piper"  },
+  { isBoy:true,  color:"golden", breed:"labrador" , ans:"Hunter" },
+  { isBoy:false, color:"white",  breed:"poodle"   , ans:"Piper"  },
+  { isBoy:true,  color:"white",  breed:"poodle"   , ans:"Fluffy" },
+  { isBoy:false, color:"brown",  breed:"bulldog"  , ans:"Piper"  },
+  { isBoy:true,  color:"brown",  breed:"bulldog"  , ans:"Buster" },
+  { isBoy:false, color:"black",  breed:"husky"    , ans:"Piper"  },
+  { isBoy:true,  color:"black",  breed:"husky"    , ans:"Storm"  },
+  { isBoy:false, color:"golden", breed:"beagle"   , ans:"Piper"  },
+  { isBoy:true,  color:"golden", breed:"beagle"   , ans:"Hunter" },
+  { isBoy:false, color:"white",  breed:"labrador" , ans:"Piper"  },
+  { isBoy:true,  color:"white",  breed:"labrador" , ans:"Hunter" },
+  { isBoy:false, color:"brown",  breed:"beagle"   , ans:"Piper"  },
+  { isBoy:true,  color:"brown",  breed:"beagle"   , ans:"Hunter" },
+  { isBoy:false, color:"black",  breed:"labrador" , ans:"Piper"  },
+  { isBoy:true,  color:"black",  breed:"labrador" , ans:"Hunter" },
+  { isBoy:false, color:"white",  breed:"bulldog"  , ans:"Piper"  },
+  { isBoy:true,  color:"white",  breed:"bulldog"  , ans:"Buster" },
+  { isBoy:false, color:"golden", breed:"husky"    , ans:"Piper"  },
+  { isBoy:true,  color:"golden", breed:"husky"    , ans:"Storm"  },
+  { isBoy:false, color:"white",  breed:"beagle"   , ans:"Piper"  },
+  { isBoy:true,  color:"white",  breed:"beagle"   , ans:"Hunter" },
+  { isBoy:false, color:"white",  breed:"husky"    , ans:"Piper"  },
+  { isBoy:true,  color:"white",  breed:"husky"    , ans:"Storm"  },
+  { isBoy:false, color:"black",  breed:"bulldog"  , ans:"Piper"  },
+  { isBoy:true,  color:"black",  breed:"bulldog"  , ans:"Buster" },
+  { isBoy:false, color:"brown",  breed:"poodle"   , ans:"Piper"  },
+  { isBoy:true,  color:"brown",  breed:"poodle"   , ans:"Fluffy" },
+  { isBoy:false, color:"golden", breed:"poodle"   , ans:"Piper"  },
+  { isBoy:true,  color:"golden", breed:"poodle"   , ans:"Fluffy" },
+];
+
+const L4_RULES = `
+if (!isBoy)                                return "Piper";
+if (breed.equals("labrador")
+    && color.equals("brown"))              return "Nimbus";
+if (breed.equals("husky"))                 return "Storm";
+if (breed.equals("poodle"))                return "Fluffy";
+if (breed.equals("bulldog"))               return "Buster";
+if (breed.equals("beagle")
+    && color.equals("black"))              return "Shadow";
+return "Hunter";
+`.trim();
+
+let l4CorrectAnswer;
+
+function showLevel4() {
+  const taskNum = (qIdx % L4.length) + 1;
+  const q = L4[qIdx % L4.length];
+  qIdx++;
+  l4CorrectAnswer = q.ans;
+
+  const varsText =
+    `boolean isBoy  = ${q.isBoy};\n` +
+    `String  color  = "${q.color}";\n` +
+    `String  breed  = "${q.breed}";`;
+
+  document.getElementById("questionArea").innerHTML = `
+    <p class="q-label">Task ${taskNum} of ${L4.length} — What name does this dog get?</p>
+    <div class="rules-box"><b>Naming rules:</b>\n${escHtml(L4_RULES)}</div>
+    <div class="vars-box"><b>Variables:</b>\n${escHtml(varsText)}</div>
+    <input type="text" id="ans4" placeholder='type dog name…'
+           onkeypress="if(event.key==='Enter')checkLevel4()">
+    <button onclick="checkLevel4()">Check</button>`;
+  setTimeout(() => { const el = document.getElementById("ans4"); if(el) el.focus(); }, 50);
+}
+
+function checkLevel4() {
+  if (answered) return;
+  const val = document.getElementById("ans4").value;
+  if (!val.trim()) return;
+  answered = true;
+  if (normalizeAnswer(val) === normalizeAnswer(l4CorrectAnswer)) onCorrect();
+  else onWrong(l4CorrectAnswer);
+}
+
+// ── util ──────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>
