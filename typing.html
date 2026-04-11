@@ -150,6 +150,40 @@ function HandSVG({ side }) {
   );
 }
 
+// ── confetti ──────────────────────────────────────────────────────────────────
+
+function Confetti() {
+  const COLORS = ["#FF6B6B","#FF9F43","#FECA57","#48DBFB","#1DD1A1","#764ba2","#667eea","#FF6B9D"];
+  const pieces = React.useMemo(() => Array.from({length: 70}, (_, i) => ({
+    id: i,
+    x:        Math.random() * 100,
+    color:    COLORS[Math.floor(Math.random() * COLORS.length)],
+    delay:    Math.random() * 1.8,
+    duration: 2.2 + Math.random() * 2,
+    size:     8 + Math.random() * 14,
+    spin:     Math.random() > 0.5 ? 1 : -1,
+  })), []);
+
+  return (
+    <div style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",overflow:"hidden",zIndex:200}}>
+      <style>{`
+        @keyframes confettiFall {
+          0%   { transform: translateY(-30px) rotate(0deg);   opacity: 1; }
+          100% { transform: translateY(110vh) rotate(720deg); opacity: 0.2; }
+        }
+      `}</style>
+      {pieces.map(p => (
+        <div key={p.id} style={{
+          position:"absolute", left: p.x + "%", top: 0,
+          width: p.size, height: p.size * 0.55,
+          background: p.color, borderRadius: 3,
+          animation: `confettiFall ${p.duration}s ${p.delay}s ease-in forwards`,
+        }}/>
+      ))}
+    </div>
+  );
+}
+
 // ── name gate ─────────────────────────────────────────────────────────────────
 
 function NameGate({ onName }) {
@@ -247,8 +281,11 @@ function Game({ userName, level, passedLevels, onMenu }) {
   const [errors, setErrors]           = useState(0);
   const [correctHits, setCorrectHits] = useState(0);
   const [newKeyHits, setNewKeyHits]   = useState(0);
+  const [levelPassed, setLevelPassed] = useState(false);
   const [wordsQueue, setWordsQueue]   = useState([]);
-  const inputRef = useRef(null);
+  const inputRef    = useRef(null);
+  const doneRef     = useRef(false);   // prevents double onMenu call
+  const newPassedRef = useRef(passedLevels);
 
   const newKeySet = LEVELS[level].newKeys;
 
@@ -275,7 +312,29 @@ function Game({ userName, level, passedLevels, onMenu }) {
   useEffect(() => { errorsRef.current      = errors;      }, [errors]);
   useEffect(() => { newKeyHitsRef.current  = newKeyHits;  }, [newKeyHits]);
 
+  // Auto-detect pass condition
+  useEffect(() => {
+    if (doneRef.current) return;
+    const totalKeys = correctHits + errors;
+    const acc = totalKeys > 0 ? Math.round(correctHits / totalKeys * 100) : 100;
+    if (newKeyHits >= PASS_NEW_HITS && acc >= PASS_MIN_ACCURACY) {
+      doneRef.current = true;
+      const levelName = LEVELS[level].name;
+      let newPassed = passedLevels;
+      if (!passedLevels.includes(levelName)) {
+        newPassed = [...passedLevels, levelName];
+        savePassedLevels(userName, newPassed);
+        sendToSheet(userName, newPassed);
+      }
+      newPassedRef.current = newPassed;
+      setLevelPassed(true);
+      setTimeout(() => onMenu(newPassedRef.current), 3500);
+    }
+  }, [correctHits, errors, newKeyHits]);
+
   const handleMenu = useCallback(() => {
+    if (doneRef.current) return;
+    doneRef.current = true;
     const totalCorrect  = correctHitsRef.current;
     const totalErrors   = errorsRef.current;
     const finalNewHits  = newKeyHitsRef.current;
@@ -342,6 +401,22 @@ function Game({ userName, level, passedLevels, onMenu }) {
       onClick={() => inputRef.current?.focus()}
     >
       <input ref={inputRef} style={{position:"absolute",opacity:0,pointerEvents:"none"}} readOnly />
+
+      {/* Pass overlay */}
+      {levelPassed && <>
+        <Confetti />
+        <div style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:150,fontFamily:"'Segoe UI',sans-serif"}}>
+          <div style={{background:"white",borderRadius:32,padding:"44px 64px",textAlign:"center",boxShadow:"0 20px 60px rgba(0,0,0,0.35)"}}>
+            <div style={{fontSize:72,lineHeight:1}}>🎉</div>
+            <h2 style={{color:"#764ba2",fontSize:30,margin:"16px 0 8px",fontWeight:800}}>Level Passed!</h2>
+            <p style={{color:"#555",fontSize:17,margin:"0 0 6px"}}>{LEVELS[level].name}</p>
+            <p style={{color:"#48DBFB",fontSize:15,margin:0}}>
+              {accuracy}% accuracy &nbsp;·&nbsp; {newKeyHits} new-key hits
+            </p>
+            <p style={{color:"#bbb",fontSize:13,marginTop:20}}>Returning to menu…</p>
+          </div>
+        </div>
+      </>}
 
       {/* header */}
       <div style={{display:"flex",gap:16,marginBottom:16,background:"rgba(255,255,255,0.15)",borderRadius:20,padding:"8px 20px",color:"white",fontWeight:700,fontSize:15,alignItems:"center",flexWrap:"wrap",justifyContent:"center"}}>
