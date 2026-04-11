@@ -188,6 +188,7 @@
     level=l
     score=0
     questionCount=0
+    if(l===7) window.challenge7Index = -1
 
     document.getElementById("score").innerText=score
     document.getElementById("quiz").style.display="block"
@@ -1058,8 +1059,10 @@
     function fmtVal(v){ return typeof v === "string" ? '"'+v+'"' : String(v) }
 
     function level7(){
+      if(window.challenge7Index === undefined) window.challenge7Index = -1
+      window.challenge7Index = (window.challenge7Index + 1) % level7Challenges.length
       window.challenge7Solved = false
-      let q = level7Challenges[rand(0, level7Challenges.length - 1)]
+      let q = level7Challenges[window.challenge7Index]
       window.currentChallenge7 = q
 
       let varDecl = q.vars.map(v => v.type+" "+v.name).join(", ")
@@ -1074,7 +1077,7 @@
         "<p>Write a condition that satisfies all test cases:</p>"+
         "<div style='font-size:20px'>if ( <input id='typedAnswer' style='width:500px;font-size:16px;padding:6px' placeholder='e.g. a &amp;&amp; b'> )</div>"+
         "<br><button onclick='checkCondition7()'>Check \u2713</button>"+
-        " <button onclick='surrender7()' style='background:#e0e0e0;color:#555'>Show answer \U0001f3f3\uFE0F</button>"+
+        " <button onclick='surrender7()' style='background:#e0e0e0;color:#555'>Show answer</button>"+
         "<div id='testResults' style='margin-top:15px;text-align:left;display:inline-block;font-family:monospace;font-size:16px'></div>"
 
       document.getElementById("typedAnswer").addEventListener("keydown", function(e){
