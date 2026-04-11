@@ -16,31 +16,49 @@ const { useState, useEffect, useRef, useCallback } = React;
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqW5pL7IkOWEzhxphMfOWYhltA1n8HCSOQG7dFDicG0wPr0rR4NwilotAVOGk4TqL9/exec";
 
 const LEVELS = [
-  { name: "Home Row",   keys: "asdfjkl;",   words: ["asl","fad","ask","lad","dad","flask","salad","flag","glad","lass"] },
-  { name: "Top Row",    keys: "qwertyuiop",  words: ["top","power","type","write","your","tower","route","outer","proud","quote"] },
-  { name: "Bottom Row", keys: "zxcvbnm",     words: ["van","cab","nab","zinc","exam","cave","maze","back","name","vibe"] },
-  { name: "Full Words", keys: "all keys",    words: ["happy","jungle","rocket","bubble","wizard","pickle","dragon","castle","planet","cookie"] },
+  { name: "F & J",       keys: "f  j  space",  words: ["fjf","jfj","fff","jjj","fjj","jff","fj","jf","fjfj","jfjf"] },
+  { name: "+ D & K",     keys: "+ d  k",        words: ["fdk","jdk","dkj","kdf","fdj","kjf","ddd","kkk","fkd","jkd"] },
+  { name: "+ S & L",     keys: "+ s  l",        words: ["sld","lsd","fls","jls","dsl","skl","sdf","lkj","sldk","fslj"] },
+  { name: "+ A & ;",     keys: "+ a  ;",        words: ["lad","fad","sad","dad","ask","lass","fads","lads","flask","salad"] },
+  { name: "+ G & H",     keys: "+ g  h",        words: ["gash","hash","shag","glad","flag","flash","glass","shall","dash","lash"] },
+  { name: "+ R & U",     keys: "+ r  u",        words: ["fur","rush","rusk","surf","dark","lark","lurk","guard","dusk","hurl"] },
+  { name: "+ E & I",     keys: "+ e  i",        words: ["fire","hire","ride","idea","side","rule","rise","rude","sure","idle"] },
+  { name: "+ W & O",     keys: "+ w  o",        words: ["word","work","flow","slow","glow","show","whole","world","sword","grow"] },
+  { name: "+ T & Y",     keys: "+ t  y",        words: ["style","story","dusty","rusty","tasty","hasty","fishy","stray","tyke","thirsty"] },
+  { name: "+ Q & P",     keys: "+ q  p",        words: ["quote","quite","party","sport","pretty","spider","spoil","squid","purse","trophy"] },
+  { name: "+ V & N",     keys: "+ v  n",        words: ["van","vine","never","seven","given","naive","novel","invest","event","driven"] },
+  { name: "+ C & M",     keys: "+ c  m",        words: ["come","mice","magic","cream","crime","music","comic","storm","mercy","micro"] },
+  { name: "+ X & Z",     keys: "+ x  z",        words: ["exit","exam","next","zone","size","zero","text","oxen","prize","frozen"] },
+  { name: "+ B",         keys: "+ b",           words: ["blob","grab","job","tribe","brave","above","orbit","boost","carbon","globe"] },
+  { name: "Shift",       keys: "Shift + letter",words: ["Flash","Storm","Quick","Brown","Jumps","Brave","Drive","World","Prize","Globe"] },
+  { name: "Numbers 1-5", keys: "1 2 3 4 5",    words: ["123","321","1234","4321","12345","23451","31425","14253","51423","24531"] },
+  { name: "Numbers 6-0", keys: "6 7 8 9 0",    words: ["678","876","6789","9876","67890","78906","89067","90678","60789","76890"] },
 ];
 
 const LEVEL_WORDS = LEVELS.map(l => l.words);
 
-const PASS_MIN_SCORE    = 50;   // minimum score to consider a level passed
-const PASS_MIN_ACCURACY = 70;   // minimum accuracy %
+const PASS_MIN_SCORE    = 50;
+const PASS_MIN_ACCURACY = 70;
 
 const FINGER_COLORS = {
   a:"#FF6B6B", s:"#FF9F43", d:"#FECA57", f:"#48DBFB",
-  j:"#48DBFB", k:"#FECA57", l:"#FF9F43", ";":" #FF6B6B",
+  g:"#48DBFB", h:"#1DD1A1", j:"#1DD1A1", k:"#FECA57", l:"#FF9F43", ";":" #FF6B6B",
   q:"#FF6B6B", w:"#FF9F43", e:"#FECA57", r:"#48DBFB", t:"#48DBFB",
   y:"#1DD1A1", u:"#1DD1A1", i:"#FECA57", o:"#FF9F43", p:"#FF6B6B",
   z:"#FF6B6B", x:"#FF9F43", c:"#FECA57", v:"#48DBFB", b:"#48DBFB",
   n:"#1DD1A1", m:"#1DD1A1", " ":"#ccc",
+  "1":"#FF6B6B","2":"#FF9F43","3":"#FECA57","4":"#48DBFB","5":"#48DBFB",
+  "6":"#1DD1A1","7":"#1DD1A1","8":"#FECA57","9":"#FF9F43","0":"#FF6B6B",
 };
 
 const KEYBOARD_ROWS = [
+  ["1","2","3","4","5","6","7","8","9","0"],
   ["q","w","e","r","t","y","u","i","o","p"],
   ["a","s","d","f","g","h","j","k","l",";"],
   ["z","x","c","v","b","n","m"],
 ];
+
+const ROW_OFFSETS = [0, 0, 12, 24];
 
 const EMOJIS = ["🌟","🎉","🦄","🚀","🍕","🐸","🎈","🦊","🍦","🎮"];
 
@@ -171,44 +189,45 @@ function NameGate({ onName }) {
 function LevelMenu({ userName, passedLevels, onStart, onChangeName }) {
   const [level, setLevel] = useState(0);
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#667eea,#764ba2)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Segoe UI',sans-serif"}}>
-      <div style={{background:"white",borderRadius:24,padding:40,textAlign:"center",maxWidth:440,boxShadow:"0 20px 60px rgba(0,0,0,0.2)"}}>
-        <div style={{fontSize:56,marginBottom:8}}>⌨️</div>
-        <h1 style={{color:"#764ba2",fontSize:26,margin:"0 0 4px",fontWeight:800}}>Math2Code: Type It!</h1>
-        <p style={{color:"#666",marginBottom:4}}>
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#667eea,#764ba2)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Segoe UI',sans-serif",padding:16}}>
+      <div style={{background:"white",borderRadius:24,padding:32,textAlign:"center",maxWidth:560,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.2)"}}>
+        <div style={{fontSize:48,marginBottom:6}}>⌨️</div>
+        <h1 style={{color:"#764ba2",fontSize:22,margin:"0 0 4px",fontWeight:800}}>Math2Code: Type It!</h1>
+        <p style={{color:"#666",marginBottom:8,fontSize:14}}>
           Hi, <b>{userName}</b>! &nbsp;
           <span onClick={onChangeName} style={{fontSize:12,color:"#aaa",cursor:"pointer",textDecoration:"underline"}}>change</span>
         </p>
 
         {passedLevels.length > 0 && (
-          <p style={{color:"#48DBFB",fontSize:13,marginBottom:16}}>
-            ✅ Passed: {passedLevels.join(", ")}
+          <p style={{color:"#48DBFB",fontSize:12,marginBottom:12}}>
+            ✓ Passed: {passedLevels.join(", ")}
           </p>
         )}
 
-        <div style={{marginBottom:20}}>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center",marginBottom:16}}>
           {LEVELS.map((l, i) => {
             const passed = passedLevels.includes(l.name);
             return (
               <button key={i} onClick={() => setLevel(i)} style={{
-                margin:4, padding:"8px 16px", borderRadius:20, border:"2px solid",
+                padding:"6px 12px", borderRadius:16, border:"2px solid",
                 borderColor: level===i ? "#764ba2" : "#ddd",
-                background: level===i ? "#764ba2" : "white",
-                color: level===i ? "white" : "#555",
-                fontWeight:600, cursor:"pointer", fontSize:14,
+                background: level===i ? "#764ba2" : passed ? "#f0fff4" : "white",
+                color: level===i ? "white" : passed ? "#27ae60" : "#555",
+                fontWeight:600, cursor:"pointer", fontSize:12,
+                whiteSpace:"nowrap",
               }}>
-                {passed ? "✅ " : ""}{l.name}
+                {passed ? "✓ " : ""}{l.name}
               </button>
             );
           })}
         </div>
 
-        <p style={{color:"#888",fontSize:13,marginBottom:20}}>
-          Keys: <b>{LEVELS[level].keys}</b>
+        <p style={{color:"#888",fontSize:13,marginBottom:16}}>
+          Keys: <b style={{color:"#764ba2"}}>{LEVELS[level].keys}</b>
         </p>
         <button onClick={() => onStart(level)} style={{
           background:"linear-gradient(135deg,#667eea,#764ba2)", color:"white",
-          border:"none", borderRadius:30, padding:"14px 40px", fontSize:18,
+          border:"none", borderRadius:30, padding:"12px 36px", fontSize:16,
           fontWeight:700, cursor:"pointer", boxShadow:"0 4px 15px rgba(118,75,162,0.4)"
         }}>Start Typing! 🚀</button>
       </div>
@@ -230,10 +249,15 @@ function Game({ userName, level, passedLevels, onMenu }) {
   const inputRef = useRef(null);
 
   const currentWord = wordsQueue[0] || "";
-  const nextKey     = currentWord[typed.length] || "";
+  const nextChar    = currentWord[typed.length] || "";
+  // For keyboard highlighting: show lowercase of next char
+  const nextKeyLower = nextChar.toLowerCase();
+  // Shift needed when next char is uppercase letter (not number, not symbol)
+  const needsShift = nextChar && nextChar !== nextChar.toLowerCase() && /[a-zA-Z]/.test(nextChar);
 
   useEffect(() => {
-    const q = Array.from({length: 10}, () => LEVEL_WORDS[level][Math.floor(Math.random()*LEVEL_WORDS[level].length)]);
+    const pool = LEVEL_WORDS[level];
+    const q = Array.from({length: 12}, () => pool[Math.floor(Math.random()*pool.length)]);
     setWordsQueue(q);
     setTyped(""); setScore(0); setStreak(0); setErrors(0);
   }, [level]);
@@ -280,8 +304,9 @@ function Game({ userName, level, passedLevels, onMenu }) {
         setCelebrate(true);
         setTimeout(() => setCelebrate(false), 600);
         setWordsQueue(q => {
+          const pool = LEVEL_WORDS[level];
           const next = [...q.slice(1)];
-          next.push(LEVEL_WORDS[level][Math.floor(Math.random()*LEVEL_WORDS[level].length)]);
+          next.push(pool[Math.floor(Math.random()*pool.length)]);
           return next;
         });
         setTyped("");
@@ -312,7 +337,8 @@ function Game({ userName, level, passedLevels, onMenu }) {
       <input ref={inputRef} style={{position:"absolute",opacity:0,pointerEvents:"none"}} readOnly />
 
       {/* header */}
-      <div style={{display:"flex",gap:24,marginBottom:20,background:"rgba(255,255,255,0.15)",borderRadius:20,padding:"10px 24px",color:"white",fontWeight:700,fontSize:16}}>
+      <div style={{display:"flex",gap:20,marginBottom:16,background:"rgba(255,255,255,0.15)",borderRadius:20,padding:"8px 20px",color:"white",fontWeight:700,fontSize:15,alignItems:"center"}}>
+        <span style={{fontSize:13,opacity:0.8}}>{LEVELS[level].name}</span>
         <span>⭐ {score}</span>
         <span>🔥 {streak}</span>
         <span>🎯 {accuracy}%</span>
@@ -321,7 +347,7 @@ function Game({ userName, level, passedLevels, onMenu }) {
 
       {/* word display */}
       <div style={{
-        background:"white", borderRadius:24, padding:"24px 40px", marginBottom:24,
+        background:"white", borderRadius:24, padding:"20px 40px", marginBottom:20,
         boxShadow:"0 10px 40px rgba(0,0,0,0.15)", textAlign:"center", minWidth:300,
         animation: shake ? "shake 0.3s" : celebrate ? "pop 0.3s" : "none"
       }}>
@@ -329,8 +355,8 @@ function Game({ userName, level, passedLevels, onMenu }) {
           @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
           @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
         `}</style>
-        <div style={{fontSize:13,color:"#aaa",marginBottom:8,letterSpacing:1}}>TYPE THIS WORD</div>
-        <div style={{fontSize:48,letterSpacing:8,fontWeight:700}}>
+        <div style={{fontSize:12,color:"#aaa",marginBottom:8,letterSpacing:1}}>TYPE THIS</div>
+        <div style={{fontSize:44,letterSpacing:8,fontWeight:700,fontFamily:"monospace"}}>
           {currentWord.split("").map((ch, i) => (
             <span key={i} style={{
               color: i < typed.length ? "#48DBFB" : i === typed.length ? "#764ba2" : "#ccc",
@@ -339,21 +365,33 @@ function Game({ userName, level, passedLevels, onMenu }) {
           ))}
         </div>
         {celebrate && <div style={{fontSize:28,marginTop:8}}>{EMOJIS[Math.floor(Math.random()*EMOJIS.length)]}</div>}
-        <div style={{marginTop:12,color:"#bbb",fontSize:13}}>Up next: <b style={{color:"#999"}}>{wordsQueue[1] || ""}</b></div>
+        <div style={{marginTop:10,color:"#bbb",fontSize:13}}>Up next: <b style={{color:"#999",fontFamily:"monospace"}}>{wordsQueue[1] || ""}</b></div>
       </div>
 
       {/* keyboard */}
-      <div style={{background:"rgba(255,255,255,0.1)",borderRadius:20,padding:16,backdropFilter:"blur(10px)"}}>
+      <div style={{background:"rgba(255,255,255,0.1)",borderRadius:20,padding:"12px 16px",backdropFilter:"blur(10px)"}}>
+        {/* Shift indicator row — shown above Z row */}
+        {needsShift && (
+          <div style={{display:"flex",justifyContent:"flex-start",gap:6,marginBottom:6,marginLeft:24}}>
+            <div style={{
+              width:60,height:36,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",
+              fontWeight:700,fontSize:11,background:"#FF6B6B",color:"white",
+              boxShadow:"0 0 0 3px white, 0 0 0 5px #FF6B6B",
+              transform:"scale(1.12)",transition:"all 0.1s",letterSpacing:0.5
+            }}>SHIFT ↑</div>
+          </div>
+        )}
+
         {KEYBOARD_ROWS.map((row, ri) => (
-          <div key={ri} style={{display:"flex",justifyContent:"center",gap:6,marginBottom:6,marginLeft:ri===1?12:ri===2?24:0}}>
+          <div key={ri} style={{display:"flex",justifyContent:"center",gap:5,marginBottom:5,marginLeft:ROW_OFFSETS[ri]}}>
             {row.map(k => {
-              const isNext   = k === nextKey.toLowerCase();
+              const isNext   = k === nextKeyLower;
               const isActive = k === activeKey;
               const color    = FINGER_COLORS[k] || "#ddd";
               return (
                 <div key={k} style={{
-                  width:42, height:42, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center",
-                  fontWeight:700, fontSize:16,
+                  width:38, height:38, borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center",
+                  fontWeight:700, fontSize:14,
                   background: isActive ? color : isNext ? color : "rgba(255,255,255,0.85)",
                   color: isActive || isNext ? "white" : "#555",
                   boxShadow: isNext ? `0 0 0 3px white, 0 0 0 5px ${color}` : "0 2px 4px rgba(0,0,0,0.1)",
@@ -365,56 +403,55 @@ function Game({ userName, level, passedLevels, onMenu }) {
             })}
           </div>
         ))}
-        <div style={{display:"flex",justifyContent:"center",marginTop:6}}>
-          <div style={{width:220,height:36,borderRadius:8,background:"rgba(255,255,255,0.85)",display:"flex",alignItems:"center",justifyContent:"center",color:"#888",fontSize:12,fontWeight:600,letterSpacing:2,boxShadow:"0 2px 4px rgba(0,0,0,0.1)"}}>SPACE</div>
+        <div style={{display:"flex",justifyContent:"center",marginTop:4}}>
+          <div style={{width:200,height:32,borderRadius:8,background:"rgba(255,255,255,0.85)",display:"flex",alignItems:"center",justifyContent:"center",color:"#888",fontSize:11,fontWeight:600,letterSpacing:2,boxShadow:"0 2px 4px rgba(0,0,0,0.1)"}}>SPACE</div>
         </div>
       </div>
 
       {/* finger legend */}
-      <div style={{marginTop:16,display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
-        {[["#FF6B6B","Pinkies"],["#FF9F43","Ring"],["#FECA57","Middle"],["#48DBFB","Index"],["#1DD1A1","Right Index"]].map(([c,n]) => (
-          <div key={n} style={{display:"flex",alignItems:"center",gap:4,color:"white",fontSize:12}}>
-            <div style={{width:12,height:12,borderRadius:3,background:c}}></div>{n}
+      <div style={{marginTop:12,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
+        {[["#FF6B6B","Pinkies"],["#FF9F43","Ring"],["#FECA57","Middle"],["#48DBFB","L-Index"],["#1DD1A1","R-Index"]].map(([c,n]) => (
+          <div key={n} style={{display:"flex",alignItems:"center",gap:4,color:"white",fontSize:11}}>
+            <div style={{width:10,height:10,borderRadius:3,background:c}}></div>{n}
           </div>
         ))}
       </div>
 
       {/* home row guide */}
-      <div style={{marginTop:20,background:"rgba(255,255,255,0.12)",borderRadius:20,padding:"16px 24px",backdropFilter:"blur(10px)",textAlign:"center",maxWidth:480,width:"100%"}}>
-        <div style={{color:"white",fontWeight:700,fontSize:14,marginBottom:12,letterSpacing:1}}>🖐 HOME ROW — WHERE TO REST YOUR FINGERS</div>
-        <div style={{display:"flex",justifyContent:"center",gap:32}}>
+      <div style={{marginTop:16,background:"rgba(255,255,255,0.12)",borderRadius:20,padding:"14px 20px",backdropFilter:"blur(10px)",textAlign:"center",maxWidth:480,width:"100%"}}>
+        <div style={{color:"white",fontWeight:700,fontSize:13,marginBottom:10,letterSpacing:1}}>🖐 HOME ROW — REST YOUR FINGERS HERE</div>
+        <div style={{display:"flex",justifyContent:"center",gap:24}}>
           <div style={{textAlign:"center"}}>
-            <div style={{color:"rgba(255,255,255,0.7)",fontSize:12,marginBottom:8,fontWeight:600}}>LEFT HAND</div>
+            <div style={{color:"rgba(255,255,255,0.7)",fontSize:11,marginBottom:6,fontWeight:600}}>LEFT HAND</div>
             <HandSVG side="left"/>
-            <div style={{display:"flex",gap:6,justifyContent:"center",marginTop:8}}>
-              {[["A","#FF6B6B","Pinky"],["S","#FF9F43","Ring"],["D","#FECA57","Middle"],["F","#48DBFB","Index"]].map(([k,c,f])=>(
+            <div style={{display:"flex",gap:5,justifyContent:"center",marginTop:6}}>
+              {[["A","#FF6B6B","Pinky"],["S","#FF9F43","Ring"],["D","#FECA57","Mid"],["F","#48DBFB","Index"]].map(([k,c,f])=>(
                 <div key={k} style={{textAlign:"center"}}>
-                  <div style={{width:32,height:32,borderRadius:7,background:c,color:"white",fontWeight:700,fontSize:15,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.2)"}}>{k}</div>
-                  <div style={{color:"rgba(255,255,255,0.6)",fontSize:9,marginTop:3}}>{f}</div>
+                  <div style={{width:28,height:28,borderRadius:6,background:c,color:"white",fontWeight:700,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.2)"}}>{k}</div>
+                  <div style={{color:"rgba(255,255,255,0.6)",fontSize:8,marginTop:2}}>{f}</div>
                 </div>
               ))}
             </div>
           </div>
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end"}}>
-            <div style={{color:"rgba(255,255,255,0.7)",fontSize:12,marginBottom:8,fontWeight:600}}>THUMBS</div>
-            <div style={{width:80,height:32,borderRadius:16,background:"#ccc",color:"#555",fontWeight:700,fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.2)"}}>SPACE</div>
-            <div style={{color:"rgba(255,255,255,0.6)",fontSize:9,marginTop:3}}>Both thumbs</div>
+            <div style={{color:"rgba(255,255,255,0.7)",fontSize:11,marginBottom:6,fontWeight:600}}>THUMBS</div>
+            <div style={{width:70,height:28,borderRadius:14,background:"#ccc",color:"#555",fontWeight:700,fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.2)"}}>SPACE</div>
           </div>
           <div style={{textAlign:"center"}}>
-            <div style={{color:"rgba(255,255,255,0.7)",fontSize:12,marginBottom:8,fontWeight:600}}>RIGHT HAND</div>
+            <div style={{color:"rgba(255,255,255,0.7)",fontSize:11,marginBottom:6,fontWeight:600}}>RIGHT HAND</div>
             <HandSVG side="right"/>
-            <div style={{display:"flex",gap:6,justifyContent:"center",marginTop:8}}>
-              {[["J","#48DBFB","Index"],["K","#FECA57","Middle"],["L","#FF9F43","Ring"],[";","#FF6B6B","Pinky"]].map(([k,c,f])=>(
+            <div style={{display:"flex",gap:5,justifyContent:"center",marginTop:6}}>
+              {[["J","#1DD1A1","Index"],["K","#FECA57","Mid"],["L","#FF9F43","Ring"],[";","#FF6B6B","Pinky"]].map(([k,c,f])=>(
                 <div key={k} style={{textAlign:"center"}}>
-                  <div style={{width:32,height:32,borderRadius:7,background:c,color:"white",fontWeight:700,fontSize:15,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.2)"}}>{k}</div>
-                  <div style={{color:"rgba(255,255,255,0.6)",fontSize:9,marginTop:3}}>{f}</div>
+                  <div style={{width:28,height:28,borderRadius:6,background:c,color:"white",fontWeight:700,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(0,0,0,0.2)"}}>{k}</div>
+                  <div style={{color:"rgba(255,255,255,0.6)",fontSize:8,marginTop:2}}>{f}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-        <div style={{marginTop:12,color:"rgba(255,255,255,0.6)",fontSize:12}}>
-          💡 <b style={{color:"white"}}>F</b> and <b style={{color:"white"}}>J</b> have bumps on the keyboard — find them without looking!
+        <div style={{marginTop:10,color:"rgba(255,255,255,0.6)",fontSize:11}}>
+          💡 <b style={{color:"white"}}>F</b> and <b style={{color:"white"}}>J</b> have bumps — find them without looking!
         </div>
       </div>
     </div>
@@ -426,7 +463,7 @@ function Game({ userName, level, passedLevels, onMenu }) {
 function App() {
   const [userName,     setUserName]     = useState(() => localStorage.getItem("studentName") || "");
   const [passedLevels, setPassedLevels] = useState(() => loadPassedLevels(localStorage.getItem("studentName") || ""));
-  const [gameLevel,    setGameLevel]    = useState(null);   // null = menu, number = playing
+  const [gameLevel,    setGameLevel]    = useState(null);
 
   const handleName = (name) => {
     setUserName(name);
