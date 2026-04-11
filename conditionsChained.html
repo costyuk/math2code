@@ -988,56 +988,68 @@
 
     const level7Challenges = [
       // 1. a && b
-      { vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"}],
+      { answer:"a && b",
+        vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"}],
         tests:[{vals:{a:true,b:true},expected:true},{vals:{a:true,b:false},expected:false},
                {vals:{a:false,b:true},expected:false},{vals:{a:false,b:false},expected:false}] },
       // 2. a || b
-      { vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"}],
+      { answer:"a || b",
+        vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"}],
         tests:[{vals:{a:true,b:true},expected:true},{vals:{a:true,b:false},expected:true},
                {vals:{a:false,b:true},expected:true},{vals:{a:false,b:false},expected:false}] },
       // 3. !a && b
-      { vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"}],
+      { answer:"!a && b",
+        vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"}],
         tests:[{vals:{a:true,b:true},expected:false},{vals:{a:true,b:false},expected:false},
                {vals:{a:false,b:true},expected:true},{vals:{a:false,b:false},expected:false}] },
       // 4. !(a || b)
-      { vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"}],
+      { answer:"!(a || b)",
+        vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"}],
         tests:[{vals:{a:true,b:true},expected:false},{vals:{a:true,b:false},expected:false},
                {vals:{a:false,b:true},expected:false},{vals:{a:false,b:false},expected:true}] },
       // 5. a && (b || c)
-      { vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"},{name:"c",type:"boolean"}],
+      { answer:"a && (b || c)",
+        vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"},{name:"c",type:"boolean"}],
         tests:[{vals:{a:true,b:true,c:false},expected:true},{vals:{a:true,b:false,c:true},expected:true},
                {vals:{a:false,b:true,c:true},expected:false},{vals:{a:true,b:false,c:false},expected:false},
                {vals:{a:false,b:false,c:false},expected:false}] },
       // 6. !(a && b && c)
-      { vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"},{name:"c",type:"boolean"}],
+      { answer:"!(a && b && c)",
+        vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"},{name:"c",type:"boolean"}],
         tests:[{vals:{a:true,b:true,c:true},expected:false},{vals:{a:false,b:true,c:true},expected:true},
                {vals:{a:true,b:false,c:true},expected:true},{vals:{a:true,b:true,c:false},expected:true},
                {vals:{a:false,b:false,c:false},expected:true}] },
       // 7. (a || b) && (c || d)
-      { vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"},{name:"c",type:"boolean"},{name:"d",type:"boolean"}],
+      { answer:"(a || b) && (c || d)",
+        vars:[{name:"a",type:"boolean"},{name:"b",type:"boolean"},{name:"c",type:"boolean"},{name:"d",type:"boolean"}],
         tests:[{vals:{a:true,b:false,c:true,d:false},expected:true},{vals:{a:false,b:false,c:true,d:true},expected:false},
                {vals:{a:true,b:true,c:false,d:true},expected:true},{vals:{a:false,b:true,c:false,d:false},expected:false},
                {vals:{a:true,b:false,c:false,d:false},expected:false}] },
       // 8. x > 5 && active
-      { vars:[{name:"x",type:"int"},{name:"active",type:"boolean"}],
+      { answer:"x > 5 && active",
+        vars:[{name:"x",type:"int"},{name:"active",type:"boolean"}],
         tests:[{vals:{x:6,active:true},expected:true},{vals:{x:5,active:true},expected:false},
                {vals:{x:6,active:false},expected:false},{vals:{x:3,active:true},expected:false},
                {vals:{x:10,active:true},expected:true}] },
       // 9. score >= 60 || passed
-      { vars:[{name:"score",type:"int"},{name:"passed",type:"boolean"}],
+      { answer:"score >= 60 || passed",
+        vars:[{name:"score",type:"int"},{name:"passed",type:"boolean"}],
         tests:[{vals:{score:70,passed:false},expected:true},{vals:{score:50,passed:true},expected:true},
                {vals:{score:60,passed:false},expected:true},{vals:{score:55,passed:false},expected:false},
                {vals:{score:80,passed:true},expected:true}] },
       // 10. color.equals("red") && premium
-      { vars:[{name:"color",type:"String"},{name:"premium",type:"boolean"}],
+      { answer:'color.equals("red") && premium',
+        vars:[{name:"color",type:"String"},{name:"premium",type:"boolean"}],
         tests:[{vals:{color:"red",premium:true},expected:true},{vals:{color:"red",premium:false},expected:false},
                {vals:{color:"blue",premium:true},expected:false},{vals:{color:"blue",premium:false},expected:false}] },
       // 11. status.equals("active") && count > 0
-      { vars:[{name:"status",type:"String"},{name:"count",type:"int"}],
+      { answer:'status.equals("active") && count > 0',
+        vars:[{name:"status",type:"String"},{name:"count",type:"int"}],
         tests:[{vals:{status:"active",count:5},expected:true},{vals:{status:"active",count:0},expected:false},
                {vals:{status:"inactive",count:5},expected:false},{vals:{status:"active",count:-1},expected:false}] },
       // 12. (role.equals("admin") || level >= 10) && active
-      { vars:[{name:"role",type:"String"},{name:"level",type:"int"},{name:"active",type:"boolean"}],
+      { answer:'(role.equals("admin") || level >= 10) && active',
+        vars:[{name:"role",type:"String"},{name:"level",type:"int"},{name:"active",type:"boolean"}],
         tests:[{vals:{role:"admin",level:5,active:true},expected:true},{vals:{role:"user",level:10,active:true},expected:true},
                {vals:{role:"admin",level:5,active:false},expected:false},{vals:{role:"user",level:5,active:true},expected:false},
                {vals:{role:"user",level:10,active:false},expected:false}] },
@@ -1062,6 +1074,7 @@
         "<p>Write a condition that satisfies all test cases:</p>"+
         "<div style='font-size:20px'>if ( <input id='typedAnswer' style='width:500px;font-size:16px;padding:6px' placeholder='e.g. a &amp;&amp; b'> )</div>"+
         "<br><button onclick='checkCondition7()'>Check \u2705</button>"+
+        " <button onclick='surrender7()' style='background:#e0e0e0;color:#555'>Show answer \U0001f3f3\uFE0F</button>"+
         "<div id='testResults' style='margin-top:15px;text-align:left;display:inline-block;font-family:monospace;font-size:16px'></div>"
 
       document.getElementById("typedAnswer").addEventListener("keydown", function(e){
@@ -1116,6 +1129,15 @@
       }catch(e){
         resultsDiv.innerText="Invalid expression: "+e.message
       }
+    }
+
+    function surrender7(){
+      let q = window.currentChallenge7
+      window.challenge7Solved = true  // no score for this challenge
+      document.getElementById("testResults").innerHTML =
+        "<div style='color:#888;font-style:italic'>One possible answer:</div>"+
+        "<div style='font-size:20px;font-family:monospace;margin-top:6px;color:#3f51b5'>if ( "+q.answer+" )</div>"
+      document.getElementById("typedAnswer").value = q.answer
     }
 
     function renderTrueFalse(){
