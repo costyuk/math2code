@@ -315,10 +315,16 @@
     function checkLogicFlexible(){
 
     if(answered) return
-    answered = true
 
     let val = document.getElementById("typedAnswer").value.trim().toUpperCase()
     let feedback = document.getElementById("feedback")
+
+    if(val !== "&&" && val !== "||" && val !== "NONE"){
+    feedback.innerText = "Enter &&, ||, or NONE"
+    return
+    }
+
+    answered = true
 
     let expr1 = window.currentExpr1
     let expr2 = window.currentExpr2
@@ -331,7 +337,7 @@
     let andResult = val1 && val2
     let orResult = val1 || val2
 
-    // ✅ CASE 1: impossible
+    // CASE 1: no solution exists
     if(!window.isPossible){
 
     if(val === "NONE"){
@@ -343,21 +349,19 @@
 
     }
 
-    // ✅ CASE 2: possible
+    // CASE 2: a solution exists
     else{
 
-    if(val !== "&&" && val !== "||"){
-    feedback.innerText = "Enter &&, ||, or NONE"
-    return
-    }
-
+    if(val === "NONE"){
+    feedback.innerText = "Wrong! A solution exists — try && or ||"
+    }else{
     let result = (val === "&&") ? andResult : orResult
-
     if(result === correctAnswer){
     score++
     feedback.innerText = "Correct!"
     }else{
     feedback.innerText = "Wrong"
+    }
     }
 
     }
@@ -426,10 +430,16 @@
     function checkLogicVars(){
 
     if(answered) return
-    answered = true
 
     let val = document.getElementById("typedAnswer").value.trim().toUpperCase()
     let feedback = document.getElementById("feedback")
+
+    if(val !== "&&" && val !== "||" && val !== "NONE"){
+    feedback.innerText = "Enter &&, ||, or NONE"
+    return
+    }
+
+    answered = true
 
     let {a,b,c,d} = window.currentVals
 
@@ -441,7 +451,7 @@
     let andResult = val1 && val2
     let orResult = val1 || val2
 
-    // 🔥 IMPOSSIBLE CASE
+    // IMPOSSIBLE CASE
     if(!window.isPossible){
 
     if(val === "NONE"){
@@ -453,21 +463,19 @@
 
     }
 
-    // ✅ NORMAL CASE
+    // NORMAL CASE
     else{
 
-    if(val !== "&&" && val !== "||"){
-    feedback.innerText = "Enter &&, ||, or NONE"
-    return
-    }
-
+    if(val === "NONE"){
+    feedback.innerText = "Wrong! A solution exists — try && or ||"
+    }else{
     let result = (val === "&&") ? andResult : orResult
-
     if(result === correctAnswer){
     score++
     feedback.innerText = "Correct!"
     }else{
     feedback.innerText = "Wrong"
+    }
     }
 
     }
