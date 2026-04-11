@@ -16,29 +16,29 @@ const { useState, useEffect, useRef, useCallback } = React;
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqW5pL7IkOWEzhxphMfOWYhltA1n8HCSOQG7dFDicG0wPr0rR4NwilotAVOGk4TqL9/exec";
 
 const LEVELS = [
-  { name: "F & J",       keys: "f  j  space",  words: ["fjf","jfj","fff","jjj","fjj","jff","fj","jf","fjfj","jfjf"] },
-  { name: "+ D & K",     keys: "+ d  k",        words: ["fdk","jdk","dkj","kdf","fdj","kjf","ddd","kkk","fkd","jkd"] },
-  { name: "+ S & L",     keys: "+ s  l",        words: ["sld","lsd","fls","jls","dsl","skl","sdf","lkj","sldk","fslj"] },
-  { name: "+ A & ;",     keys: "+ a  ;",        words: ["lad","fad","sad","dad","ask","lass","fads","lads","flask","salad"] },
-  { name: "+ G & H",     keys: "+ g  h",        words: ["gash","hash","shag","glad","flag","flash","glass","shall","dash","lash"] },
-  { name: "+ R & U",     keys: "+ r  u",        words: ["fur","rush","rusk","surf","dark","lark","lurk","guard","dusk","hurl"] },
-  { name: "+ E & I",     keys: "+ e  i",        words: ["fire","hire","ride","idea","side","rule","rise","rude","sure","idle"] },
-  { name: "+ W & O",     keys: "+ w  o",        words: ["word","work","flow","slow","glow","show","whole","world","sword","grow"] },
-  { name: "+ T & Y",     keys: "+ t  y",        words: ["style","story","dusty","rusty","tasty","hasty","fishy","stray","tyke","thirsty"] },
-  { name: "+ Q & P",     keys: "+ q  p",        words: ["quote","quite","party","sport","pretty","spider","spoil","squid","purse","trophy"] },
-  { name: "+ V & N",     keys: "+ v  n",        words: ["van","vine","never","seven","given","naive","novel","invest","event","driven"] },
-  { name: "+ C & M",     keys: "+ c  m",        words: ["come","mice","magic","cream","crime","music","comic","storm","mercy","micro"] },
-  { name: "+ X & Z",     keys: "+ x  z",        words: ["exit","exam","next","zone","size","zero","text","oxen","prize","frozen"] },
-  { name: "+ B",         keys: "+ b",           words: ["blob","grab","job","tribe","brave","above","orbit","boost","carbon","globe"] },
-  { name: "Shift",       keys: "Shift + letter",words: ["Flash","Storm","Quick","Brown","Jumps","Brave","Drive","World","Prize","Globe"] },
-  { name: "Numbers 1-5", keys: "1 2 3 4 5",    words: ["123","321","1234","4321","12345","23451","31425","14253","51423","24531"] },
-  { name: "Numbers 6-0", keys: "6 7 8 9 0",    words: ["678","876","6789","9876","67890","78906","89067","90678","60789","76890"] },
+  { name: "F & J",       keys: "f  j  space",   newKeys: "fj",                                    words: ["fjf","jfj","fff","jjj","fjj","jff","fj","jf","fjfj","jfjf"] },
+  { name: "+ D & K",     keys: "+ d  k",         newKeys: "dk",                                    words: ["fdk","jdk","dkj","kdf","fdj","kjf","ddd","kkk","fkd","jkd"] },
+  { name: "+ S & L",     keys: "+ s  l",         newKeys: "sl",                                    words: ["sld","lsd","fls","jls","dsl","skl","sdf","lkj","sldk","fslj"] },
+  { name: "+ A & ;",     keys: "+ a  ;",         newKeys: "a;",                                    words: ["lad","fad","sad","dad","ask","lass","fads","lads","flask","salad"] },
+  { name: "+ G & H",     keys: "+ g  h",         newKeys: "gh",                                    words: ["gash","hash","shag","glad","flag","flash","glass","shall","dash","lash"] },
+  { name: "+ R & U",     keys: "+ r  u",         newKeys: "ru",                                    words: ["fur","rush","rusk","surf","dark","lark","lurk","guard","dusk","hurl"] },
+  { name: "+ E & I",     keys: "+ e  i",         newKeys: "ei",                                    words: ["fire","hire","ride","idea","side","rule","rise","rude","sure","idle"] },
+  { name: "+ W & O",     keys: "+ w  o",         newKeys: "wo",                                    words: ["word","work","flow","slow","glow","show","whole","world","sword","grow"] },
+  { name: "+ T & Y",     keys: "+ t  y",         newKeys: "ty",                                    words: ["style","story","dusty","rusty","tasty","hasty","fishy","stray","tyke","thirsty"] },
+  { name: "+ Q & P",     keys: "+ q  p",         newKeys: "qp",                                    words: ["quote","quite","party","sport","pretty","spider","spoil","squid","purse","trophy"] },
+  { name: "+ V & N",     keys: "+ v  n",         newKeys: "vn",                                    words: ["van","vine","never","seven","given","naive","novel","invest","event","driven"] },
+  { name: "+ C & M",     keys: "+ c  m",         newKeys: "cm",                                    words: ["come","mice","magic","cream","crime","music","comic","storm","mercy","micro"] },
+  { name: "+ X & Z",     keys: "+ x  z",         newKeys: "xz",                                    words: ["exit","exam","next","zone","size","zero","text","oxen","prize","frozen"] },
+  { name: "+ B",         keys: "+ b",            newKeys: "b",                                     words: ["blob","grab","job","tribe","brave","above","orbit","boost","carbon","globe"] },
+  { name: "Shift",       keys: "Shift + letter", newKeys: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",            words: ["Flash","Storm","Quick","Brown","Jumps","Brave","Drive","World","Prize","Globe"] },
+  { name: "Numbers 1-5", keys: "1 2 3 4 5",     newKeys: "12345",                                 words: ["123","321","1234","4321","12345","23451","31425","14253","51423","24531"] },
+  { name: "Numbers 6-0", keys: "6 7 8 9 0",     newKeys: "67890",                                 words: ["678","876","6789","9876","67890","78906","89067","90678","60789","76890"] },
 ];
 
 const LEVEL_WORDS = LEVELS.map(l => l.words);
 
-const PASS_MIN_SCORE    = 50;
-const PASS_MIN_ACCURACY = 70;
+const PASS_MIN_ACCURACY = 98;   // % character accuracy required
+const PASS_NEW_HITS     = 30;   // correct hits on new-level keys required
 
 const FINGER_COLORS = {
   a:"#FF6B6B", s:"#FF9F43", d:"#FECA57", f:"#48DBFB",
@@ -238,15 +238,19 @@ function LevelMenu({ userName, passedLevels, onStart, onChangeName }) {
 // ── game ──────────────────────────────────────────────────────────────────────
 
 function Game({ userName, level, passedLevels, onMenu }) {
-  const [typed, setTyped]           = useState("");
-  const [score, setScore]           = useState(0);
-  const [streak, setStreak]         = useState(0);
-  const [shake, setShake]           = useState(false);
-  const [celebrate, setCelebrate]   = useState(false);
-  const [activeKey, setActiveKey]   = useState(null);
-  const [errors, setErrors]         = useState(0);
-  const [wordsQueue, setWordsQueue] = useState([]);
+  const [typed, setTyped]             = useState("");
+  const [score, setScore]             = useState(0);
+  const [streak, setStreak]           = useState(0);
+  const [shake, setShake]             = useState(false);
+  const [celebrate, setCelebrate]     = useState(false);
+  const [activeKey, setActiveKey]     = useState(null);
+  const [errors, setErrors]           = useState(0);
+  const [correctHits, setCorrectHits] = useState(0);
+  const [newKeyHits, setNewKeyHits]   = useState(0);
+  const [wordsQueue, setWordsQueue]   = useState([]);
   const inputRef = useRef(null);
+
+  const newKeySet = LEVELS[level].newKeys;
 
   const currentWord = wordsQueue[0] || "";
   const nextChar    = currentWord[typed.length] || "";
@@ -259,24 +263,26 @@ function Game({ userName, level, passedLevels, onMenu }) {
     const pool = LEVEL_WORDS[level];
     const q = Array.from({length: 12}, () => pool[Math.floor(Math.random()*pool.length)]);
     setWordsQueue(q);
-    setTyped(""); setScore(0); setStreak(0); setErrors(0);
+    setTyped(""); setScore(0); setStreak(0); setErrors(0); setCorrectHits(0); setNewKeyHits(0);
   }, [level]);
 
   useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, []);
 
-  const scoreRef  = useRef(score);
-  const errorsRef = useRef(errors);
-  useEffect(() => { scoreRef.current  = score;  }, [score]);
-  useEffect(() => { errorsRef.current = errors; }, [errors]);
+  const correctHitsRef = useRef(correctHits);
+  const errorsRef      = useRef(errors);
+  const newKeyHitsRef  = useRef(newKeyHits);
+  useEffect(() => { correctHitsRef.current = correctHits; }, [correctHits]);
+  useEffect(() => { errorsRef.current      = errors;      }, [errors]);
+  useEffect(() => { newKeyHitsRef.current  = newKeyHits;  }, [newKeyHits]);
 
   const handleMenu = useCallback(() => {
-    const finalScore    = scoreRef.current;
-    const finalErrors   = errorsRef.current;
-    const wordsTyped    = finalScore / 10;
-    const accuracy      = wordsTyped + finalErrors > 0
-      ? Math.round(wordsTyped / (wordsTyped + finalErrors) * 100) : 100;
+    const totalCorrect  = correctHitsRef.current;
+    const totalErrors   = errorsRef.current;
+    const finalNewHits  = newKeyHitsRef.current;
+    const totalKeys     = totalCorrect + totalErrors;
+    const accuracy      = totalKeys > 0 ? Math.round(totalCorrect / totalKeys * 100) : 100;
     const levelName     = LEVELS[level].name;
-    const passed        = finalScore >= PASS_MIN_SCORE && accuracy >= PASS_MIN_ACCURACY;
+    const passed        = accuracy >= PASS_MIN_ACCURACY && finalNewHits >= PASS_NEW_HITS;
 
     let newPassed = passedLevels;
     if (passed && !passedLevels.includes(levelName)) {
@@ -295,6 +301,8 @@ function Game({ userName, level, passedLevels, onMenu }) {
     setTimeout(() => setActiveKey(null), 150);
 
     if (ch === currentWord[typed.length]) {
+      setCorrectHits(h => h + 1);
+      if (newKeySet.includes(ch)) setNewKeyHits(h => h + 1);
       const newTyped = typed + ch;
       setTyped(newTyped);
       if (newTyped === currentWord) {
@@ -325,9 +333,8 @@ function Game({ userName, level, passedLevels, onMenu }) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [handleKey]);
 
-  const wordsTyped = score / 10;
-  const accuracy   = wordsTyped + errors > 0
-    ? Math.round(wordsTyped / (wordsTyped + errors) * 100) : 100;
+  const totalKeys = correctHits + errors;
+  const accuracy  = totalKeys > 0 ? Math.round(correctHits / totalKeys * 100) : 100;
 
   return (
     <div
@@ -337,11 +344,11 @@ function Game({ userName, level, passedLevels, onMenu }) {
       <input ref={inputRef} style={{position:"absolute",opacity:0,pointerEvents:"none"}} readOnly />
 
       {/* header */}
-      <div style={{display:"flex",gap:20,marginBottom:16,background:"rgba(255,255,255,0.15)",borderRadius:20,padding:"8px 20px",color:"white",fontWeight:700,fontSize:15,alignItems:"center"}}>
+      <div style={{display:"flex",gap:16,marginBottom:16,background:"rgba(255,255,255,0.15)",borderRadius:20,padding:"8px 20px",color:"white",fontWeight:700,fontSize:15,alignItems:"center",flexWrap:"wrap",justifyContent:"center"}}>
         <span style={{fontSize:13,opacity:0.8}}>{LEVELS[level].name}</span>
-        <span>⭐ {score}</span>
         <span>🔥 {streak}</span>
-        <span>🎯 {accuracy}%</span>
+        <span style={{color: accuracy >= PASS_MIN_ACCURACY ? "#2ecc71" : "white"}}>🎯 {accuracy}%</span>
+        <span style={{color: newKeyHits >= PASS_NEW_HITS ? "#2ecc71" : "white"}}>⌨️ {newKeyHits}/{PASS_NEW_HITS}</span>
         <button onClick={handleMenu} style={{background:"none",border:"1px solid rgba(255,255,255,0.5)",color:"white",borderRadius:12,padding:"2px 10px",cursor:"pointer",fontSize:13}}>Menu</button>
       </div>
 
