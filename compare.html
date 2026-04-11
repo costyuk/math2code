@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compare Numbers</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Comic Sans MS", "Comic Neue", cursive;
+      background: linear-gradient(45deg, #e0f7fa, #b2ebf2);
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    /* ── name gate ────────────────────────────── */
+    #nameGate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    #nameGate .box {
+      background: white;
+      border-radius: 30px;
+      padding: 40px 36px;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    #nameGate h1 { color: #00796b; font-size: 2em; margin: 0 0 8px; }
+    #nameGate p  { color: #888; margin: 0 0 24px; }
+
+    /* ── level select ─────────────────────────── */
+    #levelSelect { display: none; padding: 30px 16px 60px; }
+    #levelSelect h1 { color: #00796b; font-size: 2em; margin: 0 0 4px; }
+    #levelSelect .greeting { color: #555; font-size: 1.1em; margin: 0 0 30px; }
+
+    .level-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .level-card {
+      background: white;
+      border-radius: 24px;
+      padding: 28px 22px;
+      width: 155px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.18s;
+      border: 3px solid transparent;
+    }
+    .level-card:hover:not(.locked) {
+      transform: translateY(-5px) scale(1.04);
+      box-shadow: 0 14px 32px rgba(0,0,0,0.18);
+    }
+    .level-card.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .level-card .big-icon { font-size: 3em; margin-bottom: 10px; }
+    .level-card .lv-title { font-size: 1.05em; font-weight: bold; color: #333; }
+    .level-card .lv-desc  { font-size: 0.8em; color: #999; margin-top: 5px; }
+    .level-card .lv-badge {
+      margin-top: 8px; font-size: 0.75em; font-weight: bold;
+      color: #00796b; background: #e0f7fa; border-radius: 12px; padding: 2px 10px;
+      display: inline-block;
+    }
+    .level-card.done { border-color: #80cbc4; }
+
+    /* ── quiz ─────────────────────────────────── */
+    #quiz { display: none; padding: 20px 16px 60px; }
+
+    .quiz-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 24px;
+      background: white;
+      border-radius: 20px;
+      padding: 12px 24px;
+      max-width: 480px;
+      margin-left: auto; margin-right: auto;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+      font-size: 1.1em;
+    }
+    .quiz-header .score-badge {
+      background: #e0f7fa; border-radius: 14px; padding: 4px 14px;
+      color: #00796b; font-weight: bold;
+    }
+
+    .stage {
+      background: white;
+      border-radius: 28px;
+      padding: 32px 24px;
+      max-width: 560px;
+      margin: 0 auto 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    }
+    .stage .level-label {
+      font-size: 0.85em; color: #aaa; letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 20px;
+    }
+
+    /* comparison row */
+    .compare-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .side-box {
+      background: #e0f7fa;
+      border-radius: 18px;
+      padding: 16px 20px;
+      min-width: 110px;
+      min-height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 4px;
+      font-size: 2.2em;
+      font-weight: bold;
+      color: #004d40;
+      line-height: 1.3;
+    }
+    .side-box.expr { font-size: 1.8em; min-width: 130px; }
+
+    .sign-input {
+      font-size: 2.4em;
+      width: 80px;
+      text-align: center;
+      border: 3px solid #80cbc4;
+      border-radius: 14px;
+      padding: 8px 0;
+      outline: none;
+      font-family: inherit;
+      color: #00796b;
+      background: #f9fffe;
+      transition: border-color 0.2s;
+    }
+    .sign-input:focus { border-color: #00796b; }
+
+    /* symbol helper buttons */
+    .symbol-btns {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .sym-btn {
+      font-size: 2em;
+      width: 72px; height: 72px;
+      border-radius: 18px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+      transition: transform 0.12s, box-shadow 0.12s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
+    .sym-btn:hover { transform: scale(1.12); box-shadow: 0 6px 16px rgba(0,0,0,0.18); }
+    .sym-btn.gt { background: #fff9c4; color: #f57f17; }
+    .sym-btn.lt { background: #fce4ec; color: #c62828; }
+    .sym-btn.eq { background: #e8f5e9; color: #2e7d32; }
+
+    .submit-btn {
+      background: linear-gradient(135deg, #26c6da, #00897b);
+      color: white;
+      border: none;
+      border-radius: 24px;
+      padding: 14px 44px;
+      font-size: 1.3em;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 14px rgba(0,137,123,0.35);
+      transition: transform 0.15s;
+    }
+    .submit-btn:hover { transform: scale(1.05); }
+
+    #feedback {
+      font-size: 1.6em;
+      font-weight: bold;
+      margin-top: 16px;
+      min-height: 2em;
+    }
+    #feedback.ok  { color: #2e7d32; }
+    #feedback.err { color: #c62828; }
+
+    .back-btn {
+      background: none;
+      border: 2px solid #80cbc4;
+      color: #00796b;
+      border-radius: 20px;
+      padding: 8px 22px;
+      font-size: 1em;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* name input / generic input style */
+    .text-input {
+      padding: 12px 16px;
+      font-size: 1.1em;
+      border: 2px solid #b2dfdb;
+      border-radius: 14px;
+      outline: none;
+      font-family: inherit;
+      width: 100%;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+    .text-input:focus { border-color: #00796b; }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #26c6da, #00897b);
+      color: white;
+      border: none;
+      border-radius: 24px;
+      padding: 13px 40px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 14px rgba(0,137,123,0.3);
+    }
+
+    .change-link {
+      font-size: 0.8em; color: #aaa; cursor: pointer;
+      text-decoration: underline; margin-left: 6px;
+    }
+
+    /* confetti burst element */
+    @keyframes burst {
+      0%   { opacity:1; transform: translateY(0) scale(1); }
+      100% { opacity:0; transform: translateY(-60px) scale(1.5); }
+    }
+    .burst { position: fixed; pointer-events: none; font-size: 2em;
+             animation: burst 0.7s ease-out forwards; }
+
+    /* shake */
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-8px); }
+      75%      { transform: translateX(8px); }
+    }
+    .shake { animation: shake 0.35s ease; }
+  </style>
+</head>
+<body>
+
+<!-- ── NAME GATE ─────────────────────────────────────────────────── -->
+<div id="nameGate">
+  <div class="box">
+    <div style="font-size:3em;margin-bottom:8px">🔢</div>
+    <h1>Compare!</h1>
+    <p>What's your name?</p>
+    <input id="nameInput" class="text-input" placeholder="Your name"
+           onkeydown="if(event.key==='Enter') saveName()">
+    <button class="primary-btn" onclick="saveName()">Let's go! 🚀</button>
+  </div>
+</div>
+
+<!-- ── LEVEL SELECT ──────────────────────────────────────────────── -->
+<div id="levelSelect">
+  <h1>🔢 Compare!</h1>
+  <p class="greeting">Hi, <span id="greetName"></span>! <span class="change-link" onclick="changeName()">change</span></p>
+
+  <div class="level-grid">
+    <div class="level-card" id="card1" onclick="startLevel(1)">
+      <div class="big-icon">🍎</div>
+      <div class="lv-title">Level 1</div>
+      <div class="lv-desc">Count the pictures</div>
+    </div>
+    <div class="level-card locked" id="card2" onclick="startLevel(2)">
+      <div class="big-icon">🔢</div>
+      <div class="lv-title">Level 2</div>
+      <div class="lv-desc">Compare numbers</div>
+    </div>
+    <div class="level-card locked" id="card3" onclick="startLevel(3)">
+      <div class="big-icon">➕</div>
+      <div class="lv-title">Level 3</div>
+      <div class="lv-desc">Math vs number</div>
+    </div>
+    <div class="level-card locked" id="card4" onclick="startLevel(4)">
+      <div class="big-icon">⚡</div>
+      <div class="lv-title">Level 4</div>
+      <div class="lv-desc">Math vs math</div>
+    </div>
+  </div>
+
+  <p style="margin-top:28px;color:#888;font-size:0.9em">Get 10 correct to unlock the next level!</p>
+</div>
+
+<!-- ── QUIZ ─────────────────────────────────────────────────────── -->
+<div id="quiz">
+  <div class="quiz-header">
+    <span id="quizTitle" style="font-weight:bold;color:#00796b"></span>
+    <span class="score-badge">⭐ <span id="score">0</span> / 10</span>
+    <button class="back-btn" onclick="goBack()">← Back</button>
+  </div>
+
+  <div class="stage">
+    <div class="level-label" id="levelLabel"></div>
+
+    <div class="compare-row">
+      <div class="side-box" id="leftSide"></div>
+      <input class="sign-input" id="signInput" maxlength="1"
+             placeholder="?" autocomplete="off" autocorrect="off"
+             onkeydown="if(event.key==='Enter') submit()">
+      <div class="side-box" id="rightSide"></div>
+    </div>
+
+    <div class="symbol-btns">
+      <button class="sym-btn gt" onclick="fillSign('>')">›</button>
+      <button class="sym-btn eq" onclick="fillSign('=')">=</button>
+      <button class="sym-btn lt" onclick="fillSign('<')">‹</button>
+    </div>
+
+    <button class="submit-btn" onclick="submit()">Check ✅</button>
+
+    <div id="feedback"></div>
+  </div>
+</div>
+
+<script>
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqW5pL7IkOWEzhxphMfOWYhltA1n8HCSOQG7dFDicG0wPr0rR4NwilotAVOGk4TqL9/exec";
+  const PASS_SCORE = 10;
+  const RESET_PIN  = "1502";
+
+  const EMOJIS = ["🍎","🌟","🐱","🎈","🦄","🍕","🐶","🌈","🍦","🐸","🎀","🏀"];
+  const CONFETTI = ["🎉","✨","🌟","🎊","💫"];
+
+  let studentName   = "";
+  let currentLevel  = 1;
+  let score         = 0;
+  let correctSign   = "";
+  let answered      = false;
+
+  // per-level unlock state (loaded from localStorage)
+  let unlocked = [true, false, false, false];
+
+  // ── helpers ──────────────────────────────────────────────
+
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function saveUnlocked() {
+    localStorage.setItem("compare_unlocked_" + studentName, JSON.stringify(unlocked));
+  }
+
+  function loadUnlocked() {
+    try {
+      const stored = JSON.parse(localStorage.getItem("compare_unlocked_" + studentName));
+      if (Array.isArray(stored) && stored.length === 4) unlocked = stored;
+    } catch {}
+    unlocked[0] = true; // level 1 always unlocked
+    refreshCards();
+  }
+
+  function refreshCards() {
+    for (let i = 1; i <= 4; i++) {
+      const card = document.getElementById("card" + i);
+      if (unlocked[i - 1]) {
+        card.classList.remove("locked");
+        if (i > 1) {
+          const badge = card.querySelector(".lv-badge");
+          if (!badge) {
+            const b = document.createElement("div");
+            b.className = "lv-badge";
+            b.textContent = "Unlocked!";
+            card.appendChild(b);
+          }
+        }
+      }
+    }
+  }
+
+  function markLevelDone(lvl) {
+    const card = document.getElementById("card" + lvl);
+    card.classList.add("done");
+    let badge = card.querySelector(".lv-badge");
+    if (!badge) { badge = document.createElement("div"); badge.className = "lv-badge"; card.appendChild(badge); }
+    badge.textContent = "✅ Done!";
+  }
+
+  // ── name ─────────────────────────────────────────────────
+
+  function saveName() {
+    const val = document.getElementById("nameInput").value.trim();
+    if (!val) return;
+    studentName = val;
+    localStorage.setItem("studentName", val);
+    showLevelSelect();
+  }
+
+  function changeName() {
+    localStorage.removeItem("studentName");
+    studentName = "";
+    document.getElementById("levelSelect").style.display = "none";
+    document.getElementById("nameGate").style.display = "flex";
+    document.getElementById("nameInput").value = "";
+  }
+
+  function showLevelSelect() {
+    document.getElementById("nameGate").style.display = "none";
+    document.getElementById("quiz").style.display = "none";
+    document.getElementById("levelSelect").style.display = "block";
+    document.getElementById("greetName").textContent = studentName + "!";
+    loadUnlocked();
+  }
+
+  // ── start / back ──────────────────────────────────────────
+
+  function startLevel(lvl) {
+    if (!unlocked[lvl - 1]) {
+      promptPin(lvl);
+      return;
+    }
+    currentLevel = lvl;
+    score = 0;
+    answered = false;
+    document.getElementById("score").textContent = "0";
+    document.getElementById("levelSelect").style.display = "none";
+    document.getElementById("quiz").style.display = "block";
+
+    const labels = ["","Count the pictures! 🍎","Compare the numbers! 🔢","Math vs number! ➕","Math vs math! ⚡"];
+    document.getElementById("quizTitle").textContent = "Level " + lvl;
+    document.getElementById("levelLabel").textContent = labels[lvl];
+
+    nextQuestion();
+  }
+
+  function goBack() {
+    document.getElementById("quiz").style.display = "none";
+    showLevelSelect();
+  }
+
+  // ── PIN unlock ────────────────────────────────────────────
+
+  function promptPin(lvl) {
+    const pin = prompt("Ask your teacher for the PIN to unlock Level " + lvl + ":");
+    if (pin === RESET_PIN) {
+      unlocked[lvl - 1] = true;
+      saveUnlocked();
+      refreshCards();
+      startLevel(lvl);
+    } else if (pin !== null) {
+      alert("Wrong PIN 🙁");
+    }
+  }
+
+  // ── question generators ───────────────────────────────────
+
+  function nextQuestion() {
+    answered = false;
+    document.getElementById("feedback").textContent = "";
+    document.getElementById("feedback").className = "";
+    document.getElementById("signInput").value = "";
+    document.getElementById("signInput").disabled = false;
+    document.getElementById("signInput").focus();
+
+    if      (currentLevel === 1) genLevel1();
+    else if (currentLevel === 2) genLevel2();
+    else if (currentLevel === 3) genLevel3();
+    else if (currentLevel === 4) genLevel4();
+  }
+
+  function setSign(a, b) {
+    correctSign = a > b ? ">" : a < b ? "<" : "=";
+  }
+
+  function genLevel1() {
+    const emoji = EMOJIS[rand(0, EMOJIS.length - 1)];
+    const a = rand(1, 9);
+    const b = rand(1, 9);
+    setSign(a, b);
+    document.getElementById("leftSide").innerHTML  = renderEmoji(emoji, a);
+    document.getElementById("rightSide").innerHTML = renderEmoji(emoji, b);
+    document.getElementById("leftSide").classList.remove("expr");
+    document.getElementById("rightSide").classList.remove("expr");
+  }
+
+  function renderEmoji(emoji, n) {
+    // wrap in small flex grid for readability
+    const cols = n <= 3 ? n : Math.ceil(Math.sqrt(n));
+    let html = `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:2px;justify-items:center">`;
+    for (let i = 0; i < n; i++) html += `<span>${emoji}</span>`;
+    html += "</div>";
+    return html;
+  }
+
+  function genLevel2() {
+    const a = rand(1, 9);
+    const b = rand(1, 9);
+    setSign(a, b);
+    document.getElementById("leftSide").textContent  = a;
+    document.getElementById("rightSide").textContent = b;
+    document.getElementById("leftSide").classList.remove("expr");
+    document.getElementById("rightSide").classList.remove("expr");
+  }
+
+  function genLevel3() {
+    // Left: simple expression, Right: plain number
+    const { expr, val } = randExpr();
+    const right = rand(1, 9);
+    setSign(val, right);
+    document.getElementById("leftSide").textContent  = expr;
+    document.getElementById("rightSide").textContent = right;
+    document.getElementById("leftSide").classList.add("expr");
+    document.getElementById("rightSide").classList.remove("expr");
+  }
+
+  function genLevel4() {
+    // Both sides: expressions
+    const L = randExpr();
+    const R = randExpr();
+    setSign(L.val, R.val);
+    document.getElementById("leftSide").textContent  = L.expr;
+    document.getElementById("rightSide").textContent = R.expr;
+    document.getElementById("leftSide").classList.add("expr");
+    document.getElementById("rightSide").classList.add("expr");
+  }
+
+  function randExpr() {
+    const op = Math.random() > 0.5 ? "+" : "-";
+    let a, b, val;
+    if (op === "+") {
+      a = rand(1, 5); b = rand(1, 5 - a + 1); val = a + b;
+    } else {
+      a = rand(2, 9); b = rand(1, a - 1); val = a - b;
+    }
+    return { expr: `${a} ${op} ${b}`, val };
+  }
+
+  // ── sign buttons / submit ─────────────────────────────────
+
+  function fillSign(s) {
+    document.getElementById("signInput").value = s;
+    document.getElementById("signInput").focus();
+  }
+
+  function submit() {
+    if (answered) { nextQuestion(); return; }
+
+    const raw   = document.getElementById("signInput").value.trim();
+    const input = raw === "›" ? ">" : raw === "‹" ? "<" : raw;
+
+    if (!["<", ">", "="].includes(input)) {
+      showFeedback("Type  >  <  or  =  🙂", false, false);
+      return;
+    }
+
+    answered = true;
+    document.getElementById("signInput").disabled = true;
+
+    if (input === correctSign) {
+      score++;
+      document.getElementById("score").textContent = score;
+      showFeedback("Correct! 🎉", true, true);
+      burst();
+      if (score >= PASS_SCORE) {
+        unlockNext();
+        return;
+      }
+    } else {
+      showFeedback(`Not quite… the answer is  ${correctSign}`, false, true);
+    }
+  }
+
+  function showFeedback(msg, ok, autoNext) {
+    const el = document.getElementById("feedback");
+    el.textContent = msg;
+    el.className   = ok ? "ok" : "err";
+    if (autoNext) setTimeout(nextQuestion, 1200);
+  }
+
+  // ── unlock ────────────────────────────────────────────────
+
+  function unlockNext() {
+    markLevelDone(currentLevel);
+
+    sendToSheet(currentLevel);
+
+    if (currentLevel < 4) {
+      const next = currentLevel + 1;
+      unlocked[next - 1] = true;
+      saveUnlocked();
+      alert(`Amazing! 🌟 Level ${next} is now unlocked!`);
+    } else {
+      alert("🏆 You finished ALL levels! You're a star! 🌟");
+    }
+    goBack();
+  }
+
+  // ── sheet ─────────────────────────────────────────────────
+
+  function sendToSheet(lvl) {
+    const passedLevels = unlocked
+      .map((u, i) => u ? "Level " + (i + 1) : null)
+      .filter(Boolean)
+      .join(", ");
+
+    const payload = {
+      name:     studentName,
+      level:    passedLevels,
+      mode:     "compare",
+      correct:  unlocked.filter(Boolean).length,
+      attempts: 4,
+      accuracy: Math.round(unlocked.filter(Boolean).length / 4 * 100),
+      action:   "upsert",
+    };
+    fetch(GOOGLE_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) })
+      .catch(err => console.log("Sheet send failed:", err));
+  }
+
+  // ── confetti ──────────────────────────────────────────────
+
+  function burst() {
+    for (let i = 0; i < 6; i++) {
+      setTimeout(() => {
+        const el = document.createElement("div");
+        el.className   = "burst";
+        el.textContent = CONFETTI[rand(0, CONFETTI.length - 1)];
+        el.style.left  = rand(20, 80) + "vw";
+        el.style.top   = rand(30, 70) + "vh";
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 750);
+      }, i * 80);
+    }
+  }
+
+  // ── init ──────────────────────────────────────────────────
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const stored = localStorage.getItem("studentName");
+    if (stored) {
+      studentName = stored;
+      document.getElementById("nameInput").value = stored;
+      showLevelSelect();
+    } else {
+      document.getElementById("nameGate").style.display = "flex";
+    }
+  });
+</script>
+
+</body>
+</html>
