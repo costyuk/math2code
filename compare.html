@@ -330,7 +330,7 @@
 
     <div class="compare-row" id="compareRow">
       <div id="leftSide"></div>
-      <input class="sign-input" id="signInput" maxlength="1"
+      <input class="sign-input" id="signInput" maxlength="2"
              placeholder="?" autocomplete="off" autocorrect="off"
              onkeydown="if(event.key==='Enter') submit()">
       <div id="rightSide"></div>
@@ -338,7 +338,7 @@
 
     <div class="symbol-btns">
       <button class="sym-btn gt" onclick="fillSign('>')">›</button>
-      <button class="sym-btn eq" onclick="fillSign('=')">=</button>
+      <button class="sym-btn eq" onclick="fillSign('==')">==</button>
       <button class="sym-btn lt" onclick="fillSign('<')">‹</button>
     </div>
 
@@ -371,7 +371,7 @@
   }
 
   function setSign(a, b) {
-    correctSign = a > b ? ">" : a < b ? "<" : "=";
+    correctSign = a > b ? ">" : a < b ? "<" : "==";
   }
 
   function saveUnlocked() {
@@ -591,7 +591,7 @@
     const raw   = document.getElementById("signInput").value.trim();
     const input = raw === "›" ? ">" : raw === "‹" ? "<" : raw;
 
-    if (!["<", ">", "="].includes(input)) {
+    if (!["<", ">", "=="].includes(input)) {
       showFeedback("Type  >  <  or  =  🙂", false, false);
       return;
     }
