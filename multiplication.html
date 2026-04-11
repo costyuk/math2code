@@ -178,6 +178,20 @@
   </style>
 </head>
 <body>
+<div id="unlockModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:20000;align-items:center;justify-content:center;">
+  <div style="background:white;padding:28px 32px;border-radius:16px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.3);min-width:260px;">
+    <h3 style="margin:0 0 8px">🔐 Unlock Level</h3>
+    <p style="color:#666;margin:0 0 14px;font-size:15px">Enter teacher PIN:</p>
+    <input type="password" id="unlockPinInput" maxlength="4"
+      style="font-size:22px;width:90px;padding:8px;border-radius:8px;border:2px solid #ccc;text-align:center;"
+      onkeydown="if(event.key==='Enter')confirmUnlock()">
+    <br><br>
+    <button onclick="confirmUnlock()" style="background:#2196f3;color:white;border:none;border-radius:8px;padding:8px 18px;font-size:15px;cursor:pointer;margin-right:8px;">Unlock</button>
+    <button onclick="closeUnlockModal()" style="background:#ccc;color:#333;border:none;border-radius:8px;padding:8px 18px;font-size:15px;cursor:pointer;">Cancel</button>
+    <div id="unlockMessage" style="margin-top:10px;font-weight:bold;min-height:20px;"></div>
+  </div>
+</div>
+
 <div id="nameGate" class="gate">
   <div class="gateBox">
     <h2>👋 Welcome!</h2>
@@ -216,6 +230,43 @@
 
 <script>
   const RESET_PIN = "1502";
+  const UNLOCK_STORAGE_KEY = "unlockOverrides_mult";
+
+  let unlockTargetLevel = null;
+
+  function getUnlockOverrides() {
+    return JSON.parse(localStorage.getItem(UNLOCK_STORAGE_KEY) || "[]");
+  }
+  function saveUnlockOverrides(ov) {
+    localStorage.setItem(UNLOCK_STORAGE_KEY, JSON.stringify(ov));
+  }
+  function promptUnlock(index) {
+    unlockTargetLevel = index;
+    const modal = document.getElementById("unlockModal");
+    modal.style.display = "flex";
+    document.getElementById("unlockPinInput").value = "";
+    document.getElementById("unlockMessage").innerText = "";
+    setTimeout(() => document.getElementById("unlockPinInput").focus(), 50);
+  }
+  function closeUnlockModal() {
+    document.getElementById("unlockModal").style.display = "none";
+    unlockTargetLevel = null;
+  }
+  function confirmUnlock() {
+    const pin = document.getElementById("unlockPinInput").value;
+    const msg = document.getElementById("unlockMessage");
+    if (pin === RESET_PIN) {
+      const ov = getUnlockOverrides();
+      if (!ov.includes(unlockTargetLevel)) { ov.push(unlockTargetLevel); saveUnlockOverrides(ov); }
+      msg.style.color = "green";
+      msg.innerText = "✅ Level unlocked!";
+      setTimeout(() => { closeUnlockModal(); renderLevels(); selectLevel(unlockTargetLevel); }, 700);
+    } else {
+      msg.style.color = "red";
+      msg.innerText = "❌ Incorrect PIN";
+    }
+  }
+
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqW5pL7IkOWEzhxphMfOWYhltA1n8HCSOQG7dFDicG0wPr0rR4NwilotAVOGk4TqL9/exec";
 
   const question = document.getElementById("question");
@@ -281,8 +332,9 @@
           btn.className = "level-btn";
           btn.innerText = lvl.emoji;
 
+          const overrides = getUnlockOverrides();
           const prevPassed = index === 0 ? true : stats[getLevelKey(index - 1)]?.passed;
-          const unlocked = index === 0 || prevPassed;
+          const unlocked = index === 0 || prevPassed || overrides.includes(index);
 
           if (unlocked) {
               btn.classList.add("unlocked");
@@ -290,6 +342,7 @@
               maxUnlockedLevel = index;
           } else {
               btn.classList.add("locked");
+              btn.onclick = () => promptUnlock(index);
           }
 
           container.appendChild(btn);
@@ -622,6 +675,7 @@
       if (input === RESET_PIN) {
           localStorage.removeItem("mathStats");
           localStorage.removeItem("maxUnlocked");
+          localStorage.removeItem(UNLOCK_STORAGE_KEY);
 
           maxUnlocked = 1;
 
