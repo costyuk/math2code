@@ -43,14 +43,14 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 18px;
-      max-width: 700px;
+      max-width: 860px;
       margin: 0 auto;
     }
     .level-card {
       background: white;
       border-radius: 24px;
       padding: 28px 22px;
-      width: 155px;
+      width: 148px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.12);
       cursor: pointer;
       transition: transform 0.18s, box-shadow 0.18s;
@@ -60,10 +60,7 @@
       transform: translateY(-5px) scale(1.04);
       box-shadow: 0 14px 32px rgba(0,0,0,0.18);
     }
-    .level-card.locked {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
+    .level-card.locked { opacity: 0.45; cursor: not-allowed; }
     .level-card .big-icon { font-size: 3em; margin-bottom: 10px; }
     .level-card .lv-title { font-size: 1.05em; font-weight: bold; color: #333; }
     .level-card .lv-desc  { font-size: 0.8em; color: #999; margin-top: 5px; }
@@ -86,7 +83,7 @@
       background: white;
       border-radius: 20px;
       padding: 12px 24px;
-      max-width: 480px;
+      max-width: 560px;
       margin-left: auto; margin-right: auto;
       box-shadow: 0 4px 14px rgba(0,0,0,0.1);
       font-size: 1.1em;
@@ -100,7 +97,7 @@
       background: white;
       border-radius: 28px;
       padding: 32px 24px;
-      max-width: 560px;
+      max-width: 660px;
       margin: 0 auto 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.12);
     }
@@ -114,27 +111,50 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
       margin-bottom: 24px;
     }
+
+    /* standard side box */
     .side-box {
       background: #e0f7fa;
       border-radius: 18px;
-      padding: 16px 20px;
-      min-width: 110px;
+      padding: 16px 18px;
+      min-width: 100px;
       min-height: 90px;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-wrap: wrap;
-      gap: 4px;
       font-size: 2.2em;
       font-weight: bold;
       color: #004d40;
       line-height: 1.3;
     }
     .side-box.expr { font-size: 1.8em; min-width: 130px; }
+
+    /* addition side: two sub-boxes with + between */
+    .add-side {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .add-sub {
+      background: #e0f7fa;
+      border-radius: 14px;
+      padding: 12px 14px;
+      min-width: 70px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.9em;
+    }
+    .add-plus {
+      font-size: 2em;
+      font-weight: bold;
+      color: #00796b;
+    }
 
     .sign-input {
       font-size: 2.4em;
@@ -151,7 +171,6 @@
     }
     .sign-input:focus { border-color: #00796b; }
 
-    /* symbol helper buttons */
     .symbol-btns {
       display: flex;
       justify-content: center;
@@ -209,7 +228,6 @@
       font-family: inherit;
     }
 
-    /* name input / generic input style */
     .text-input {
       padding: 12px 16px;
       font-size: 1.1em;
@@ -241,21 +259,12 @@
       text-decoration: underline; margin-left: 6px;
     }
 
-    /* confetti burst element */
     @keyframes burst {
       0%   { opacity:1; transform: translateY(0) scale(1); }
       100% { opacity:0; transform: translateY(-60px) scale(1.5); }
     }
     .burst { position: fixed; pointer-events: none; font-size: 2em;
              animation: burst 0.7s ease-out forwards; }
-
-    /* shake */
-    @keyframes shake {
-      0%,100% { transform: translateX(0); }
-      25%      { transform: translateX(-8px); }
-      75%      { transform: translateX(8px); }
-    }
-    .shake { animation: shake 0.35s ease; }
   </style>
 </head>
 <body>
@@ -279,47 +288,52 @@
 
   <div class="level-grid">
     <div class="level-card" id="card1" onclick="startLevel(1)">
-      <div class="big-icon">🍎</div>
+      <div class="big-icon">🍎➕</div>
       <div class="lv-title">Level 1</div>
-      <div class="lv-desc">Count the pictures</div>
+      <div class="lv-desc">Add emoji &amp; compare</div>
     </div>
     <div class="level-card locked" id="card2" onclick="startLevel(2)">
-      <div class="big-icon">🔢</div>
+      <div class="big-icon">🍎</div>
       <div class="lv-title">Level 2</div>
-      <div class="lv-desc">Compare numbers</div>
+      <div class="lv-desc">Count the pictures</div>
     </div>
     <div class="level-card locked" id="card3" onclick="startLevel(3)">
-      <div class="big-icon">➕</div>
+      <div class="big-icon">🔢</div>
       <div class="lv-title">Level 3</div>
-      <div class="lv-desc">Math vs number</div>
+      <div class="lv-desc">Compare numbers</div>
     </div>
     <div class="level-card locked" id="card4" onclick="startLevel(4)">
-      <div class="big-icon">⚡</div>
+      <div class="big-icon">➕</div>
       <div class="lv-title">Level 4</div>
+      <div class="lv-desc">Math vs number</div>
+    </div>
+    <div class="level-card locked" id="card5" onclick="startLevel(5)">
+      <div class="big-icon">⚡</div>
+      <div class="lv-title">Level 5</div>
       <div class="lv-desc">Math vs math</div>
     </div>
   </div>
 
-  <p style="margin-top:28px;color:#888;font-size:0.9em">Get 10 correct to unlock the next level!</p>
+  <p style="margin-top:28px;color:#888;font-size:0.9em">Get 15 correct to unlock the next level!</p>
 </div>
 
 <!-- ── QUIZ ─────────────────────────────────────────────────────── -->
 <div id="quiz">
   <div class="quiz-header">
     <span id="quizTitle" style="font-weight:bold;color:#00796b"></span>
-    <span class="score-badge">⭐ <span id="score">0</span> / 10</span>
+    <span class="score-badge">⭐ <span id="score">0</span> / 15</span>
     <button class="back-btn" onclick="goBack()">← Back</button>
   </div>
 
   <div class="stage">
     <div class="level-label" id="levelLabel"></div>
 
-    <div class="compare-row">
-      <div class="side-box" id="leftSide"></div>
+    <div class="compare-row" id="compareRow">
+      <div id="leftSide"></div>
       <input class="sign-input" id="signInput" maxlength="1"
              placeholder="?" autocomplete="off" autocorrect="off"
              onkeydown="if(event.key==='Enter') submit()">
-      <div class="side-box" id="rightSide"></div>
+      <div id="rightSide"></div>
     </div>
 
     <div class="symbol-btns">
@@ -329,32 +343,35 @@
     </div>
 
     <button class="submit-btn" onclick="submit()">Check ✅</button>
-
     <div id="feedback"></div>
   </div>
 </div>
 
 <script>
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqW5pL7IkOWEzhxphMfOWYhltA1n8HCSOQG7dFDicG0wPr0rR4NwilotAVOGk4TqL9/exec";
-  const PASS_SCORE = 10;
-  const RESET_PIN  = "1502";
+  const PASS_SCORE   = 15;
+  const RESET_PIN    = "1502";
+  const TOTAL_LEVELS = 5;
 
-  const EMOJIS = ["🍎","🌟","🐱","🎈","🦄","🍕","🐶","🌈","🍦","🐸","🎀","🏀"];
+  const EMOJIS   = ["🍎","🌟","🐱","🎈","🦄","🍕","🐶","🌈","🍦","🐸","🎀","🏀"];
   const CONFETTI = ["🎉","✨","🌟","🎊","💫"];
 
-  let studentName   = "";
-  let currentLevel  = 1;
-  let score         = 0;
-  let correctSign   = "";
-  let answered      = false;
+  let studentName  = "";
+  let currentLevel = 1;
+  let score        = 0;
+  let correctSign  = "";
+  let answered     = false;
 
-  // per-level unlock state (loaded from localStorage)
-  let unlocked = [true, false, false, false];
+  let unlocked = [true, false, false, false, false];
 
   // ── helpers ──────────────────────────────────────────────
 
   function rand(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function setSign(a, b) {
+    correctSign = a > b ? ">" : a < b ? "<" : "=";
   }
 
   function saveUnlocked() {
@@ -364,24 +381,25 @@
   function loadUnlocked() {
     try {
       const stored = JSON.parse(localStorage.getItem("compare_unlocked_" + studentName));
-      if (Array.isArray(stored) && stored.length === 4) unlocked = stored;
-    } catch {}
-    unlocked[0] = true; // level 1 always unlocked
+      if (Array.isArray(stored) && stored.length === TOTAL_LEVELS) unlocked = stored;
+      else unlocked = [true, false, false, false, false];
+    } catch { unlocked = [true, false, false, false, false]; }
+    unlocked[0] = true;
     refreshCards();
   }
 
   function refreshCards() {
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= TOTAL_LEVELS; i++) {
       const card = document.getElementById("card" + i);
       if (unlocked[i - 1]) {
         card.classList.remove("locked");
         if (i > 1) {
-          const badge = card.querySelector(".lv-badge");
+          let badge = card.querySelector(".lv-badge");
           if (!badge) {
-            const b = document.createElement("div");
-            b.className = "lv-badge";
-            b.textContent = "Unlocked!";
-            card.appendChild(b);
+            badge = document.createElement("div");
+            badge.className = "lv-badge";
+            badge.textContent = "Unlocked!";
+            card.appendChild(badge);
           }
         }
       }
@@ -425,10 +443,7 @@
   // ── start / back ──────────────────────────────────────────
 
   function startLevel(lvl) {
-    if (!unlocked[lvl - 1]) {
-      promptPin(lvl);
-      return;
-    }
+    if (!unlocked[lvl - 1]) { promptPin(lvl); return; }
     currentLevel = lvl;
     score = 0;
     answered = false;
@@ -436,7 +451,14 @@
     document.getElementById("levelSelect").style.display = "none";
     document.getElementById("quiz").style.display = "block";
 
-    const labels = ["","Count the pictures! 🍎","Compare the numbers! 🔢","Math vs number! ➕","Math vs math! ⚡"];
+    const labels = [
+      "",
+      "Add the pictures and compare! 🍎➕🍎",
+      "Count the pictures! 🍎",
+      "Compare the numbers! 🔢",
+      "Math vs number! ➕",
+      "Math vs math! ⚡"
+    ];
     document.getElementById("quizTitle").textContent = "Level " + lvl;
     document.getElementById("levelLabel").textContent = labels[lvl];
 
@@ -476,62 +498,73 @@
     else if (currentLevel === 2) genLevel2();
     else if (currentLevel === 3) genLevel3();
     else if (currentLevel === 4) genLevel4();
+    else if (currentLevel === 5) genLevel5();
   }
 
-  function setSign(a, b) {
-    correctSign = a > b ? ">" : a < b ? "<" : "=";
-  }
-
+  // Level 1 – emoji addition vs emoji group
+  // Left: [A emoji] + [B emoji]   Right: [C emoji]
+  // Compare (A+B) vs C
   function genLevel1() {
+    const emoji = EMOJIS[rand(0, EMOJIS.length - 1)];
+    const a = rand(1, 4);
+    const b = rand(1, 4);
+    const c = rand(1, 8);
+    setSign(a + b, c);
+
+    document.getElementById("leftSide").innerHTML =
+      `<div class="add-side">
+        <div class="add-sub">${renderEmoji(emoji, a)}</div>
+        <div class="add-plus">+</div>
+        <div class="add-sub">${renderEmoji(emoji, b)}</div>
+      </div>`;
+
+    document.getElementById("rightSide").innerHTML =
+      `<div class="side-box">${renderEmoji(emoji, c)}</div>`;
+  }
+
+  // Level 2 – compare two emoji groups
+  function genLevel2() {
     const emoji = EMOJIS[rand(0, EMOJIS.length - 1)];
     const a = rand(1, 9);
     const b = rand(1, 9);
     setSign(a, b);
-    document.getElementById("leftSide").innerHTML  = renderEmoji(emoji, a);
-    document.getElementById("rightSide").innerHTML = renderEmoji(emoji, b);
-    document.getElementById("leftSide").classList.remove("expr");
-    document.getElementById("rightSide").classList.remove("expr");
+    document.getElementById("leftSide").innerHTML  = `<div class="side-box">${renderEmoji(emoji, a)}</div>`;
+    document.getElementById("rightSide").innerHTML = `<div class="side-box">${renderEmoji(emoji, b)}</div>`;
+  }
+
+  // Level 3 – compare two single-digit numbers
+  function genLevel3() {
+    const a = rand(1, 9);
+    const b = rand(1, 9);
+    setSign(a, b);
+    document.getElementById("leftSide").innerHTML  = `<div class="side-box">${a}</div>`;
+    document.getElementById("rightSide").innerHTML = `<div class="side-box">${b}</div>`;
+  }
+
+  // Level 4 – expression vs plain number
+  function genLevel4() {
+    const { expr, val } = randExpr();
+    const right = rand(1, 9);
+    setSign(val, right);
+    document.getElementById("leftSide").innerHTML  = `<div class="side-box expr">${expr}</div>`;
+    document.getElementById("rightSide").innerHTML = `<div class="side-box">${right}</div>`;
+  }
+
+  // Level 5 – expression vs expression
+  function genLevel5() {
+    const L = randExpr();
+    const R = randExpr();
+    setSign(L.val, R.val);
+    document.getElementById("leftSide").innerHTML  = `<div class="side-box expr">${L.expr}</div>`;
+    document.getElementById("rightSide").innerHTML = `<div class="side-box expr">${R.expr}</div>`;
   }
 
   function renderEmoji(emoji, n) {
-    // wrap in small flex grid for readability
     const cols = n <= 3 ? n : Math.ceil(Math.sqrt(n));
     let html = `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:2px;justify-items:center">`;
     for (let i = 0; i < n; i++) html += `<span>${emoji}</span>`;
     html += "</div>";
     return html;
-  }
-
-  function genLevel2() {
-    const a = rand(1, 9);
-    const b = rand(1, 9);
-    setSign(a, b);
-    document.getElementById("leftSide").textContent  = a;
-    document.getElementById("rightSide").textContent = b;
-    document.getElementById("leftSide").classList.remove("expr");
-    document.getElementById("rightSide").classList.remove("expr");
-  }
-
-  function genLevel3() {
-    // Left: simple expression, Right: plain number
-    const { expr, val } = randExpr();
-    const right = rand(1, 9);
-    setSign(val, right);
-    document.getElementById("leftSide").textContent  = expr;
-    document.getElementById("rightSide").textContent = right;
-    document.getElementById("leftSide").classList.add("expr");
-    document.getElementById("rightSide").classList.remove("expr");
-  }
-
-  function genLevel4() {
-    // Both sides: expressions
-    const L = randExpr();
-    const R = randExpr();
-    setSign(L.val, R.val);
-    document.getElementById("leftSide").textContent  = L.expr;
-    document.getElementById("rightSide").textContent = R.expr;
-    document.getElementById("leftSide").classList.add("expr");
-    document.getElementById("rightSide").classList.add("expr");
   }
 
   function randExpr() {
@@ -571,10 +604,7 @@
       document.getElementById("score").textContent = score;
       showFeedback("Correct! 🎉", true, true);
       burst();
-      if (score >= PASS_SCORE) {
-        unlockNext();
-        return;
-      }
+      if (score >= PASS_SCORE) { unlockNext(); return; }
     } else {
       showFeedback(`Not quite… the answer is  ${correctSign}`, false, true);
     }
@@ -591,10 +621,9 @@
 
   function unlockNext() {
     markLevelDone(currentLevel);
+    sendToSheet();
 
-    sendToSheet(currentLevel);
-
-    if (currentLevel < 4) {
+    if (currentLevel < TOTAL_LEVELS) {
       const next = currentLevel + 1;
       unlocked[next - 1] = true;
       saveUnlocked();
@@ -607,19 +636,20 @@
 
   // ── sheet ─────────────────────────────────────────────────
 
-  function sendToSheet(lvl) {
+  function sendToSheet() {
     const passedLevels = unlocked
       .map((u, i) => u ? "Level " + (i + 1) : null)
       .filter(Boolean)
       .join(", ");
+    const passedCount = unlocked.filter(Boolean).length;
 
     const payload = {
       name:     studentName,
       level:    passedLevels,
       mode:     "compare",
-      correct:  unlocked.filter(Boolean).length,
-      attempts: 4,
-      accuracy: Math.round(unlocked.filter(Boolean).length / 4 * 100),
+      correct:  passedCount,
+      attempts: TOTAL_LEVELS,
+      accuracy: Math.round(passedCount / TOTAL_LEVELS * 100),
       action:   "upsert",
     };
     fetch(GOOGLE_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) })
