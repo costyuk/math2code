@@ -1073,7 +1073,7 @@
       document.getElementById("answers").innerHTML =
         "<p>Write a condition that satisfies all test cases:</p>"+
         "<div style='font-size:20px'>if ( <input id='typedAnswer' style='width:500px;font-size:16px;padding:6px' placeholder='e.g. a &amp;&amp; b'> )</div>"+
-        "<br><button onclick='checkCondition7()'>Check \u2705</button>"+
+        "<br><button onclick='checkCondition7()'>Check \u2713</button>"+
         " <button onclick='surrender7()' style='background:#e0e0e0;color:#555'>Show answer \U0001f3f3\uFE0F</button>"+
         "<div id='testResults' style='margin-top:15px;text-align:left;display:inline-block;font-family:monospace;font-size:16px'></div>"
 
@@ -1104,7 +1104,7 @@
 
         let html=""
         if(failed.length===0){
-          html="<div style='color:green;font-size:18px;font-weight:bold'>\u2705 All tests passed!</div><br>"
+          html="<div style='color:green;font-size:18px;font-weight:bold'>\u2713 All tests passed!</div><br>"
           if(!window.challenge7Solved){
             window.challenge7Solved=true
             score++
@@ -1122,7 +1122,7 @@
             let got=false; try{ got=Boolean(eval(scope+"("+expr+")")) }catch(e){}
             html+="<div style='color:red'>\u274c ("+vals+") \u2192 expected "+t.expected+", got "+got+"</div>"
           } else {
-            html+="<div style='color:green'>\u2705 ("+vals+") \u2192 "+t.expected+"</div>"
+            html+="<div style='color:green'>\u2713 ("+vals+") \u2192 "+t.expected+"</div>"
           }
         }
         resultsDiv.innerHTML=html
