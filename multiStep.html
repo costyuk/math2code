@@ -301,6 +301,12 @@
             name: "4 numbers, + − and brackets (up to 20)",
             max: 20, args: 4, ops: ["+", "-"], brackets: true,
             challengeDuration: 60, minQuestions: 10, minAccuracy: 90
+        },
+        {
+            emoji: "🦁",
+            name: "3 numbers, multiplication (up to 5)",
+            max: 5, args: 3, ops: ["×"], brackets: false,
+            challengeDuration: 60, minQuestions: 10, minAccuracy: 90
         }
     ];
 
@@ -434,7 +440,9 @@
     }
 
     function calc(a, op, b) {
-        return op === "+" ? a + b : a - b;
+        if (op === "+") return a + b;
+        if (op === "-") return a - b;
+        return a * b; // ×
     }
 
     // Generate a question expression string and its numeric result
