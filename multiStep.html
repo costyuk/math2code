@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Math2Code Practice</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Comic Sans MS", "Comic Neue", cursive;
+            text-align: center;
+            background: linear-gradient(45deg, #ffecd2, #fcb69f);
+            transition: 0.5s;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 700px;
+            margin: 20px auto;
+            box-sizing: border-box;
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .level-btn.locked {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .level-bar {
+            background: white;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .level-btn.unlocked {
+            opacity: 1;
+        }
+
+        .level-btn {
+            font-size: 32px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            border: none;
+            background: white;
+            transition: 0.3s;
+        }
+
+        .level-btn.unlocked:hover {
+            animation: float 2s infinite ease-in-out;
+            transform: scale(1.2);
+        }
+
+        .mode-indicator {
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .practice {
+            background: #4caf50;
+            color: white;
+        }
+
+        .challenge {
+            background: #ff9800;
+            color: white;
+        }
+
+        .question {
+            font-size: 36px;
+            margin: 20px;
+        }
+
+        input {
+            font-size: 28px;
+            padding: 10px;
+            width: 150px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        button.action {
+            font-size: 18px;
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 12px;
+            background: #2196f3;
+            color: white;
+            cursor: pointer;
+        }
+
+        .timer {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        .stars {
+            font-size: 28px;
+            margin: 10px;
+        }
+
+        .character {
+            font-size: 50px;
+            text-align: right;
+        }
+
+        .character:hover {
+            animation: float 2s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) }
+            50% { transform: translateY(-10px) }
+            100% { transform: translateY(0px) }
+        }
+
+        #parentPanel {
+            position: fixed;
+            top: 70px;
+            right: 10px;
+            width: 320px;
+            max-height: 80vh;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            z-index: 9999;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .gate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .gateBox {
+            text-align: center;
+            padding: 30px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .gate input {
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .gate button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+<div id="unlockModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:20000;align-items:center;justify-content:center;">
+  <div style="background:white;padding:28px 32px;border-radius:16px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.3);min-width:260px;">
+    <h3 style="margin:0 0 8px">🔐 Unlock Level</h3>
+    <p style="color:#666;margin:0 0 14px;font-size:15px">Enter teacher PIN:</p>
+    <input type="password" id="unlockPinInput" maxlength="4"
+      style="font-size:22px;width:90px;padding:8px;border-radius:8px;border:2px solid #ccc;text-align:center;"
+      onkeydown="if(event.key==='Enter')confirmUnlock()">
+    <br><br>
+    <button onclick="confirmUnlock()" style="background:#2196f3;color:white;border:none;border-radius:8px;padding:8px 18px;font-size:15px;cursor:pointer;margin-right:8px;">Unlock</button>
+    <button onclick="closeUnlockModal()" style="background:#ccc;color:#333;border:none;border-radius:8px;padding:8px 18px;font-size:15px;cursor:pointer;">Cancel</button>
+    <div id="unlockMessage" style="margin-top:10px;font-weight:bold;min-height:20px;"></div>
+  </div>
+</div>
+
+<div id="nameGate" class="gate">
+    <div class="gateBox">
+        <h2>👋 Welcome!</h2>
+        <p>Enter your name to start:</p>
+        <input id="studentNameInput" placeholder="Your name" />
+        <button onclick="saveStudentName()">Start 🚀</button>
+    </div>
+</div>
+
+<div class="level-bar" id="levelBar"></div>
+<div class="container">
+    <div id="character" class="character">🐣</div>
+    <div id="modeIndicator" class="mode-indicator practice">Practice Mode</div>
+
+    <h2 id="levelTitle">Choose a Level</h2>
+
+    <button class="action" onclick="startPractice()">Practice</button>
+    <button class="action" onclick="startChallenge()">Challenge</button>
+
+    <div class="timer hidden" id="timer"></div>
+
+    <div class="question" id="question"></div>
+    <input id="answer" type="number" disabled>
+
+    <div id="feedback"></div>
+    <div class="stars" id="stars">☆☆☆</div>
+    <div id="message" style="margin:10px;font-weight:bold;"></div>
+
+    <button id="finishBtn" class="action hidden" onclick="finishLevel()">Finish Level ✅</button>
+
+    <button class="action" id="parentBtn">📊</button>
+
+    <div id="parentPanel" class="hidden"></div>
+</div>
+
+<script>
+    const RESET_PIN = "1502";
+    const UNLOCK_STORAGE_KEY = "unlockOverrides_multistep";
+
+    let unlockTargetLevel = null;
+
+    function getUnlockOverrides() {
+        return JSON.parse(localStorage.getItem(UNLOCK_STORAGE_KEY) || "[]");
+    }
+    function saveUnlockOverrides(ov) {
+        localStorage.setItem(UNLOCK_STORAGE_KEY, JSON.stringify(ov));
+    }
+    function promptUnlock(index) {
+        unlockTargetLevel = index;
+        const modal = document.getElementById("unlockModal");
+        modal.style.display = "flex";
+        document.getElementById("unlockPinInput").value = "";
+        document.getElementById("unlockMessage").innerText = "";
+        setTimeout(() => document.getElementById("unlockPinInput").focus(), 50);
+    }
+    function closeUnlockModal() {
+        document.getElementById("unlockModal").style.display = "none";
+        unlockTargetLevel = null;
+    }
+    function confirmUnlock() {
+        const pin = document.getElementById("unlockPinInput").value;
+        const msg = document.getElementById("unlockMessage");
+        if (pin === RESET_PIN) {
+            const ov = getUnlockOverrides();
+            if (!ov.includes(unlockTargetLevel)) { ov.push(unlockTargetLevel); saveUnlockOverrides(ov); }
+            msg.style.color = "green";
+            msg.innerText = "✅ Level unlocked!";
+            setTimeout(() => { closeUnlockModal(); renderLevels(); selectLevel(unlockTargetLevel); }, 700);
+        } else {
+            msg.style.color = "red";
+            msg.innerText = "❌ Incorrect PIN";
+        }
+    }
+
+    const question = document.getElementById("question");
+    const answer = document.getElementById("answer");
+    const stars = document.getElementById("stars");
+    const finishBtn = document.getElementById("finishBtn");
+    const timer = document.getElementById("timer");
+    const dashboard = document.getElementById("parentPanel");
+
+    // Level definitions
+    // args: number of operands
+    // ops: allowed operators
+    // brackets: whether to include brackets
+    const levels = [
+        {
+            emoji: "🐣",
+            name: "3 numbers, addition (up to 10)",
+            max: 10, args: 3, ops: ["+"], brackets: false,
+            challengeDuration: 60, minQuestions: 10, minAccuracy: 90
+        },
+        {
+            emoji: "🐤",
+            name: "3 numbers, + and − (up to 10)",
+            max: 10, args: 3, ops: ["+", "-"], brackets: false,
+            challengeDuration: 60, minQuestions: 10, minAccuracy: 90
+        },
+        {
+            emoji: "🐔",
+            name: "4 numbers, + − and brackets (up to 10)",
+            max: 10, args: 4, ops: ["+", "-"], brackets: true,
+            challengeDuration: 60, minQuestions: 10, minAccuracy: 90
+        },
+        {
+            emoji: "🦜",
+            name: "4 numbers, + − and brackets (up to 20)",
+            max: 20, args: 4, ops: ["+", "-"], brackets: true,
+            challengeDuration: 60, minQuestions: 10, minAccuracy: 90
+        }
+    ];
+
+    let currentLevel = 0;
+    let correct = 0;
+    let total = 0;
+    let challenge = false;
+    let timerInterval = null;
+    let timeLeft = levels[0].challengeDuration;
+    let practiceStart = 0;
+    let correctAnswer = 0;
+    let maxUnlockedLevel = 0;
+    let maxUnlocked = Number(localStorage.getItem("maxUnlocked_multistep")) || 1;
+    let parentHideTimer = null;
+    let studentName = "";
+
+    function saveStudentName() {
+        const input = document.getElementById("studentNameInput").value.trim();
+        if (!input) { alert("Please enter your name"); return; }
+        studentName = input;
+        localStorage.setItem("studentName", studentName);
+        document.getElementById("nameGate").style.display = "none";
+    }
+
+    function checkStudentName() {
+        const stored = localStorage.getItem("studentName");
+        if (stored) {
+            studentName = stored;
+            document.getElementById("nameGate").style.display = "none";
+        }
+    }
+
+    function renderLevels(selectMax = false) {
+        const container = document.getElementById("levelBar");
+        container.innerHTML = "";
+        const stats = getStats();
+        maxUnlockedLevel = 0;
+
+        levels.forEach((lvl, index) => {
+            const btn = document.createElement("button");
+            btn.className = "level-btn";
+            btn.innerText = lvl.emoji;
+
+            const overrides = getUnlockOverrides();
+            const prevPassed = stats[getLevelKey(index - 1)]?.passed;
+            const unlocked = index === 0 || prevPassed || overrides.includes(index);
+
+            if (unlocked) {
+                btn.classList.add("unlocked");
+                btn.onclick = () => selectLevel(index);
+                maxUnlockedLevel = index;
+            } else {
+                btn.classList.add("locked");
+                btn.onclick = () => promptUnlock(index);
+            }
+            container.appendChild(btn);
+        });
+
+        document.getElementById("character").innerText = levels[maxUnlockedLevel].emoji;
+
+        if (selectMax) {
+            selectLevel(maxUnlockedLevel);
+        }
+    }
+
+    function selectLevel(index) {
+        currentLevel = index;
+        ensureLevelStats();
+        document.getElementById("levelTitle").innerText =
+            "Level " + (index + 1) + " " + levels[index].emoji;
+        startPractice();
+    }
+
+    function getLevelKey(index = currentLevel) {
+        return "level_" + index;
+    }
+
+    function startPractice() {
+        stopAllModes();
+        challenge = false;
+        document.getElementById("modeIndicator").className = "mode-indicator practice";
+        document.getElementById("modeIndicator").innerText = "Practice Mode";
+        document.getElementById("timer").classList.add("hidden");
+        practiceStart = Date.now();
+        answer.disabled = false;
+        generateQuestion();
+    }
+
+    function startChallenge() {
+        stopAllModes();
+        challenge = true;
+        document.getElementById("modeIndicator").className = "mode-indicator challenge";
+        document.getElementById("modeIndicator").innerText = "Challenge Mode";
+        document.getElementById("timer").classList.remove("hidden");
+        correct = 0;
+        total = 0;
+        timeLeft = levels[currentLevel].challengeDuration;
+        answer.disabled = false;
+        generateQuestion();
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timer.innerText = "Time: " + timeLeft;
+            if (timeLeft <= 0) { finishLevel(); }
+        }, 1000);
+    }
+
+    function stopAllModes() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        document.getElementById("finishBtn").classList.add("hidden");
+
+        if (!challenge && practiceStart) {
+            const stats = getStats();
+            const key = getLevelKey();
+            stats[key].practiceTime += Math.floor((Date.now() - practiceStart) / 1000);
+            saveStats(stats);
+        }
+
+        practiceStart = 0;
+        correct = 0;
+        total = 0;
+    }
+
+    function randInt(max) {
+        return Math.floor(Math.random() * max) + 1;
+    }
+
+    function pickOp(ops) {
+        return ops[Math.floor(Math.random() * ops.length)];
+    }
+
+    function calc(a, op, b) {
+        return op === "+" ? a + b : a - b;
+    }
+
+    // Generate a question expression string and its numeric result
+    function buildExpression(lvl) {
+        const max = lvl.max;
+        const ops = lvl.ops;
+        let expr, result;
+        let tries = 0;
+
+        do {
+            const a = randInt(max);
+            const b = randInt(max);
+            const c = randInt(max);
+            const op1 = pickOp(ops);
+            const op2 = pickOp(ops);
+
+            if (!lvl.brackets) {
+                // 3 args: a op1 b op2 c  (left-to-right)
+                expr = `${a} ${op1} ${b} ${op2} ${c}`;
+                result = calc(calc(a, op1, b), op2, c);
+            } else {
+                const d = randInt(max);
+                const op3 = pickOp(ops);
+                const template = Math.floor(Math.random() * 4);
+
+                if (template === 0) {
+                    // (a op1 b) op2 c op3 d
+                    expr = `(${a} ${op1} ${b}) ${op2} ${c} ${op3} ${d}`;
+                    result = calc(calc(calc(a, op1, b), op2, c), op3, d);
+                } else if (template === 1) {
+                    // a op1 (b op2 c) op3 d
+                    expr = `${a} ${op1} (${b} ${op2} ${c}) ${op3} ${d}`;
+                    result = calc(calc(a, op1, calc(b, op2, c)), op3, d);
+                } else if (template === 2) {
+                    // a op1 b op2 (c op3 d)
+                    expr = `${a} ${op1} ${b} ${op2} (${c} ${op3} ${d})`;
+                    result = calc(calc(a, op1, b), op2, calc(c, op3, d));
+                } else {
+                    // (a op1 b) op2 (c op3 d)
+                    expr = `(${a} ${op1} ${b}) ${op2} (${c} ${op3} ${d})`;
+                    result = calc(calc(a, op1, b), op2, calc(c, op3, d));
+                }
+            }
+            tries++;
+        } while (result < 0 && tries < 100);
+
+        return { display: expr + " = ?", result: result };
+    }
+
+    function generateQuestion() {
+        const lvl = levels[currentLevel];
+        const built = buildExpression(lvl);
+        correctAnswer = built.result;
+        question.innerText = built.display;
+        setTimeout(() => { answer.focus(); }, 50);
+    }
+
+    function checkAnswer() {
+        const val = parseInt(answer.value);
+        if (isNaN(val)) return;
+
+        ensureLevelStats();
+        const stats = getStats();
+        const key = getLevelKey();
+
+        if (challenge) {
+            total++;
+            if (val === correctAnswer) { correct++; }
+            updateStars();
+        } else {
+            stats[key].practiceTotal++;
+            if (val === correctAnswer) {
+                stats[key].practiceCorrect++;
+                stars.innerText = "👍";
+            } else {
+                stars.innerText = "😕";
+            }
+        }
+
+        answer.value = "";
+        generateQuestion();
+
+        if (total >= levels[currentLevel].minQuestions && accuracy() >= levels[currentLevel].minAccuracy) {
+            finishBtn.classList.remove("hidden");
+        }
+
+        saveStats(stats);
+    }
+
+    function accuracy() {
+        return total === 0 ? 0 : Math.round((correct / total) * 100);
+    }
+
+    function saveChallengeResults() {
+        ensureLevelStats();
+        const stats = getStats();
+        const key = getLevelKey();
+        const acc = accuracy();
+        const level = levels[currentLevel];
+
+        if (acc > stats[key].challengeBestAccuracy) {
+            stats[key].challengeBestAccuracy = acc;
+            stats[key].challengeBestCorrect = correct;
+        }
+
+        if (total >= level.minQuestions && acc >= level.minAccuracy) {
+            stats[key].passed = true;
+        }
+
+        saveStats(stats);
+    }
+
+    function finishLevel() {
+        const currentLevelKey = getLevelKey(currentLevel);
+        if (!currentLevelKey || !challenge) return;
+        clearInterval(timerInterval);
+
+        finishBtn.style.display = "none";
+        const level = levels[currentLevel];
+        const passed = correct >= level.minQuestions && accuracy() >= level.minAccuracy;
+
+        getStats()[currentLevelKey].passed = passed;
+
+        const currentLevelNumber = Number(currentLevelKey.replace("level_", ""));
+
+        if (passed) {
+            if (currentLevelNumber >= maxUnlocked - 1) {
+                maxUnlocked = currentLevelNumber + 2;
+                localStorage.setItem("maxUnlocked_multistep", maxUnlocked);
+            }
+            document.getElementById("message").innerText = "🎉 Level Passed! Next level unlocked!";
+        } else {
+            document.getElementById("message").innerText =
+                `You need ${level.minAccuracy}% accuracy and ${level.minQuestions} questions.`;
+        }
+
+        saveChallengeResults();
+        sendResultToSheet(level.name, "challenge", correct, total);
+        renderLevels(true);
+        startPractice();
+    }
+
+    function updateFinishButton() {
+        const acc = total > 0 ? (correct / total) * 100 : 0;
+        if (challenge && total >= levels[currentLevel].minQuestions && acc >= levels[currentLevel].minAccuracy) {
+            document.getElementById("finishBtn").classList.remove("hidden");
+        }
+    }
+
+    function getStats() {
+        return JSON.parse(localStorage.getItem("mathStats_multistep") || "{}");
+    }
+
+    function saveStats(stats) {
+        localStorage.setItem("mathStats_multistep", JSON.stringify(stats));
+    }
+
+    function ensureLevelStats() {
+        const stats = getStats();
+        const key = getLevelKey();
+        if (!stats[key]) {
+            stats[key] = {
+                practiceTime: 0,
+                practiceCorrect: 0,
+                practiceTotal: 0,
+                challengeBestAccuracy: 0,
+                challengeBestCorrect: 0,
+                passed: false
+            };
+            saveStats(stats);
+        }
+    }
+
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqW5pL7IkOWEzhxphMfOWYhltA1n8HCSOQG7dFDicG0wPr0rR4NwilotAVOGk4TqL9/exec";
+
+    function sendResultToSheet(level, mode, correct, attempts) {
+        if (!attempts) return;
+        const acc = Math.round((correct / attempts) * 100);
+        const payload = { name: studentName, level, mode, correct, attempts, accuracy: acc };
+        fetch(GOOGLE_SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+    }
+
+    function updateStars() {
+        const acc = accuracy();
+        stars.innerText =
+            acc >= 100 ? "⭐⭐⭐" :
+            acc >= 100 - (100 - levels[currentLevel].minAccuracy) / 2 ? "⭐⭐☆" :
+            acc >= levels[currentLevel].minAccuracy ? "⭐☆☆" :
+            "☆☆☆";
+    }
+
+    function toggleParent() {
+        dashboard.classList.toggle("hidden");
+        if (!dashboard.classList.contains("hidden")) {
+            const stats = getStats();
+            let html = "<h3>📊 Passing Report</h3>";
+            for (let key in stats) {
+                const s = stats[key];
+                html += `
+                <div style="margin-bottom:10px;padding:8px;border-bottom:1px solid #ccc">
+                    <strong>${key}</strong>  🧠: ${s.practiceTime}s  👍: ${s.practiceCorrect} / ${s.practiceTotal} 🎯: ${s.challengeBestAccuracy}% 👌: ${s.challengeBestCorrect} ${s.passed ? "✅" : "🔓"}
+                </div>`;
+            }
+            html += `
+                <div style="margin-top:20px;text-align:center;">
+                    <button onclick="showResetPrompt()"
+                        style="background:#ff4d4d;color:white;padding:8px 15px;border:none;border-radius:8px;cursor:pointer;">
+                        🔐 Reset All Statistics
+                    </button>
+                    <div id="resetArea" style="margin-top:10px;"></div>
+                </div>`;
+            dashboard.innerHTML = html;
+
+            if (parentHideTimer) clearTimeout(parentHideTimer);
+            parentHideTimer = setTimeout(() => { dashboard.classList.add("hidden"); }, 20000);
+        } else {
+            if (parentHideTimer) clearTimeout(parentHideTimer);
+        }
+    }
+
+    function showResetPrompt() {
+        document.getElementById("resetArea").innerHTML = `
+        <div style="margin-top:10px;">
+            Enter PIN:
+            <input type="password" id="resetPinInput"
+                style="padding:5px;border-radius:5px;border:1px solid #ccc;width:80px;">
+            <button onclick="confirmReset()"
+                style="margin-left:5px;padding:5px 10px;border-radius:5px;border:none;background:#444;color:white;">
+                Confirm
+            </button>
+            <div id="resetMessage" style="margin-top:5px;font-weight:bold;"></div>
+        </div>`;
+    }
+
+    function confirmReset() {
+        const input = document.getElementById("resetPinInput").value;
+        const message = document.getElementById("resetMessage");
+        if (input === RESET_PIN) {
+            localStorage.removeItem("mathStats_multistep");
+            localStorage.removeItem("maxUnlocked_multistep");
+            localStorage.removeItem(UNLOCK_STORAGE_KEY);
+            maxUnlocked = 1;
+            message.innerText = "✅ Statistics Reset Successfully!";
+            message.style.color = "green";
+            renderLevels();
+            selectLevel(0);
+        } else {
+            message.innerText = "❌ Incorrect PIN";
+            message.style.color = "red";
+        }
+    }
+
+    function notifyResize() {
+        setTimeout(() => { document.body.style.minHeight = document.body.scrollHeight + "px"; }, 100);
+    }
+
+    answer.addEventListener("keyup", e => {
+        if (e.key === "Enter") {
+            checkAnswer();
+            updateFinishButton();
+        }
+    });
+    window.addEventListener("load", notifyResize);
+    window.addEventListener("resize", notifyResize);
+    dashboard.addEventListener("mouseenter", () => {
+        if (parentHideTimer) clearTimeout(parentHideTimer);
+    });
+    dashboard.addEventListener("mouseleave", () => {
+        parentHideTimer = setTimeout(() => { dashboard.style.display = "none"; }, 20000);
+    });
+    document.addEventListener("DOMContentLoaded", checkStudentName);
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("parentBtn").addEventListener("click", toggleParent);
+    });
+
+    renderLevels(true);
+</script>
+</body>
+</html>
