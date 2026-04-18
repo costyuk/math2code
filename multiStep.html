@@ -304,8 +304,8 @@
         },
         {
             emoji: "🦁",
-            name: "3 numbers, multiplication (up to 5)",
-            max: 5, args: 3, ops: ["×"], brackets: false,
+            name: "4 numbers, × next to brackets (up to 5)",
+            max: 5, args: 4, ops: ["+", "-"], mulBrackets: true,
             challengeDuration: 60, minQuestions: 10, minAccuracy: 90
         }
     ];
@@ -459,10 +459,32 @@
             const op1 = pickOp(ops);
             const op2 = pickOp(ops);
 
-            if (!lvl.brackets) {
+            if (!lvl.brackets && !lvl.mulBrackets) {
                 // 3 args: a op1 b op2 c  (left-to-right)
                 expr = `${a} ${op1} ${b} ${op2} ${c}`;
                 result = calc(calc(a, op1, b), op2, c);
+            } else if (lvl.mulBrackets) {
+                // 4 args with ONE × next to brackets, op1/op2 are + or −
+                const d = randInt(max);
+                const template = Math.floor(Math.random() * 4);
+
+                if (template === 0) {
+                    // (a op1 b) × c op2 d
+                    expr = `(${a} ${op1} ${b}) × ${c} ${op2} ${d}`;
+                    result = calc(calc(a, op1, b) * c, op2, d);
+                } else if (template === 1) {
+                    // a op1 (b op2 c) × d  →  a op1 ((b op2 c) × d)
+                    expr = `${a} ${op1} (${b} ${op2} ${c}) × ${d}`;
+                    result = calc(a, op1, calc(b, op2, c) * d);
+                } else if (template === 2) {
+                    // a × (b op1 c) op2 d  →  (a × (b op1 c)) op2 d
+                    expr = `${a} × (${b} ${op1} ${c}) ${op2} ${d}`;
+                    result = calc(a * calc(b, op1, c), op2, d);
+                } else {
+                    // (a op1 b) × (c op2 d)
+                    expr = `(${a} ${op1} ${b}) × (${c} ${op2} ${d})`;
+                    result = calc(a, op1, b) * calc(c, op2, d);
+                }
             } else {
                 const d = randInt(max);
                 const op3 = pickOp(ops);
