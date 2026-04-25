@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Loop Practice</title>
+  <style>
+    body { font-family: Arial; background: #eef2ff; text-align: center; margin: 0; padding: 10px; }
+    .container { background: white; max-width: 860px; margin: auto; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { color: #333; }
+    button { padding: 10px 18px; margin: 6px; border: none; border-radius: 6px; font-size: 17px; cursor: pointer; }
+    .levelBtn { background: #3f51b5; color: white; }
+    .locked { background: #bdbdbd; color: #444; }
+    pre.code { background: #f4f4f4; padding: 18px; border-radius: 8px; font-family: monospace; font-size: 17px; line-height: 1.7; text-align: left; display: block; margin: 16px auto; max-width: 680px; overflow-x: auto; white-space: pre; border-left: 4px solid #3f51b5; }
+    .vars-box, .rules-box { background: #fff8e1; border-left: 4px solid #ff9800; padding: 12px 18px; border-radius: 8px; font-family: monospace; font-size: 16px; line-height: 1.7; text-align: left; display: block; margin: 10px auto; max-width: 680px; }
+    .q-label { font-size: 15px; color: #666; margin-bottom: 6px; }
+    input[type="text"] { padding: 10px 14px; font-size: 18px; width: 220px; border: 2px solid #ccc; border-radius: 8px; margin: 8px; font-family: monospace; }
+    input[type="text"]:focus { outline: none; border-color: #3f51b5; }
+    #feedback { font-size: 20px; font-weight: bold; margin: 10px 0; min-height: 28px; }
+    .tf-btn { font-size: 20px; padding: 14px 40px; border-radius: 8px; font-weight: bold; }
+    .tf-true  { background: #4caf50; color: white; }
+    .tf-false { background: #f44336; color: white; }
+    .next-btn { background: #3f51b5; color: white; font-size: 17px; padding: 10px 28px; border-radius: 8px; margin-top: 8px; }
+    .back-btn { background: #9e9e9e; color: white; }
+    #pinPanel { display:none; background:#fff3cd; padding:15px; border-radius:8px; margin-top:15px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+<h2>🔁 Java Loop Practice</h2>
+
+<div id="levelSelect">
+  <h3>Select Level</h3>
+  <button class="levelBtn" onclick="selectLevel(1)">Level 1 — Loop True/False</button><br>
+  <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">🔒 Level 2 — Counting Loops</button><br>
+  <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">🔒 Level 3 — Nested Loops</button><br>
+  <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">🔒 Level 4 — Loop Challenge</button>
+  <p style="color:#888;font-size:14px">Score 40 to unlock next level or use Teacher PIN.</p>
+  <div id="pinPanel">
+    <p>Enter Teacher PIN:</p>
+    <input id="pinInput" type="password" placeholder="PIN" onkeypress="if(event.key==='Enter')checkPin()">
+    <button onclick="checkPin()">Unlock</button>
+  </div>
+</div>
+
+<div id="quiz" style="display:none">
+  <h3 id="levelTitle"></h3>
+  <div id="questionArea"></div>
+  <div id="feedback"></div>
+  <div class="score-bar">Correct: <span id="score">0</span> / 40</div>
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()" style="display:none">Next →</button><br>
+  <button class="back-btn" onclick="goBack()">← Back</button>
+</div>
+
+</div>
+
+<script>
+let level=1,score=0,answered=false,qIdx=0,requestedLevel=null;
+let unlockedLevels=[true,false,false,false];
+
+function selectLevel(l){
+  if(!unlockedLevels[l-1]){requestedLevel=l;document.getElementById("pinPanel").style.display="block";return;}
+  startQuiz(l);
+}
+function checkPin(){
+  const pin=document.getElementById("pinInput").value.trim();
+  document.getElementById("pinInput").value="";
+  if(pin==="6767"){unlockedLevels[requestedLevel-1]=true;const btn=document.getElementById("btn"+requestedLevel);
+    btn.classList.remove("locked");
+    btn.innerText="Level "+requestedLevel+" — "+levelLabel(requestedLevel);
+    document.getElementById("pinPanel").style.display="none";
+    startQuiz(requestedLevel);
+  }else alert("Wrong PIN!");
+}
+function levelLabel(l){return ["Loop True/False","Counting Loops","Nested Loops","Loop Challenge"][l-1];}
+
+function startQuiz(l){level=l;score=0;qIdx=0;
+  document.getElementById("score").innerText=0;
+  document.getElementById("quiz").style.display="block";
+  document.getElementById("levelSelect").style.display="none";
+  document.getElementById("levelTitle").innerText="Level "+l+" — "+levelLabel(l);
+  nextQuestion();
+}
+function goBack(){document.getElementById("quiz").style.display="none";document.getElementById("levelSelect").style.display="block";}
+function nextQuestion(){
+  answered=false;document.getElementById("feedback").innerText="";
+  document.getElementById("nextBtn").style.display="none";
+  if(level===1)showL1();else if(level===2)showL2();else if(level===3)showL3();else showL4();
+}
+function onCorrect(){score++;document.getElementById("score").innerText=score;
+  document.getElementById("feedback").style.color="#4caf50";document.getElementById("feedback").innerText="✓ Correct!";
+  document.getElementById("nextBtn").style.display="inline-block";
+  if(score>=40)unlockNext();}
+function onWrong(correctVal){document.getElementById("feedback").style.color="#f44336";
+  document.getElementById("feedback").innerText="✗ Wrong! Answer: "+correctVal;
+  document.getElementById("nextBtn").style.display="inline-block";}
+function unlockNext(){
+  if(level<4){unlockedLevels[level]=true;
+    const btn=document.getElementById("btn"+(level+1));
+    btn.classList.remove("locked");
+    btn.innerText="Level "+(level+1)+" — "+levelLabel(level+1);
+    document.getElementById("feedback").innerText+=" 🎉 Level "+(level+1)+" unlocked!";
+  }else document.getElementById("feedback").innerText+=" 🏆 All levels done!";
+}
+
+// LEVEL 1 — True/False loop evaluation
+const L1=[
+ {code:"int i=0; while(i<3){i++;} if(i==3)", ans:true},
+ {code:"int i=0; while(i<5){i+=2;} if(i==4)", ans:false},
+ {code:"for(int i=0;i<4;i++); if(i==4)", ans:true},
+ {code:"int n=0; while(n<1){n++;} if(n==1)", ans:true}
+];
+function showL1(){
+ const q=L1[qIdx%L1.length];qIdx++;
+ document.getElementById("questionArea").innerHTML=`
+ <p class="q-label">After the loop, is the condition True or False?</p>
+ <pre class="code">${q.code}</pre>
+ <button class="tf-btn tf-true" onclick="checkL1(true)">True</button>
+ <button class="tf-btn tf-false" onclick="checkL1(false)">False</button>`;
+ window.l1Ans=q.ans;
+}
+function checkL1(v){if(answered)return;answered=true;if(v===window.l1Ans)onCorrect();else onWrong(window.l1Ans?"True":"False");}
+
+// LEVEL 2 — Counting / value accumulation
+const L2=[
+ {code:"int sum=0; for(int i=0;i<3;i++){sum+=i;} return sum;", ans:"3"},
+ {code:"int count=1; while(count<4){count++;} return count;", ans:"4"},
+ {code:"int i=0; for(;i<5;i++); return i;", ans:"5"},
+ {code:"int n=2; while(n<10){n*=2;} return n;", ans:"16"}
+];
+function showL2(){
+ const q=L2[qIdx%L2.length];qIdx++;
+ document.getElementById("questionArea").innerHTML=`
+ <p class="q-label">What value is returned after the loop finishes?</p>
+ <pre class="code">${q.code}</pre>
+ <input id="ans2" type="text" placeholder='type answer...' onkeypress="if(event.key==='Enter')checkL2()">
+ <button onclick="checkL2()">Check</button>`;
+ setTimeout(()=>document.getElementById("ans2").focus(),50);
+ window.l2Ans=q.ans;
+}
+function checkL2(){if(answered)return;
+ const val=document.getElementById("ans2").value.trim();if(!val)return;
+ answered=true;if(val==window.l2Ans)onCorrect();else onWrong(window.l2Ans);}
+
+// LEVEL 3 — Nested loops
+const L3=[
+ {code:"int count=0; for(int i=0;i<2;i++){for(int j=0;j<3;j++){count++;}} return count;", ans:"6"},
+ {code:"int x=1; for(int i=0;i<3;i++){x*=2;} return x;", ans:"8"},
+ {code:"int n=0; for(int i=0;i<2;i++){int j=0; while(j<2){n++; j++;}} return n;", ans:"4"},
+ {code:"int k=0; while(k<3){k++;} return k;", ans:"3"}
+];
+function showL3(){
+ const q=L3[qIdx%L3.length];qIdx++;
+ document.getElementById("questionArea").innerHTML=`
+ <p class="q-label">What value does this return after both loops execute?</p>
+ <pre class="code">${q.code}</pre>
+ <input id="ans3" type="text" placeholder='type answer...' onkeypress="if(event.key==='Enter')checkL3()">
+ <button onclick="checkL3()">Check</button>`;
+ setTimeout(()=>document.getElementById("ans3").focus(),50);
+ window.l3Ans=q.ans;
+}
+function checkL3(){if(answered)return;
+ const val=document.getElementById("ans3").value.trim();if(!val)return;
+ answered=true;if(val===window.l3Ans)onCorrect();else onWrong(window.l3Ans);}
+
+// LEVEL 4 — Loop challenge: logic puzzle with combined loops
+const L4=[
+ {code:`int sum=0;
+for(int i=1;i<=3;i++){
+  int j=i;
+  while(j<=3){ sum++; j++; }
+}
+return sum;`, ans:"6"},
+ {code:`int total=1;
+for(int i=0;i<3;i++){ total+=i; }
+while(total<10){ total++; }
+return total;`, ans:"10"},
+ {code:`int n=0;
+for(int i=0;i<2;i++){
+  for(int j=0;j<2;j++){
+    n += i+j;
+  }
+}
+return n;`, ans:"4"}
+];
+function showL4(){
+ const q=L4[qIdx%L4.length];qIdx++;
+ document.getElementById("questionArea").innerHTML=`
+ <p class="q-label">What is the final returned value?</p>
+ <pre class="code">${q.code}</pre>
+ <input id="ans4" type="text" placeholder='type final value...' onkeypress="if(event.key==='Enter')checkL4()">
+ <button onclick="checkL4()">Check</button>`;
+ setTimeout(()=>document.getElementById("ans4").focus(),50);
+ window.l4Ans=q.ans;
+}
+function checkL4(){if(answered)return;
+ const val=document.getElementById("ans4").value.trim();
+ if(!val)return;answered=true;
+ if(val===window.l4Ans)onCorrect();else onWrong(window.l4Ans);}
+
+</script>
+</body>
+</html>
