@@ -48,6 +48,15 @@
     .score-bar { font-size: 17px; color: #555; margin: 8px 0; }
     .next-btn { background: #3f51b5; color: white; font-size: 17px; padding: 10px 28px; border-radius: 8px; margin-top: 8px; }
     .back-btn { background: #9e9e9e; color: white; }
+    .task-desc { font-size: 16px; color: #333; max-width: 640px; margin: 8px auto 14px; text-align: left; line-height: 1.6; }
+    textarea.code-input {
+      width: 90%; max-width: 640px; font-family: monospace; font-size: 15px;
+      padding: 12px; border: 2px solid #ccc; border-radius: 8px;
+      margin: 8px auto; display: block; resize: vertical; line-height: 1.6;
+    }
+    textarea.code-input:focus { outline: none; border-color: #3f51b5; }
+    .test-results { text-align: left; display: inline-block; font-family: monospace;
+                    font-size: 15px; margin-top: 12px; max-width: 640px; }
   </style>
 </head>
 <body>
@@ -61,7 +70,9 @@
     <button class="levelBtn" onclick="selectLevel(1)">Level 1 — True / False</button><br>
     <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">🔒 Level 2 — Simple if/else</button><br>
     <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">🔒 Level 3 — if / else if / else</button><br>
-    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">🔒 Level 4 — Dog Name Challenge</button>
+    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">🔒 Level 4 — Dog Name Challenge</button><br>
+    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">🔒 Level 5 — Nested if/else</button><br>
+    <button class="levelBtn locked" id="btn6" onclick="selectLevel(6)">🔒 Level 6 — Write the Code</button>
     <p style="color:#888;font-size:14px">Pass a level by scoring 40 correct answers, or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
@@ -91,7 +102,7 @@ let score = 0;
 let answered = false;
 let qIdx = 0;          // question index (cycles)
 let requestedLevel = null;
-let unlockedLevels = [true, false, false, false];
+let unlockedLevels = [true, false, false, false, false, false];
 
 // ── navigation ────────────────────────────────────────────────────────────────
 function selectLevel(l) {
@@ -119,7 +130,7 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return ["True / False","Simple if/else","if / else if / else","Dog Name Challenge"][l-1] || "";
+  return ["True / False","Simple if/else","if / else if / else","Dog Name Challenge","Nested if/else","Write the Code"][l-1] || "";
 }
 
 function startQuiz(l) {
@@ -146,6 +157,8 @@ function nextQuestion() {
   else if (level === 2) showLevel2();
   else if (level === 3) showLevel3();
   else if (level === 4) showLevel4();
+  else if (level === 5) showLevel5();
+  else if (level === 6) showLevel6();
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -169,7 +182,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 4) {
+  if (level < 6) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); btn.innerText = "Level " + (level+1) + " — " + levelLabel(level+1); }
@@ -469,6 +482,302 @@ function checkLevel4() {
   answered = true;
   if (normalizeAnswer(val) === normalizeAnswer(l4CorrectAnswer)) onCorrect();
   else onWrong(l4CorrectAnswer);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 5 — nested if/else, complex conditions, type the returned value
+// ══════════════════════════════════════════════════════════════════════════════
+const L5 = [
+  // access control — nested if inside if/else
+  { code: "boolean isMember = true;\nint age = 21;\nif (isMember) {\n  if (age >= 18) {\n    return \"full access\";\n  } else {\n    return \"limited access\";\n  }\n} else {\n  return \"no access\";\n}",   ans: "full access"    },
+  { code: "boolean isMember = true;\nint age = 15;\nif (isMember) {\n  if (age >= 18) {\n    return \"full access\";\n  } else {\n    return \"limited access\";\n  }\n} else {\n  return \"no access\";\n}",   ans: "limited access" },
+  { code: "boolean isMember = false;\nint age = 25;\nif (isMember) {\n  if (age >= 18) {\n    return \"full access\";\n  } else {\n    return \"limited access\";\n  }\n} else {\n  return \"no access\";\n}",  ans: "no access"      },
+
+  // speed mode — && condition picks first matching branch
+  { code: "int x = 12;\nString mode = \"fast\";\nif (x > 10 && mode.equals(\"fast\")) {\n  return \"turbo\";\n} else if (x > 10) {\n  return \"strong\";\n} else if (mode.equals(\"fast\")) {\n  return \"quick\";\n} else {\n  return \"normal\";\n}", ans: "turbo"  },
+  { code: "int x = 5;\nString mode = \"fast\";\nif (x > 10 && mode.equals(\"fast\")) {\n  return \"turbo\";\n} else if (x > 10) {\n  return \"strong\";\n} else if (mode.equals(\"fast\")) {\n  return \"quick\";\n} else {\n  return \"normal\";\n}",  ans: "quick"  },
+  { code: "int x = 15;\nString mode = \"slow\";\nif (x > 10 && mode.equals(\"fast\")) {\n  return \"turbo\";\n} else if (x > 10) {\n  return \"strong\";\n} else if (mode.equals(\"fast\")) {\n  return \"quick\";\n} else {\n  return \"normal\";\n}", ans: "strong" },
+  { code: "int x = 5;\nString mode = \"slow\";\nif (x > 10 && mode.equals(\"fast\")) {\n  return \"turbo\";\n} else if (x > 10) {\n  return \"strong\";\n} else if (mode.equals(\"fast\")) {\n  return \"quick\";\n} else {\n  return \"normal\";\n}",  ans: "normal" },
+
+  // login + role
+  { code: "boolean isLoggedIn = true;\nString role = \"admin\";\nif (!isLoggedIn) {\n  return \"login required\";\n} else if (role.equals(\"admin\")) {\n  return \"admin panel\";\n} else if (role.equals(\"user\")) {\n  return \"user dashboard\";\n} else {\n  return \"guest view\";\n}",  ans: "admin panel"     },
+  { code: "boolean isLoggedIn = false;\nString role = \"admin\";\nif (!isLoggedIn) {\n  return \"login required\";\n} else if (role.equals(\"admin\")) {\n  return \"admin panel\";\n} else if (role.equals(\"user\")) {\n  return \"user dashboard\";\n} else {\n  return \"guest view\";\n}", ans: "login required"  },
+  { code: "boolean isLoggedIn = true;\nString role = \"user\";\nif (!isLoggedIn) {\n  return \"login required\";\n} else if (role.equals(\"admin\")) {\n  return \"admin panel\";\n} else if (role.equals(\"user\")) {\n  return \"user dashboard\";\n} else {\n  return \"guest view\";\n}",   ans: "user dashboard" },
+  { code: "boolean isLoggedIn = true;\nString role = \"viewer\";\nif (!isLoggedIn) {\n  return \"login required\";\n} else if (role.equals(\"admin\")) {\n  return \"admin panel\";\n} else if (role.equals(\"user\")) {\n  return \"user dashboard\";\n} else {\n  return \"guest view\";\n}", ans: "guest view"      },
+
+  // temperature + rain — nested inside else if chain
+  { code: "int temp = 35;\nboolean isRaining = true;\nif (temp > 30) {\n  if (isRaining) {\n    return \"hot and wet\";\n  } else {\n    return \"hot and dry\";\n  }\n} else if (temp > 20) {\n  if (isRaining) {\n    return \"warm and wet\";\n  } else {\n    return \"warm and dry\";\n  }\n} else {\n  return \"cold\";\n}",  ans: "hot and wet"   },
+  { code: "int temp = 35;\nboolean isRaining = false;\nif (temp > 30) {\n  if (isRaining) {\n    return \"hot and wet\";\n  } else {\n    return \"hot and dry\";\n  }\n} else if (temp > 20) {\n  if (isRaining) {\n    return \"warm and wet\";\n  } else {\n    return \"warm and dry\";\n  }\n} else {\n  return \"cold\";\n}", ans: "hot and dry"   },
+  { code: "int temp = 25;\nboolean isRaining = true;\nif (temp > 30) {\n  if (isRaining) {\n    return \"hot and wet\";\n  } else {\n    return \"hot and dry\";\n  }\n} else if (temp > 20) {\n  if (isRaining) {\n    return \"warm and wet\";\n  } else {\n    return \"warm and dry\";\n  }\n} else {\n  return \"cold\";\n}",  ans: "warm and wet"  },
+  { code: "int temp = 25;\nboolean isRaining = false;\nif (temp > 30) {\n  if (isRaining) {\n    return \"hot and wet\";\n  } else {\n    return \"hot and dry\";\n  }\n} else if (temp > 20) {\n  if (isRaining) {\n    return \"warm and wet\";\n  } else {\n    return \"warm and dry\";\n  }\n} else {\n  return \"cold\";\n}", ans: "warm and dry"  },
+  { code: "int temp = 10;\nboolean isRaining = true;\nif (temp > 30) {\n  if (isRaining) {\n    return \"hot and wet\";\n  } else {\n    return \"hot and dry\";\n  }\n} else if (temp > 20) {\n  if (isRaining) {\n    return \"warm and wet\";\n  } else {\n    return \"warm and dry\";\n  }\n} else {\n  return \"cold\";\n}",  ans: "cold"          },
+
+  // fizzbuzz-style modulo branching
+  { code: "int n = 12;\nif (n % 3 == 0 && n % 4 == 0) {\n  return \"fizzbuzz\";\n} else if (n % 3 == 0) {\n  return \"fizz\";\n} else if (n % 4 == 0) {\n  return \"buzz\";\n} else {\n  return \"none\";\n}", ans: "fizzbuzz" },
+  { code: "int n = 9;\nif (n % 3 == 0 && n % 4 == 0) {\n  return \"fizzbuzz\";\n} else if (n % 3 == 0) {\n  return \"fizz\";\n} else if (n % 4 == 0) {\n  return \"buzz\";\n} else {\n  return \"none\";\n}",  ans: "fizz"     },
+  { code: "int n = 8;\nif (n % 3 == 0 && n % 4 == 0) {\n  return \"fizzbuzz\";\n} else if (n % 3 == 0) {\n  return \"fizz\";\n} else if (n % 4 == 0) {\n  return \"buzz\";\n} else {\n  return \"none\";\n}",  ans: "buzz"     },
+  { code: "int n = 7;\nif (n % 3 == 0 && n % 4 == 0) {\n  return \"fizzbuzz\";\n} else if (n % 3 == 0) {\n  return \"fizz\";\n} else if (n % 4 == 0) {\n  return \"buzz\";\n} else {\n  return \"none\";\n}",  ans: "none"     },
+
+  // weekend + hour — two nested ifs
+  { code: "String day = \"Saturday\";\nint hour = 14;\nif (day.equals(\"Saturday\") || day.equals(\"Sunday\")) {\n  if (hour < 12) {\n    return \"weekend morning\";\n  } else {\n    return \"weekend afternoon\";\n  }\n} else {\n  if (hour < 9) {\n    return \"early work\";\n  } else {\n    return \"work time\";\n  }\n}",  ans: "weekend afternoon" },
+  { code: "String day = \"Sunday\";\nint hour = 9;\nif (day.equals(\"Saturday\") || day.equals(\"Sunday\")) {\n  if (hour < 12) {\n    return \"weekend morning\";\n  } else {\n    return \"weekend afternoon\";\n  }\n} else {\n  if (hour < 9) {\n    return \"early work\";\n  } else {\n    return \"work time\";\n  }\n}",   ans: "weekend morning"   },
+  { code: "String day = \"Monday\";\nint hour = 8;\nif (day.equals(\"Saturday\") || day.equals(\"Sunday\")) {\n  if (hour < 12) {\n    return \"weekend morning\";\n  } else {\n    return \"weekend afternoon\";\n  }\n} else {\n  if (hour < 9) {\n    return \"early work\";\n  } else {\n    return \"work time\";\n  }\n}",   ans: "early work"        },
+  { code: "String day = \"Wednesday\";\nint hour = 11;\nif (day.equals(\"Saturday\") || day.equals(\"Sunday\")) {\n  if (hour < 12) {\n    return \"weekend morning\";\n  } else {\n    return \"weekend afternoon\";\n  }\n} else {\n  if (hour < 9) {\n    return \"early work\";\n  } else {\n    return \"work time\";\n  }\n}", ans: "work time"          },
+
+  // discount — && condition + solo conditions
+  { code: "boolean isMember = true;\nint total = 120;\nif (isMember && total >= 100) {\n  return \"20% off\";\n} else if (isMember) {\n  return \"10% off\";\n} else if (total >= 100) {\n  return \"5% off\";\n} else {\n  return \"no discount\";\n}",  ans: "20% off"      },
+  { code: "boolean isMember = true;\nint total = 50;\nif (isMember && total >= 100) {\n  return \"20% off\";\n} else if (isMember) {\n  return \"10% off\";\n} else if (total >= 100) {\n  return \"5% off\";\n} else {\n  return \"no discount\";\n}",   ans: "10% off"      },
+  { code: "boolean isMember = false;\nint total = 150;\nif (isMember && total >= 100) {\n  return \"20% off\";\n} else if (isMember) {\n  return \"10% off\";\n} else if (total >= 100) {\n  return \"5% off\";\n} else {\n  return \"no discount\";\n}", ans: "5% off"       },
+  { code: "boolean isMember = false;\nint total = 30;\nif (isMember && total >= 100) {\n  return \"20% off\";\n} else if (isMember) {\n  return \"10% off\";\n} else if (total >= 100) {\n  return \"5% off\";\n} else {\n  return \"no discount\";\n}",  ans: "no discount"  },
+
+  // pet care — isSick short-circuits
+  { code: "String pet = \"dog\";\nboolean isHungry = true;\nboolean isSick = false;\nif (isSick) {\n  return \"go to vet\";\n} else if (pet.equals(\"dog\") && isHungry) {\n  return \"feed the dog\";\n} else if (pet.equals(\"cat\") && isHungry) {\n  return \"feed the cat\";\n} else {\n  return \"all good\";\n}", ans: "feed the dog" },
+  { code: "String pet = \"cat\";\nboolean isHungry = true;\nboolean isSick = true;\nif (isSick) {\n  return \"go to vet\";\n} else if (pet.equals(\"dog\") && isHungry) {\n  return \"feed the dog\";\n} else if (pet.equals(\"cat\") && isHungry) {\n  return \"feed the cat\";\n} else {\n  return \"all good\";\n}",  ans: "go to vet"   },
+  { code: "String pet = \"cat\";\nboolean isHungry = true;\nboolean isSick = false;\nif (isSick) {\n  return \"go to vet\";\n} else if (pet.equals(\"dog\") && isHungry) {\n  return \"feed the dog\";\n} else if (pet.equals(\"cat\") && isHungry) {\n  return \"feed the cat\";\n} else {\n  return \"all good\";\n}", ans: "feed the cat" },
+  { code: "String pet = \"dog\";\nboolean isHungry = false;\nboolean isSick = false;\nif (isSick) {\n  return \"go to vet\";\n} else if (pet.equals(\"dog\") && isHungry) {\n  return \"feed the dog\";\n} else if (pet.equals(\"cat\") && isHungry) {\n  return \"feed the cat\";\n} else {\n  return \"all good\";\n}", ans: "all good"     },
+
+  // age + score — deeply nested
+  { code: "int age = 20;\nint score = 95;\nif (age >= 18) {\n  if (score >= 90) {\n    return \"senior expert\";\n  } else if (score >= 70) {\n    return \"senior pass\";\n  } else {\n    return \"senior fail\";\n  }\n} else {\n  if (score >= 70) {\n    return \"junior pass\";\n  } else {\n    return \"junior fail\";\n  }\n}", ans: "senior expert" },
+  { code: "int age = 20;\nint score = 85;\nif (age >= 18) {\n  if (score >= 90) {\n    return \"senior expert\";\n  } else if (score >= 70) {\n    return \"senior pass\";\n  } else {\n    return \"senior fail\";\n  }\n} else {\n  if (score >= 70) {\n    return \"junior pass\";\n  } else {\n    return \"junior fail\";\n  }\n}", ans: "senior pass"   },
+  { code: "int age = 20;\nint score = 55;\nif (age >= 18) {\n  if (score >= 90) {\n    return \"senior expert\";\n  } else if (score >= 70) {\n    return \"senior pass\";\n  } else {\n    return \"senior fail\";\n  }\n} else {\n  if (score >= 70) {\n    return \"junior pass\";\n  } else {\n    return \"junior fail\";\n  }\n}", ans: "senior fail"   },
+  { code: "int age = 15;\nint score = 80;\nif (age >= 18) {\n  if (score >= 90) {\n    return \"senior expert\";\n  } else if (score >= 70) {\n    return \"senior pass\";\n  } else {\n    return \"senior fail\";\n  }\n} else {\n  if (score >= 70) {\n    return \"junior pass\";\n  } else {\n    return \"junior fail\";\n  }\n}", ans: "junior pass"   },
+  { code: "int age = 15;\nint score = 60;\nif (age >= 18) {\n  if (score >= 90) {\n    return \"senior expert\";\n  } else if (score >= 70) {\n    return \"senior pass\";\n  } else {\n    return \"senior fail\";\n  }\n} else {\n  if (score >= 70) {\n    return \"junior pass\";\n  } else {\n    return \"junior fail\";\n  }\n}", ans: "junior fail"   },
+];
+
+let l5CorrectAnswer;
+
+function showLevel5() {
+  const q = L5[Math.floor(Math.random() * L5.length)];
+  l5CorrectAnswer = q.ans;
+  document.getElementById("questionArea").innerHTML = `
+    <p class="q-label">What value does this code return?</p>
+    <pre class="code" id="l5code"></pre>
+    <input type="text" id="ans5" placeholder='type answer…'
+           onkeypress="if(event.key==='Enter')checkLevel5()">
+    <button onclick="checkLevel5()">Check</button>`;
+  document.getElementById("l5code").textContent = q.code;
+  setTimeout(() => { const el = document.getElementById("ans5"); if(el) el.focus(); }, 50);
+}
+
+function checkLevel5() {
+  if (answered) return;
+  const val = document.getElementById("ans5").value;
+  if (!val.trim()) return;
+  answered = true;
+  if (normalizeAnswer(val) === normalizeAnswer(l5CorrectAnswer)) onCorrect();
+  else onWrong(l5CorrectAnswer);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 6 — write if/else code to pass all listed test cases
+// ══════════════════════════════════════════════════════════════════════════════
+const L6_CHALLENGES = [
+  {
+    description: 'Return "pass" if score is 60 or above, otherwise return "fail".',
+    vars: [{name:"score",type:"int"}],
+    tests: [
+      {vals:{score:80}, expected:"pass"},
+      {vals:{score:60}, expected:"pass"},
+      {vals:{score:59}, expected:"fail"},
+      {vals:{score:0},  expected:"fail"},
+    ]
+  },
+  {
+    description: 'Return "big" if weight is more than 10, otherwise return "small".',
+    vars: [{name:"weight",type:"int"}],
+    tests: [
+      {vals:{weight:11},  expected:"big"},
+      {vals:{weight:100}, expected:"big"},
+      {vals:{weight:10},  expected:"small"},
+      {vals:{weight:5},   expected:"small"},
+    ]
+  },
+  {
+    description: 'Return "weekend" if day equals "Saturday" or "Sunday", otherwise return "weekday".',
+    vars: [{name:"day",type:"String"}],
+    tests: [
+      {vals:{day:"Saturday"}, expected:"weekend"},
+      {vals:{day:"Sunday"},   expected:"weekend"},
+      {vals:{day:"Monday"},   expected:"weekday"},
+      {vals:{day:"Friday"},   expected:"weekday"},
+    ]
+  },
+  {
+    description: 'Return "A" if score is 90 or above, "B" if 70 or above, otherwise return "C".',
+    vars: [{name:"score",type:"int"}],
+    tests: [
+      {vals:{score:95}, expected:"A"},
+      {vals:{score:90}, expected:"A"},
+      {vals:{score:75}, expected:"B"},
+      {vals:{score:70}, expected:"B"},
+      {vals:{score:65}, expected:"C"},
+    ]
+  },
+  {
+    description: 'Return "hot" if temp is above 30, "warm" if above 20, "cool" if above 10, otherwise return "cold".',
+    vars: [{name:"temp",type:"int"}],
+    tests: [
+      {vals:{temp:35}, expected:"hot"},
+      {vals:{temp:25}, expected:"warm"},
+      {vals:{temp:15}, expected:"cool"},
+      {vals:{temp:5},  expected:"cold"},
+      {vals:{temp:31}, expected:"hot"},
+    ]
+  },
+  {
+    description: 'Return "full" if isMember is true AND age is 18 or above, "limited" if isMember is true, otherwise return "none".',
+    vars: [{name:"isMember",type:"boolean"},{name:"age",type:"int"}],
+    tests: [
+      {vals:{isMember:true,  age:20}, expected:"full"},
+      {vals:{isMember:true,  age:18}, expected:"full"},
+      {vals:{isMember:true,  age:15}, expected:"limited"},
+      {vals:{isMember:false, age:25}, expected:"none"},
+      {vals:{isMember:false, age:14}, expected:"none"},
+    ]
+  },
+  {
+    description: 'Return "Rex" if isMale is true, otherwise return "Bella".',
+    vars: [{name:"isMale",type:"boolean"}],
+    tests: [
+      {vals:{isMale:true},  expected:"Rex"},
+      {vals:{isMale:false}, expected:"Bella"},
+    ]
+  },
+  {
+    description: 'Return "star" if score is 90 or above OR hasBonus is true, otherwise return "normal".',
+    vars: [{name:"score",type:"int"},{name:"hasBonus",type:"boolean"}],
+    tests: [
+      {vals:{score:95, hasBonus:false}, expected:"star"},
+      {vals:{score:80, hasBonus:true},  expected:"star"},
+      {vals:{score:90, hasBonus:false}, expected:"star"},
+      {vals:{score:80, hasBonus:false}, expected:"normal"},
+    ]
+  },
+  {
+    description: 'Return "fizzbuzz" if n is divisible by both 3 and 5, "fizz" if divisible by 3, "buzz" if divisible by 5, otherwise return "none".',
+    vars: [{name:"n",type:"int"}],
+    tests: [
+      {vals:{n:15}, expected:"fizzbuzz"},
+      {vals:{n:30}, expected:"fizzbuzz"},
+      {vals:{n:9},  expected:"fizz"},
+      {vals:{n:10}, expected:"buzz"},
+      {vals:{n:7},  expected:"none"},
+    ]
+  },
+  {
+    description: 'Return "20% off" if isMember is true AND total is 100 or above, "10% off" if isMember is true, "5% off" if total is 100 or above, otherwise return "no discount".',
+    vars: [{name:"isMember",type:"boolean"},{name:"total",type:"int"}],
+    tests: [
+      {vals:{isMember:true,  total:120}, expected:"20% off"},
+      {vals:{isMember:true,  total:50},  expected:"10% off"},
+      {vals:{isMember:false, total:150}, expected:"5% off"},
+      {vals:{isMember:false, total:30},  expected:"no discount"},
+    ]
+  },
+  {
+    description: 'Return "login required" if isLoggedIn is false. Return "admin panel" if role equals "admin". Return "user dashboard" if role equals "user". Otherwise return "guest view".',
+    vars: [{name:"isLoggedIn",type:"boolean"},{name:"role",type:"String"}],
+    tests: [
+      {vals:{isLoggedIn:false, role:"admin"},  expected:"login required"},
+      {vals:{isLoggedIn:true,  role:"admin"},  expected:"admin panel"},
+      {vals:{isLoggedIn:true,  role:"user"},   expected:"user dashboard"},
+      {vals:{isLoggedIn:true,  role:"viewer"}, expected:"guest view"},
+    ]
+  },
+  {
+    description: 'Return "turbo" if speed is above 100 AND mode equals "sport". Return "steady" if speed is above 100. Return "sport" if mode equals "sport". Otherwise return "slow".',
+    vars: [{name:"speed",type:"int"},{name:"mode",type:"String"}],
+    tests: [
+      {vals:{speed:120, mode:"sport"}, expected:"turbo"},
+      {vals:{speed:120, mode:"eco"},   expected:"steady"},
+      {vals:{speed:60,  mode:"sport"}, expected:"sport"},
+      {vals:{speed:60,  mode:"eco"},   expected:"slow"},
+    ]
+  },
+];
+
+let l6Idx = -1;
+let l6Solved = false;
+
+function fmtL6Val(v) {
+  return typeof v === 'string' ? '"' + v + '"' : String(v);
+}
+
+function showLevel6() {
+  l6Idx = (l6Idx + 1) % L6_CHALLENGES.length;
+  l6Solved = false;
+  const q = L6_CHALLENGES[l6Idx];
+  window.currentL6 = q;
+
+  const varDecl = q.vars.map(v => v.type + ' ' + v.name).join(',  ');
+  const varNames = q.vars.map(v => v.name);
+  const testLines = q.tests.map(t =>
+    '(' + varNames.map(n => fmtL6Val(t.vals[n])).join(', ') + ')  →  ' + fmtL6Val(t.expected)
+  ).join('\n');
+
+  document.getElementById("questionArea").innerHTML = `
+    <p class="task-desc">${escHtml(q.description)}</p>
+    <div class="vars-box" id="l6vars"></div>
+    <div class="rules-box" id="l6tests"></div>
+    <textarea class="code-input" id="l6code" rows="8"
+      placeholder="Write your if/else code here…\n\nif (...) {\n  return ...;\n} else {\n  return ...;\n}"></textarea>
+    <button onclick="checkLevel6()">Check ✓</button>
+    <div class="test-results" id="l6results"></div>`;
+
+  document.getElementById("l6vars").textContent = 'Variables:   ' + varDecl;
+  document.getElementById("l6tests").textContent = 'Test cases:\n' + testLines;
+  setTimeout(() => { const el = document.getElementById("l6code"); if (el) el.focus(); }, 50);
+}
+
+function checkLevel6() {
+  const input = document.getElementById("l6code").value.trim();
+  const resultsDiv = document.getElementById("l6results");
+  if (!input) { resultsDiv.innerText = "Write some code first."; return; }
+
+  const q = window.currentL6;
+  const varNames = q.vars.map(v => v.name);
+  const code = input.replace(/(\w+)\.equals\(([^)]+)\)/g, '$1 === $2');
+
+  const passed = [], failed = [];
+  try {
+    for (let i = 0; i < q.tests.length; i++) {
+      const t = q.tests[i];
+      const fn = new Function(...varNames, code);
+      const result = fn(...varNames.map(n => t.vals[n]));
+      if (String(result) === String(t.expected)) passed.push(i);
+      else failed.push(i);
+    }
+
+    let html = '';
+    if (failed.length === 0) {
+      html = '<div style="color:green;font-size:18px;font-weight:bold">✓ All tests passed!</div><br>';
+      if (!l6Solved) {
+        l6Solved = true;
+        onCorrect();
+      }
+    } else {
+      html = '<div style="color:#c62828;font-weight:bold">✗ ' + failed.length + ' test(s) failing — fix your code and try again:</div><br>';
+    }
+
+    for (let i = 0; i < q.tests.length; i++) {
+      const t = q.tests[i];
+      const valsStr = varNames.map(n => fmtL6Val(t.vals[n])).join(', ');
+      if (failed.includes(i)) {
+        let got = '?';
+        try {
+          const fn2 = new Function(...varNames, code);
+          got = fmtL6Val(fn2(...varNames.map(n => t.vals[n])));
+        } catch(e) { got = 'error'; }
+        html += '<div style="color:red">✗ (' + valsStr + ')  →  expected ' + fmtL6Val(t.expected) + ', got ' + got + '</div>';
+      } else {
+        html += '<div style="color:green">✓ (' + valsStr + ')  →  ' + fmtL6Val(t.expected) + '</div>';
+      }
+    }
+    resultsDiv.innerHTML = html;
+
+  } catch(e) {
+    resultsDiv.innerText = 'Error in your code: ' + e.message;
+  }
 }
 
 // ── util ──────────────────────────────────────────────────────────────────────
