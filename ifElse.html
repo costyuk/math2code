@@ -694,6 +694,93 @@ const L6_CHALLENGES = [
       {vals:{speed:60,  mode:"eco"},   expected:"slow"},
     ]
   },
+  // ── sophisticated multi-variable / nested challenges ─────────────────────
+  {
+    description: 'Return "go to vet" if isSick is true. Return "feed the dog" if pet equals "dog" AND isHungry is true. Return "feed the cat" if pet equals "cat" AND isHungry is true. Otherwise return "all good".',
+    vars: [{name:"pet",type:"String"},{name:"isHungry",type:"boolean"},{name:"isSick",type:"boolean"}],
+    tests: [
+      {vals:{pet:"dog", isHungry:true,  isSick:true},  expected:"go to vet"   },
+      {vals:{pet:"dog", isHungry:true,  isSick:false}, expected:"feed the dog"},
+      {vals:{pet:"cat", isHungry:true,  isSick:false}, expected:"feed the cat"},
+      {vals:{pet:"dog", isHungry:false, isSick:false}, expected:"all good"    },
+      {vals:{pet:"cat", isHungry:false, isSick:false}, expected:"all good"    },
+    ]
+  },
+  {
+    description: 'Return "hot and wet" if temp is above 30 AND isRaining is true. Return "hot and dry" if temp is above 30. Return "warm and wet" if temp is above 20 AND isRaining is true. Return "warm and dry" if temp is above 20. Otherwise return "cold".',
+    vars: [{name:"temp",type:"int"},{name:"isRaining",type:"boolean"}],
+    tests: [
+      {vals:{temp:35, isRaining:true},  expected:"hot and wet" },
+      {vals:{temp:35, isRaining:false}, expected:"hot and dry" },
+      {vals:{temp:25, isRaining:true},  expected:"warm and wet"},
+      {vals:{temp:25, isRaining:false}, expected:"warm and dry"},
+      {vals:{temp:10, isRaining:true},  expected:"cold"        },
+    ]
+  },
+  {
+    description: 'If age is 18 or above: return "senior expert" if score is 90 or above, "senior pass" if score is 70 or above, otherwise "senior fail". If age is below 18: return "junior pass" if score is 70 or above, otherwise "junior fail".',
+    vars: [{name:"age",type:"int"},{name:"score",type:"int"}],
+    tests: [
+      {vals:{age:20, score:95}, expected:"senior expert"},
+      {vals:{age:20, score:80}, expected:"senior pass"  },
+      {vals:{age:20, score:55}, expected:"senior fail"  },
+      {vals:{age:15, score:75}, expected:"junior pass"  },
+      {vals:{age:15, score:60}, expected:"junior fail"  },
+    ]
+  },
+  {
+    description: 'Return "weekend morning" if day equals "Saturday" or "Sunday" AND hour is below 12. Return "weekend afternoon" if day equals "Saturday" or "Sunday". Return "early work" if hour is below 9. Otherwise return "work time".',
+    vars: [{name:"day",type:"String"},{name:"hour",type:"int"}],
+    tests: [
+      {vals:{day:"Saturday",  hour:9},  expected:"weekend morning"  },
+      {vals:{day:"Sunday",    hour:14}, expected:"weekend afternoon" },
+      {vals:{day:"Monday",    hour:8},  expected:"early work"        },
+      {vals:{day:"Wednesday", hour:11}, expected:"work time"         },
+    ]
+  },
+  {
+    description: 'Return "Nimbus" if isMale is true AND breed equals "labrador" AND color equals "brown". Return "Storm" if isMale is true AND breed equals "husky". Return "Piper" if isMale is false. Otherwise return "Hunter".',
+    vars: [{name:"isMale",type:"boolean"},{name:"breed",type:"String"},{name:"color",type:"String"}],
+    tests: [
+      {vals:{isMale:true,  breed:"labrador", color:"brown"}, expected:"Nimbus"},
+      {vals:{isMale:true,  breed:"husky",    color:"black"}, expected:"Storm" },
+      {vals:{isMale:false, breed:"poodle",   color:"white"}, expected:"Piper" },
+      {vals:{isMale:true,  breed:"labrador", color:"black"}, expected:"Hunter"},
+      {vals:{isMale:true,  breed:"poodle",   color:"brown"}, expected:"Hunter"},
+    ]
+  },
+  {
+    description: 'Return "A+" if score is 90 or above AND hasBonus is true. Return "A" if score is 90 or above. Return "B" if score is 75 or above. Return "C" if score is 60 or above. Otherwise return "F".',
+    vars: [{name:"score",type:"int"},{name:"hasBonus",type:"boolean"}],
+    tests: [
+      {vals:{score:95, hasBonus:true},  expected:"A+"},
+      {vals:{score:95, hasBonus:false}, expected:"A" },
+      {vals:{score:80, hasBonus:true},  expected:"B" },
+      {vals:{score:65, hasBonus:false}, expected:"C" },
+      {vals:{score:50, hasBonus:true},  expected:"F" },
+    ]
+  },
+  {
+    description: 'Return "VIP" if isMember is true AND age is 18 or above AND balance is 1000 or above. Return "member" if isMember is true AND age is 18 or above. Return "minor" if age is below 18. Otherwise return "standard".',
+    vars: [{name:"isMember",type:"boolean"},{name:"age",type:"int"},{name:"balance",type:"int"}],
+    tests: [
+      {vals:{isMember:true,  age:25, balance:1000}, expected:"VIP"     },
+      {vals:{isMember:true,  age:25, balance:500},  expected:"member"  },
+      {vals:{isMember:true,  age:16, balance:1000}, expected:"minor"   },
+      {vals:{isMember:false, age:25, balance:1000}, expected:"standard"},
+      {vals:{isMember:false, age:16, balance:500},  expected:"minor"   },
+    ]
+  },
+  {
+    description: 'Return "turbo" if speed is above 100 AND fuel is above 50. Return "fast" if speed is above 100. Return "eco boost" if fuel is above 50. Otherwise return "slow".',
+    vars: [{name:"speed",type:"int"},{name:"fuel",type:"int"}],
+    tests: [
+      {vals:{speed:120, fuel:60}, expected:"turbo"    },
+      {vals:{speed:120, fuel:30}, expected:"fast"     },
+      {vals:{speed:60,  fuel:60}, expected:"eco boost"},
+      {vals:{speed:60,  fuel:30}, expected:"slow"     },
+    ]
+  },
 ];
 
 let l6Idx = -1;
