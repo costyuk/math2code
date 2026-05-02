@@ -282,8 +282,7 @@ const L2 = [
 let l2CorrectAnswer;
 
 function showLevel2() {
-  const q = L2[qIdx % L2.length];
-  qIdx++;
+  const q = L2[Math.floor(Math.random() * L2.length)];
   l2CorrectAnswer = q.ans;
   document.getElementById("questionArea").innerHTML = `
     <p class="q-label">What value does this code return?</p>
