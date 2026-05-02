@@ -418,17 +418,25 @@ const L4 = [
   { isBoy:true,  color:"golden", breed:"poodle"   , ans:"Fluffy" },
 ];
 
-const L4_RULES = `
-if (!isBoy)                                return "Piper";
-if (breed.equals("labrador")
-    && color.equals("brown"))              return "Nimbus";
-if (breed.equals("husky"))                 return "Storm";
-if (breed.equals("poodle"))                return "Fluffy";
-if (breed.equals("bulldog"))               return "Buster";
-if (breed.equals("beagle")
-    && color.equals("black"))              return "Shadow";
-return "Hunter";
-`.trim();
+const L4_RULES = `if (!isBoy) {
+  return "Piper";
+}
+if (breed.equals("labrador") && color.equals("brown")) {
+  return "Nimbus";
+}
+if (breed.equals("husky")) {
+  return "Storm";
+}
+if (breed.equals("poodle")) {
+  return "Fluffy";
+}
+if (breed.equals("bulldog")) {
+  return "Buster";
+}
+if (breed.equals("beagle") && color.equals("black")) {
+  return "Shadow";
+}
+return "Hunter";`;
 
 let l4CorrectAnswer;
 
@@ -438,15 +446,15 @@ function showLevel4() {
   qIdx++;
   l4CorrectAnswer = q.ans;
 
-  const varsText =
+  const codeText =
     `boolean isBoy  = ${q.isBoy};\n` +
     `String  color  = "${q.color}";\n` +
-    `String  breed  = "${q.breed}";`;
+    `String  breed  = "${q.breed}";\n\n` +
+    L4_RULES;
 
   document.getElementById("questionArea").innerHTML = `
     <p class="q-label">Task ${taskNum} of ${L4.length} — What name does this dog get?</p>
-    <div class="rules-box"><b>Naming rules:</b>\n${escHtml(L4_RULES)}</div>
-    <div class="vars-box"><b>Variables:</b>\n${escHtml(varsText)}</div>
+    <pre class="code">${escHtml(codeText)}</pre>
     <input type="text" id="ans4" placeholder='type dog name…'
            onkeypress="if(event.key==='Enter')checkLevel4()">
     <button onclick="checkLevel4()">Check</button>`;
