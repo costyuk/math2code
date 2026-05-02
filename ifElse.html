@@ -454,10 +454,11 @@ function showLevel4() {
 
   document.getElementById("questionArea").innerHTML = `
     <p class="q-label">Task ${taskNum} of ${L4.length} — What name does this dog get?</p>
-    <pre class="code">${escHtml(codeText)}</pre>
+    <pre class="code" id="l4code"></pre>
     <input type="text" id="ans4" placeholder='type dog name…'
            onkeypress="if(event.key==='Enter')checkLevel4()">
     <button onclick="checkLevel4()">Check</button>`;
+  document.getElementById("l4code").textContent = codeText;
   setTimeout(() => { const el = document.getElementById("ans4"); if(el) el.focus(); }, 50);
 }
 
