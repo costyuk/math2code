@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>If/Else Practice 2</title>
+  <style>
+    body { font-family: Arial; background: #eef2ff; text-align: center; margin: 0; padding: 10px; }
+    .container { background: white; max-width: 860px; margin: auto; padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { color: #333; }
+    button { padding: 10px 18px; margin: 6px; border: none; border-radius: 6px; font-size: 17px; cursor: pointer; }
+    .levelBtn { background: #3f51b5; color: white; }
+    .locked    { background: #bdbdbd; color: #444; }
+    pre.code {
+      background: #f4f4f4; padding: 18px; border-radius: 8px;
+      font-family: monospace; font-size: 17px; line-height: 1.7;
+      text-align: left; display: block; margin: 16px auto;
+      max-width: 680px; overflow-x: auto; white-space: pre;
+      border-left: 4px solid #3f51b5;
+    }
+    .rules-box {
+      background: #e8f5e9; border-left: 4px solid #4caf50;
+      padding: 14px 18px; border-radius: 8px;
+      font-family: monospace; font-size: 15px; line-height: 1.9;
+      text-align: left; display: block; margin: 10px auto;
+      max-width: 680px;
+    }
+    .vars-box {
+      background: #fff8e1; border-left: 4px solid #ff9800;
+      padding: 12px 18px; border-radius: 8px;
+      font-family: monospace; font-size: 18px; line-height: 1.7;
+      text-align: left; display: block; margin: 10px auto;
+      max-width: 680px;
+    }
+    .q-label { font-size: 15px; color: #666; margin-bottom: 6px; }
+    input[type="text"] {
+      padding: 10px 14px; font-size: 18px; width: 220px;
+      border: 2px solid #ccc; border-radius: 8px; margin: 8px;
+      font-family: monospace;
+    }
+    input[type="text"]:focus { outline: none; border-color: #3f51b5; }
+    #feedback { font-size: 20px; font-weight: bold; margin: 10px 0; min-height: 28px; }
+    .tf-btn { font-size: 20px; padding: 14px 40px; border-radius: 8px; font-weight: bold; }
+    .tf-true  { background: #4caf50; color: white; }
+    .tf-false { background: #f44336; color: white; }
+    .tf-true:hover  { background: #388e3c; }
+    .tf-false:hover { background: #c62828; }
+    #pinPanel { display: none; margin-top: 20px; background: #fff3cd; padding: 15px; border-radius: 8px; }
+    .score-bar { font-size: 17px; color: #555; margin: 8px 0; }
+    .next-btn { background: #3f51b5; color: white; font-size: 17px; padding: 10px 28px; border-radius: 8px; margin-top: 8px; }
+    .back-btn { background: #9e9e9e; color: white; }
+    .task-desc { font-size: 16px; color: #333; max-width: 640px; margin: 8px auto 14px; text-align: left; line-height: 1.6; }
+    textarea.code-input {
+      width: 90%; max-width: 640px; font-family: monospace; font-size: 15px;
+      padding: 12px; border: 2px solid #ccc; border-radius: 8px;
+      margin: 8px auto; display: block; resize: vertical; line-height: 1.6;
+    }
+    textarea.code-input:focus { outline: none; border-color: #3f51b5; }
+    .test-results { text-align: left; display: inline-block; font-family: monospace;
+                    font-size: 15px; margin-top: 12px; max-width: 640px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h2>If/Else Code Practice 2</h2>
+
+  <div id="levelSelect">
+    <h3>Select Level</h3>
+    <button class="levelBtn" onclick="selectLevel(1)">Level 1 — Recall Mix</button><br>
+    <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — Write: 3 Outcomes</button><br>
+    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — Write: More Options</button><br>
+    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — Predict Nested Code</button><br>
+    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write Nested if/else</button>
+    <p style="color:#888;font-size:14px">Pass a level by scoring 40 correct answers, or ask your teacher for the PIN.</p>
+    <div id="pinPanel">
+      <p>Enter Teacher PIN to unlock:</p>
+      <input id="pinInput" type="password" placeholder="PIN"
+             onkeypress="if(event.key==='Enter')checkPin()" style="font-size:17px;width:100px;padding:8px;border-radius:6px;border:1px solid #ccc">
+      <button onclick="checkPin()">Unlock</button>
+    </div>
+  </div>
+
+  <div id="quiz" style="display:none">
+    <h3 id="levelTitle"></h3>
+    <div id="questionArea"></div>
+    <div id="feedback"></div>
+    <div class="score-bar">Correct: <span id="score">0</span> / 40</div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()" style="display:none">Next &#8594;</button>
+    <br>
+    <button class="back-btn" onclick="goBack()">&#8592; Back</button>
+  </div>
+
+</div>
+
+<script>
+// ── state ─────────────────────────────────────────────────────────────────────
+let level = 1;
+let score = 0;
+let answered = false;
+let qIdx = 0;
+let requestedLevel = null;
+let unlockedLevels = [true, false, false, false, false];
+
+// ── navigation ────────────────────────────────────────────────────────────────
+function selectLevel(l) {
+  if (!unlockedLevels[l - 1]) {
+    requestedLevel = l;
+    document.getElementById("pinPanel").style.display = "block";
+    return;
+  }
+  startQuiz(l);
+}
+
+function checkPin() {
+  const pin = document.getElementById("pinInput").value;
+  document.getElementById("pinInput").value = "";
+  if (pin === "1502") {
+    unlockedLevels[requestedLevel - 1] = true;
+    const btn = document.getElementById("btn" + requestedLevel);
+    btn.classList.remove("locked");
+    btn.innerText = "Level " + requestedLevel + " — " + levelLabel(requestedLevel);
+    document.getElementById("pinPanel").style.display = "none";
+    startQuiz(requestedLevel);
+  } else {
+    alert("Wrong PIN");
+  }
+}
+
+function levelLabel(l) {
+  return ["Recall Mix","Write: 3 Outcomes","Write: More Options","Predict Nested Code","Write Nested if/else"][l-1] || "";
+}
+
+function startQuiz(l) {
+  level = l;
+  score = 0;
+  qIdx = 0;
+  document.getElementById("score").innerText = 0;
+  document.getElementById("quiz").style.display = "block";
+  document.getElementById("levelSelect").style.display = "none";
+  document.getElementById("levelTitle").innerText = "Level " + l + " — " + levelLabel(l);
+  nextQuestion();
+}
+
+function goBack() {
+  document.getElementById("quiz").style.display = "none";
+  document.getElementById("levelSelect").style.display = "block";
+}
+
+function nextQuestion() {
+  answered = false;
+  document.getElementById("feedback").innerText = "";
+  document.getElementById("nextBtn").style.display = "none";
+  if (level === 1) showLevel1();
+  else if (level === 2) showLevel2();
+  else if (level === 3) showLevel3();
+  else if (level === 4) showLevel4();
+  else if (level === 5) showLevel5();
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+function normalizeAnswer(s) {
+  return String(s).trim().toLowerCase().replace(/^"+|"+$/g, "");
+}
+
+function onCorrect() {
+  score++;
+  document.getElementById("score").innerText = score;
+  document.getElementById("feedback").style.color = "#4caf50";
+  document.getElementById("feedback").innerText = "Correct!";
+  document.getElementById("nextBtn").style.display = "inline-block";
+  if (score >= 40) unlockNext();
+}
+
+function onWrong(correctVal) {
+  document.getElementById("feedback").style.color = "#f44336";
+  document.getElementById("feedback").innerText = `Wrong! Answer: "${correctVal}"`;
+  document.getElementById("nextBtn").style.display = "inline-block";
+}
+
+function unlockNext() {
+  if (level < 5) {
+    unlockedLevels[level] = true;
+    const btn = document.getElementById("btn" + (level + 1));
+    if (btn) { btn.classList.remove("locked"); btn.innerText = "Level " + (level+1) + " — " + levelLabel(level+1); }
+    document.getElementById("feedback").innerText += "  Level " + (level+1) + " unlocked!";
+  } else {
+    document.getElementById("feedback").innerText += "  You completed all levels!";
+  }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 1 — Recall Mix: T/F and text-return questions from old levels 1–5
+// ══════════════════════════════════════════════════════════════════════════════
+const L1_MIX = [
+  // ── True / False ──────────────────────────────────────────────────────────
+  { type:"tf", code:"int a = 5;\nint b = 3;\nif (a > b)",                                           ans: true  },
+  { type:"tf", code:"boolean isDog = false;\nif (isDog)",                                           ans: false },
+  { type:"tf", code:"boolean isRaining = true;\nif (!isRaining)",                                   ans: false },
+  { type:"tf", code:"boolean a = true;\nboolean b = false;\nif (a && b)",                           ans: false },
+  { type:"tf", code:"int n = 4;\nif (n % 2 == 0)",                                                  ans: true  },
+  { type:"tf", code:"boolean a = false;\nboolean b = false;\nif (a || b)",                          ans: false },
+  { type:"tf", code:"int x = 7;\nboolean isGood = true;\nif (x > 5 && isGood)",                    ans: true  },
+  { type:"tf", code:"int x = 3;\nboolean isGood = true;\nif (x > 5 || isGood)",                    ans: true  },
+  { type:"tf", code:"int a = 5;\nint b = 5;\nif (a >= b)",                                          ans: true  },
+  { type:"tf", code:"int a = 4;\nint b = 5;\nif (a >= b)",                                          ans: false },
+  { type:"tf", code:"int a = 5;\nint b = 3;\nif (a != b)",                                          ans: true  },
+  { type:"tf", code:"boolean flag = false;\nif (flag || !flag)",                                    ans: true  },
+  { type:"tf", code:"boolean flag = true;\nif (!flag && flag)",                                     ans: false },
+  { type:"tf", code:"int x = 10;\nint y = 10;\nif (x == y && x > 0)",                              ans: true  },
+  { type:"tf", code:"boolean isDog = true;\nboolean isCat = false;\nif (isDog && !isCat)",          ans: true  },
+  { type:"tf", code:"int x = 7;\nboolean isGood = false;\nif (x > 5 && isGood)",                   ans: false },
+  { type:"tf", code:"int n = 5;\nif (n % 2 == 0)",                                                  ans: false },
+  { type:"tf", code:"boolean a = true;\nboolean b = false;\nif (a || b)",                           ans: true  },
+
+  // ── Simple if/else — type the return value ────────────────────────────────
+  { type:"text", code:"boolean isDog = true;\nif (isDog) {\n  return \"Woofer\";\n} else {\n  return \"Meow\";\n}",                                                                           ans:"Woofer"     },
+  { type:"text", code:"boolean isRaining = false;\nif (isRaining) {\n  return \"umbrella\";\n} else {\n  return \"sunglasses\";\n}",                                                          ans:"sunglasses" },
+  { type:"text", code:"int age = 15;\nif (age >= 18) {\n  return \"adult\";\n} else {\n  return \"minor\";\n}",                                                                               ans:"minor"      },
+  { type:"text", code:"boolean hasTicket = false;\nif (!hasTicket) {\n  return \"stay home\";\n} else {\n  return \"enter\";\n}",                                                             ans:"stay home"  },
+  { type:"text", code:"String color = \"green\";\nif (color.equals(\"red\")) {\n  return \"stop\";\n} else {\n  return \"go\";\n}",                                                           ans:"go"         },
+  { type:"text", code:"int temp = 30;\nif (temp > 25) {\n  return \"hot\";\n} else {\n  return \"cool\";\n}",                                                                                ans:"hot"        },
+  { type:"text", code:"boolean isMale = false;\nif (!isMale) {\n  return \"Piper\";\n} else {\n  return \"Rex\";\n}",                                                                        ans:"Piper"      },
+  { type:"text", code:"int weight = 3;\nif (weight < 5) {\n  return \"small\";\n} else {\n  return \"big\";\n}",                                                                             ans:"small"      },
+  { type:"text", code:"boolean isOnSale = true;\nif (isOnSale) {\n  return \"50\";\n} else {\n  return \"100\";\n}",                                                                         ans:"50"         },
+  { type:"text", code:"boolean isHappy = false;\nboolean isExcited = true;\nif (isHappy || isExcited) {\n  return \"smile\";\n} else {\n  return \"frown\";\n}",                              ans:"smile"      },
+
+  // ── if / else if / else ───────────────────────────────────────────────────
+  { type:"text", code:"int score = 85;\nif (score >= 90) {\n  return \"A\";\n} else if (score >= 80) {\n  return \"B\";\n} else {\n  return \"C\";\n}",                                      ans:"B"          },
+  { type:"text", code:"int score = 95;\nif (score >= 90) {\n  return \"A\";\n} else if (score >= 80) {\n  return \"B\";\n} else {\n  return \"C\";\n}",                                      ans:"A"          },
+  { type:"text", code:"int temp = 5;\nif (temp > 30) {\n  return \"hot\";\n} else if (temp > 20) {\n  return \"warm\";\n} else if (temp > 10) {\n  return \"cool\";\n} else {\n  return \"cold\";\n}", ans:"cold" },
+  { type:"text", code:"int temp = 25;\nif (temp > 30) {\n  return \"hot\";\n} else if (temp > 20) {\n  return \"warm\";\n} else if (temp > 10) {\n  return \"cool\";\n} else {\n  return \"cold\";\n}", ans:"warm" },
+  { type:"text", code:"int age = 16;\nif (age < 3) {\n  return \"baby\";\n} else if (age < 13) {\n  return \"child\";\n} else if (age < 18) {\n  return \"teen\";\n} else {\n  return \"adult\";\n}", ans:"teen" },
+  { type:"text", code:"int age = 8;\nif (age < 3) {\n  return \"baby\";\n} else if (age < 13) {\n  return \"child\";\n} else if (age < 18) {\n  return \"teen\";\n} else {\n  return \"adult\";\n}",  ans:"child" },
+  { type:"text", code:"int weight = 35;\nif (weight < 5) {\n  return \"tiny\";\n} else if (weight < 20) {\n  return \"small\";\n} else if (weight < 50) {\n  return \"medium\";\n} else {\n  return \"large\";\n}", ans:"medium" },
+  { type:"text", code:"int stars = 5;\nif (stars == 5) {\n  return \"excellent\";\n} else if (stars >= 4) {\n  return \"good\";\n} else if (stars >= 3) {\n  return \"ok\";\n} else {\n  return \"bad\";\n}", ans:"excellent" },
+  { type:"text", code:"int stars = 3;\nif (stars == 5) {\n  return \"excellent\";\n} else if (stars >= 4) {\n  return \"good\";\n} else if (stars >= 3) {\n  return \"ok\";\n} else {\n  return \"bad\";\n}", ans:"ok" },
+  { type:"text", code:"int speed = 80;\nif (speed > 130) {\n  return \"very fast\";\n} else if (speed > 100) {\n  return \"fast\";\n} else if (speed > 60) {\n  return \"normal\";\n} else {\n  return \"slow\";\n}", ans:"normal" },
+  { type:"text", code:"String breed = \"husky\";\nif (breed.equals(\"labrador\")) {\n  return \"Nimbus\";\n} else if (breed.equals(\"husky\")) {\n  return \"Storm\";\n} else {\n  return \"Buddy\";\n}", ans:"Storm" },
+  { type:"text", code:"String breed = \"poodle\";\nif (breed.equals(\"labrador\")) {\n  return \"Nimbus\";\n} else if (breed.equals(\"husky\")) {\n  return \"Storm\";\n} else {\n  return \"Buddy\";\n}", ans:"Buddy" },
+  { type:"text", code:"boolean isBoy = true;\nString color = \"black\";\nif (!isBoy) {\n  return \"Piper\";\n} else if (color.equals(\"brown\")) {\n  return \"Nimbus\";\n} else {\n  return \"Hunter\";\n}", ans:"Hunter" },
+  { type:"text", code:"boolean isBoy = false;\nString color = \"brown\";\nif (!isBoy) {\n  return \"Piper\";\n} else if (color.equals(\"brown\")) {\n  return \"Nimbus\";\n} else {\n  return \"Hunter\";\n}", ans:"Piper" },
+
+  // ── Nested if/else ────────────────────────────────────────────────────────
+  { type:"text", code:"boolean isMember = true;\nint age = 21;\nif (isMember) {\n  if (age >= 18) {\n    return \"full access\";\n  } else {\n    return \"limited access\";\n  }\n} else {\n  return \"no access\";\n}", ans:"full access" },
+  { type:"text", code:"boolean isMember = true;\nint age = 15;\nif (isMember) {\n  if (age >= 18) {\n    return \"full access\";\n  } else {\n    return \"limited access\";\n  }\n} else {\n  return \"no access\";\n}", ans:"limited access" },
+  { type:"text", code:"boolean isMember = false;\nint age = 25;\nif (isMember) {\n  if (age >= 18) {\n    return \"full access\";\n  } else {\n    return \"limited access\";\n  }\n} else {\n  return \"no access\";\n}", ans:"no access" },
+  { type:"text", code:"boolean isLoggedIn = false;\nString role = \"admin\";\nif (!isLoggedIn) {\n  return \"login required\";\n} else if (role.equals(\"admin\")) {\n  return \"admin panel\";\n} else if (role.equals(\"user\")) {\n  return \"user dashboard\";\n} else {\n  return \"guest view\";\n}", ans:"login required" },
+  { type:"text", code:"boolean isLoggedIn = true;\nString role = \"user\";\nif (!isLoggedIn) {\n  return \"login required\";\n} else if (role.equals(\"admin\")) {\n  return \"admin panel\";\n} else if (role.equals(\"user\")) {\n  return \"user dashboard\";\n} else {\n  return \"guest view\";\n}", ans:"user dashboard" },
+  { type:"text", code:"boolean isMember = true;\nint total = 120;\nif (isMember && total >= 100) {\n  return \"20% off\";\n} else if (isMember) {\n  return \"10% off\";\n} else if (total >= 100) {\n  return \"5% off\";\n} else {\n  return \"no discount\";\n}", ans:"20% off" },
+  { type:"text", code:"boolean isMember = false;\nint total = 150;\nif (isMember && total >= 100) {\n  return \"20% off\";\n} else if (isMember) {\n  return \"10% off\";\n} else if (total >= 100) {\n  return \"5% off\";\n} else {\n  return \"no discount\";\n}", ans:"5% off" },
+  { type:"text", code:"String pet = \"cat\";\nboolean isHungry = true;\nboolean isSick = false;\nif (isSick) {\n  return \"go to vet\";\n} else if (pet.equals(\"dog\") && isHungry) {\n  return \"feed the dog\";\n} else if (pet.equals(\"cat\") && isHungry) {\n  return \"feed the cat\";\n} else {\n  return \"all good\";\n}", ans:"feed the cat" },
+  { type:"text", code:"String pet = \"dog\";\nboolean isHungry = false;\nboolean isSick = false;\nif (isSick) {\n  return \"go to vet\";\n} else if (pet.equals(\"dog\") && isHungry) {\n  return \"feed the dog\";\n} else if (pet.equals(\"cat\") && isHungry) {\n  return \"feed the cat\";\n} else {\n  return \"all good\";\n}", ans:"all good" },
+  { type:"text", code:"int age = 20;\nint score = 55;\nif (age >= 18) {\n  if (score >= 90) {\n    return \"senior expert\";\n  } else if (score >= 70) {\n    return \"senior pass\";\n  } else {\n    return \"senior fail\";\n  }\n} else {\n  if (score >= 70) {\n    return \"junior pass\";\n  } else {\n    return \"junior fail\";\n  }\n}", ans:"senior fail" },
+  { type:"text", code:"int age = 15;\nint score = 80;\nif (age >= 18) {\n  if (score >= 90) {\n    return \"senior expert\";\n  } else if (score >= 70) {\n    return \"senior pass\";\n  } else {\n    return \"senior fail\";\n  }\n} else {\n  if (score >= 70) {\n    return \"junior pass\";\n  } else {\n    return \"junior fail\";\n  }\n}", ans:"junior pass" },
+];
+
+let l1CurrentAns;
+let l1CurrentType;
+
+function showLevel1() {
+  const q = L1_MIX[Math.floor(Math.random() * L1_MIX.length)];
+  l1CurrentAns  = q.ans;
+  l1CurrentType = q.type;
+
+  if (q.type === "tf") {
+    document.getElementById("questionArea").innerHTML = `
+      <p class="q-label">What is the result of this condition?</p>
+      <pre class="code">${escHtml(q.code)}</pre>
+      <div>
+        <button class="tf-btn tf-true"  onclick="checkLevel1(true)">True</button>
+        <button class="tf-btn tf-false" onclick="checkLevel1(false)">False</button>
+      </div>`;
+  } else {
+    document.getElementById("questionArea").innerHTML = `
+      <p class="q-label">What value does this code return?</p>
+      <pre class="code" id="l1code"></pre>
+      <input type="text" id="ans1" placeholder='type answer...'
+             onkeypress="if(event.key==='Enter')checkLevel1()">
+      <button onclick="checkLevel1()">Check</button>`;
+    document.getElementById("l1code").textContent = q.code;
+    setTimeout(() => { const el = document.getElementById("ans1"); if (el) el.focus(); }, 50);
+  }
+}
+
+function checkLevel1(val) {
+  if (answered) return;
+  if (l1CurrentType === "tf") {
+    answered = true;
+    if (val === l1CurrentAns) onCorrect();
+    else onWrong(l1CurrentAns ? "True" : "False");
+  } else {
+    const input = document.getElementById("ans1").value;
+    if (!input.trim()) return;
+    answered = true;
+    if (normalizeAnswer(input) === normalizeAnswer(l1CurrentAns)) onCorrect();
+    else onWrong(l1CurrentAns);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 2 — Write the code: 2+ parameters, exactly 3 possible return values
+// ══════════════════════════════════════════════════════════════════════════════
+const L2_CHALLENGES = [
+  {
+    description: 'Return "man" if isAdult is true AND isMale is true. Return "woman" if isAdult is true. Otherwise return "child".',
+    vars: [{name:"isAdult",type:"boolean"},{name:"isMale",type:"boolean"}],
+    tests: [
+      {vals:{isAdult:true,  isMale:true},  expected:"man"  },
+      {vals:{isAdult:true,  isMale:false}, expected:"woman"},
+      {vals:{isAdult:false, isMale:true},  expected:"child"},
+      {vals:{isAdult:false, isMale:false}, expected:"child"},
+    ]
+  },
+  {
+    description: 'Return "holiday" if isHoliday is true. Return "weekend" if day equals "Saturday" or "Sunday". Otherwise return "workday".',
+    vars: [{name:"day",type:"String"},{name:"isHoliday",type:"boolean"}],
+    tests: [
+      {vals:{day:"Monday",   isHoliday:true},  expected:"holiday"},
+      {vals:{day:"Saturday", isHoliday:false}, expected:"weekend"},
+      {vals:{day:"Sunday",   isHoliday:false}, expected:"weekend"},
+      {vals:{day:"Monday",   isHoliday:false}, expected:"workday"},
+      {vals:{day:"Saturday", isHoliday:true},  expected:"holiday"},
+    ]
+  },
+  {
+    description: 'Return "VIP" if age is 18 or above AND hasCard is true. Return "adult" if age is 18 or above. Otherwise return "minor".',
+    vars: [{name:"age",type:"int"},{name:"hasCard",type:"boolean"}],
+    tests: [
+      {vals:{age:20, hasCard:true},  expected:"VIP"  },
+      {vals:{age:20, hasCard:false}, expected:"adult"},
+      {vals:{age:15, hasCard:true},  expected:"minor"},
+      {vals:{age:15, hasCard:false}, expected:"minor"},
+    ]
+  },
+  {
+    description: 'Return "cold and windy" if temp is below 10 AND isWindy is true. Return "cold" if temp is below 10. Otherwise return "nice".',
+    vars: [{name:"temp",type:"int"},{name:"isWindy",type:"boolean"}],
+    tests: [
+      {vals:{temp:5,  isWindy:true},  expected:"cold and windy"},
+      {vals:{temp:5,  isWindy:false}, expected:"cold"          },
+      {vals:{temp:20, isWindy:true},  expected:"nice"          },
+      {vals:{temp:20, isWindy:false}, expected:"nice"          },
+    ]
+  },
+  {
+    description: 'Return "gold" if isMember is true AND score is 80 or above. Return "silver" if isMember is true. Otherwise return "bronze".',
+    vars: [{name:"isMember",type:"boolean"},{name:"score",type:"int"}],
+    tests: [
+      {vals:{isMember:true,  score:90}, expected:"gold"  },
+      {vals:{isMember:true,  score:70}, expected:"silver"},
+      {vals:{isMember:false, score:90}, expected:"bronze"},
+      {vals:{isMember:false, score:50}, expected:"bronze"},
+    ]
+  },
+  {
+    description: 'Return "can drive" if age is 16 or above AND hasLicense is true. Return "too young" if age is below 16. Otherwise return "no license".',
+    vars: [{name:"age",type:"int"},{name:"hasLicense",type:"boolean"}],
+    tests: [
+      {vals:{age:20, hasLicense:true},  expected:"can drive" },
+      {vals:{age:14, hasLicense:true},  expected:"too young" },
+      {vals:{age:20, hasLicense:false}, expected:"no license"},
+      {vals:{age:14, hasLicense:false}, expected:"too young" },
+    ]
+  },
+  {
+    description: 'Return "star" if score is 90 or above OR hasBonus is true. Return "pass" if score is 60 or above. Otherwise return "fail".',
+    vars: [{name:"score",type:"int"},{name:"hasBonus",type:"boolean"}],
+    tests: [
+      {vals:{score:95, hasBonus:false}, expected:"star"},
+      {vals:{score:70, hasBonus:true},  expected:"star"},
+      {vals:{score:70, hasBonus:false}, expected:"pass"},
+      {vals:{score:50, hasBonus:false}, expected:"fail"},
+      {vals:{score:50, hasBonus:true},  expected:"star"},
+    ]
+  },
+  {
+    description: 'Return "fly" if hasWings is true AND speed is above 50. Return "run" if speed is above 30. Otherwise return "walk".',
+    vars: [{name:"hasWings",type:"boolean"},{name:"speed",type:"int"}],
+    tests: [
+      {vals:{hasWings:true,  speed:60}, expected:"fly" },
+      {vals:{hasWings:false, speed:60}, expected:"run" },
+      {vals:{hasWings:true,  speed:20}, expected:"walk"},
+      {vals:{hasWings:false, speed:20}, expected:"walk"},
+    ]
+  },
+];
+
+let l2Idx = -1;
+let l2Solved = false;
+
+function showLevel2() {
+  l2Idx = (l2Idx + 1) % L2_CHALLENGES.length;
+  l2Solved = false;
+  renderWriteChallenge(L2_CHALLENGES[l2Idx], "l2", checkLevel2);
+}
+function checkLevel2() { runWriteCheck("l2", L2_CHALLENGES[l2Idx], function(ok){ l2Solved = ok; }); }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 3 — Write the code: 3+ parameters, 4–5 possible return values
+// ══════════════════════════════════════════════════════════════════════════════
+const L3_CHALLENGES = [
+  {
+    description: 'Return "no entry" if hasTicket is false. Return "VIP lounge" if isVIP is true. Return "main hall" if age is 18 or above. Otherwise return "kids zone".',
+    vars: [{name:"hasTicket",type:"boolean"},{name:"age",type:"int"},{name:"isVIP",type:"boolean"}],
+    tests: [
+      {vals:{hasTicket:false, age:25, isVIP:true},  expected:"no entry"  },
+      {vals:{hasTicket:true,  age:25, isVIP:true},  expected:"VIP lounge"},
+      {vals:{hasTicket:true,  age:25, isVIP:false}, expected:"main hall" },
+      {vals:{hasTicket:true,  age:12, isVIP:false}, expected:"kids zone" },
+      {vals:{hasTicket:false, age:12, isVIP:false}, expected:"no entry"  },
+    ]
+  },
+  {
+    description: 'Return "legend" if score is 90 or above AND level is 5 or above AND hasBadge is true. Return "expert" if score is 90 or above AND level is 5 or above. Return "champion" if score is 80 or above AND level is 3 or above. Return "player" if score is 60 or above. Otherwise return "rookie".',
+    vars: [{name:"score",type:"int"},{name:"level",type:"int"},{name:"hasBadge",type:"boolean"}],
+    tests: [
+      {vals:{score:95, level:5, hasBadge:true},  expected:"legend"  },
+      {vals:{score:95, level:5, hasBadge:false}, expected:"expert"  },
+      {vals:{score:85, level:3, hasBadge:false}, expected:"champion"},
+      {vals:{score:70, level:1, hasBadge:false}, expected:"player"  },
+      {vals:{score:40, level:1, hasBadge:false}, expected:"rookie"  },
+    ]
+  },
+  {
+    description: 'Return "storm" if isRaining is true AND wind is above 40. Return "windy" if wind is above 40. Return "hot" if temp is above 35. Return "rainy" if isRaining is true. Otherwise return "nice".',
+    vars: [{name:"temp",type:"int"},{name:"isRaining",type:"boolean"},{name:"wind",type:"int"}],
+    tests: [
+      {vals:{temp:20, isRaining:true,  wind:50}, expected:"storm"},
+      {vals:{temp:20, isRaining:false, wind:50}, expected:"windy"},
+      {vals:{temp:38, isRaining:false, wind:10}, expected:"hot"  },
+      {vals:{temp:20, isRaining:true,  wind:10}, expected:"rainy"},
+      {vals:{temp:20, isRaining:false, wind:10}, expected:"nice" },
+    ]
+  },
+  {
+    description: 'Return "gold member" if isMember is true AND age is 18 or above AND years is 5 or above. Return "silver member" if isMember is true AND age is 18 or above. Return "junior member" if isMember is true. Otherwise return "not a member".',
+    vars: [{name:"isMember",type:"boolean"},{name:"age",type:"int"},{name:"years",type:"int"}],
+    tests: [
+      {vals:{isMember:true,  age:25, years:6}, expected:"gold member"  },
+      {vals:{isMember:true,  age:25, years:3}, expected:"silver member"},
+      {vals:{isMember:true,  age:15, years:6}, expected:"junior member"},
+      {vals:{isMember:false, age:25, years:6}, expected:"not a member" },
+      {vals:{isMember:false, age:15, years:1}, expected:"not a member" },
+    ]
+  },
+  {
+    description: 'Return "emergency" if fuel is below 10. Return "turbo" if speed is above 120 AND mode equals "sport". Return "fast" if speed is above 100. Return "sport mode" if mode equals "sport". Otherwise return "cruise".',
+    vars: [{name:"speed",type:"int"},{name:"fuel",type:"int"},{name:"mode",type:"String"}],
+    tests: [
+      {vals:{speed:80,  fuel:5,  mode:"eco"},   expected:"emergency"},
+      {vals:{speed:130, fuel:50, mode:"sport"}, expected:"turbo"    },
+      {vals:{speed:110, fuel:50, mode:"eco"},   expected:"fast"     },
+      {vals:{speed:60,  fuel:50, mode:"sport"}, expected:"sport mode"},
+      {vals:{speed:60,  fuel:50, mode:"eco"},   expected:"cruise"   },
+    ]
+  },
+  {
+    description: 'Return "A+" if score is 90 or above AND hasBonus is true. Return "A" if score is 90 or above. Return "B" if score is 75 or above. Return "C" if score is 60 or above. Otherwise return "F".',
+    vars: [{name:"score",type:"int"},{name:"hasBonus",type:"boolean"}],
+    tests: [
+      {vals:{score:95, hasBonus:true},  expected:"A+"},
+      {vals:{score:95, hasBonus:false}, expected:"A" },
+      {vals:{score:80, hasBonus:true},  expected:"B" },
+      {vals:{score:65, hasBonus:false}, expected:"C" },
+      {vals:{score:50, hasBonus:true},  expected:"F" },
+    ]
+  },
+];
+
+let l3Idx = -1;
+let l3Solved = false;
+
+function showLevel3() {
+  l3Idx = (l3Idx + 1) % L3_CHALLENGES.length;
+  l3Solved = false;
+  renderWriteChallenge(L3_CHALLENGES[l3Idx], "l3", checkLevel3);
+}
+function checkLevel3() { runWriteCheck("l3", L3_CHALLENGES[l3Idx], function(ok){ l3Solved = ok; }); }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 4 — Predict the return value from complex nested code
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Library membership scenario
+function libCode(membership, books) {
+  return `String membership = "${membership}";\nint books = ${books};\nif (membership.equals("gold")) {\n  if (books < 5) {\n    return "borrow available";\n  } else {\n    return "limit reached";\n  }\n} else if (membership.equals("silver")) {\n  if (books < 3) {\n    return "borrow available";\n  } else {\n    return "limit reached";\n  }\n} else {\n  return "members only";\n}`;
+}
+
+// Game level+score scenario
+function gameCode(lvl, score) {
+  return `int level = ${lvl};\nint score = ${score};\nif (level >= 5) {\n  if (score >= 90) {\n    return "legend";\n  } else if (score >= 70) {\n    return "hero";\n  } else {\n    return "fighter";\n  }\n} else if (level >= 3) {\n  if (score >= 70) {\n    return "champion";\n  } else {\n    return "player";\n  }\n} else {\n  return "rookie";\n}`;
+}
+
+// Weather outfit scenario
+function weatherCode(isRaining, temp, hasJacket) {
+  return `boolean isRaining = ${isRaining};\nint temp = ${temp};\nboolean hasJacket = ${hasJacket};\nif (isRaining && temp < 10) {\n  if (hasJacket) {\n    return "warm and dry";\n  } else {\n    return "cold and wet";\n  }\n} else if (isRaining) {\n  return "just wet";\n} else if (temp < 10) {\n  return "just cold";\n} else {\n  return "perfect day";\n}`;
+}
+
+// Store checkout scenario
+function storeCode(inStock, isMember, price) {
+  return `boolean inStock = ${inStock};\nboolean isMember = ${isMember};\nint price = ${price};\nif (!inStock) {\n  return "out of stock";\n} else if (isMember && price >= 100) {\n  return "VIP deal";\n} else if (isMember) {\n  return "member price";\n} else if (price >= 100) {\n  return "sale price";\n} else {\n  return "regular price";\n}`;
+}
+
+// Ticket + age + VIP scenario
+function ticketCode(hasTicket, age, isVIP) {
+  return `boolean hasTicket = ${hasTicket};\nint age = ${age};\nboolean isVIP = ${isVIP};\nif (!hasTicket) {\n  return "no entry";\n} else if (isVIP) {\n  return "VIP lounge";\n} else if (age >= 18) {\n  return "main hall";\n} else {\n  return "kids zone";\n}`;
+}
+
+// Robot task scenario
+function robotCode(battery, isCharging, task) {
+  return `int battery = ${battery};\nboolean isCharging = ${isCharging};\nString task = "${task}";\nif (battery < 20) {\n  return "sleeping";\n} else if (isCharging) {\n  return "charging";\n} else if (task.equals("clean") && battery >= 50) {\n  return "cleaning";\n} else if (task.equals("guard")) {\n  return "guarding";\n} else {\n  return "idle";\n}`;
+}
+
+const L4_PREDICT = [
+  { code: libCode("gold",   3),  ans: "borrow available" },
+  { code: libCode("gold",   6),  ans: "limit reached"    },
+  { code: libCode("silver", 2),  ans: "borrow available" },
+  { code: libCode("silver", 4),  ans: "limit reached"    },
+  { code: libCode("bronze", 1),  ans: "members only"     },
+
+  { code: gameCode(5, 95), ans: "legend"   },
+  { code: gameCode(5, 75), ans: "hero"     },
+  { code: gameCode(5, 60), ans: "fighter"  },
+  { code: gameCode(3, 80), ans: "champion" },
+  { code: gameCode(3, 60), ans: "player"   },
+  { code: gameCode(1, 99), ans: "rookie"   },
+
+  { code: weatherCode(true,  5,  true),  ans: "warm and dry" },
+  { code: weatherCode(true,  5,  false), ans: "cold and wet"  },
+  { code: weatherCode(true,  20, false), ans: "just wet"      },
+  { code: weatherCode(false, 5,  false), ans: "just cold"     },
+  { code: weatherCode(false, 20, false), ans: "perfect day"   },
+
+  { code: storeCode(false, true,  100), ans: "out of stock"  },
+  { code: storeCode(true,  true,  120), ans: "VIP deal"      },
+  { code: storeCode(true,  true,  80),  ans: "member price"  },
+  { code: storeCode(true,  false, 120), ans: "sale price"    },
+  { code: storeCode(true,  false, 80),  ans: "regular price" },
+
+  { code: ticketCode(false, 25, true),  ans: "no entry"   },
+  { code: ticketCode(true,  25, true),  ans: "VIP lounge" },
+  { code: ticketCode(true,  25, false), ans: "main hall"  },
+  { code: ticketCode(true,  12, false), ans: "kids zone"  },
+  { code: ticketCode(false, 12, false), ans: "no entry"   },
+
+  { code: robotCode(5,  false, "guard"), ans: "sleeping" },
+  { code: robotCode(80, true,  "clean"), ans: "charging" },
+  { code: robotCode(80, false, "clean"), ans: "cleaning" },
+  { code: robotCode(80, false, "guard"), ans: "guarding" },
+  { code: robotCode(30, false, "clean"), ans: "idle"     },
+];
+
+let l4CorrectAnswer;
+
+function showLevel4() {
+  const q = L4_PREDICT[Math.floor(Math.random() * L4_PREDICT.length)];
+  l4CorrectAnswer = q.ans;
+  document.getElementById("questionArea").innerHTML = `
+    <p class="q-label">What value does this code return?</p>
+    <pre class="code" id="l4code"></pre>
+    <input type="text" id="ans4" placeholder='type answer...'
+           onkeypress="if(event.key==='Enter')checkLevel4()">
+    <button onclick="checkLevel4()">Check</button>`;
+  document.getElementById("l4code").textContent = q.code;
+  setTimeout(() => { const el = document.getElementById("ans4"); if (el) el.focus(); }, 50);
+}
+
+function checkLevel4() {
+  if (answered) return;
+  const val = document.getElementById("ans4").value;
+  if (!val.trim()) return;
+  answered = true;
+  if (normalizeAnswer(val) === normalizeAnswer(l4CorrectAnswer)) onCorrect();
+  else onWrong(l4CorrectAnswer);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 5 — Write nested if/else code, 3+ parameters
+// ══════════════════════════════════════════════════════════════════════════════
+const L5_CHALLENGES = [
+  {
+    description: 'If membership equals "gold": return "borrow available" if books is below 5, otherwise return "limit reached". If membership equals "silver": return "borrow available" if books is below 3, otherwise return "limit reached". Otherwise return "members only".',
+    vars: [{name:"membership",type:"String"},{name:"books",type:"int"}],
+    tests: [
+      {vals:{membership:"gold",   books:3}, expected:"borrow available"},
+      {vals:{membership:"gold",   books:6}, expected:"limit reached"   },
+      {vals:{membership:"silver", books:2}, expected:"borrow available"},
+      {vals:{membership:"silver", books:4}, expected:"limit reached"   },
+      {vals:{membership:"bronze", books:1}, expected:"members only"    },
+    ]
+  },
+  {
+    description: 'If level is 5 or above: return "legend" if score is 90 or above, return "hero" if score is 70 or above, otherwise return "fighter". If level is 3 or above: return "champion" if score is 70 or above, otherwise return "player". Otherwise return "rookie".',
+    vars: [{name:"level",type:"int"},{name:"score",type:"int"}],
+    tests: [
+      {vals:{level:5, score:95}, expected:"legend"  },
+      {vals:{level:5, score:75}, expected:"hero"    },
+      {vals:{level:5, score:60}, expected:"fighter" },
+      {vals:{level:3, score:80}, expected:"champion"},
+      {vals:{level:3, score:60}, expected:"player"  },
+      {vals:{level:1, score:99}, expected:"rookie"  },
+    ]
+  },
+  {
+    description: 'If isRaining is true AND temp is below 10: return "warm and dry" if hasJacket is true, otherwise return "cold and wet". If isRaining is true: return "just wet". If temp is below 10: return "just cold". Otherwise return "perfect day".',
+    vars: [{name:"isRaining",type:"boolean"},{name:"temp",type:"int"},{name:"hasJacket",type:"boolean"}],
+    tests: [
+      {vals:{isRaining:true,  temp:5,  hasJacket:true},  expected:"warm and dry"},
+      {vals:{isRaining:true,  temp:5,  hasJacket:false}, expected:"cold and wet"},
+      {vals:{isRaining:true,  temp:20, hasJacket:false}, expected:"just wet"    },
+      {vals:{isRaining:false, temp:5,  hasJacket:false}, expected:"just cold"   },
+      {vals:{isRaining:false, temp:20, hasJacket:false}, expected:"perfect day" },
+    ]
+  },
+  {
+    description: 'Return "out of stock" if inStock is false. Return "VIP deal" if isMember is true AND price is 100 or above. Return "member price" if isMember is true. Return "sale price" if price is 100 or above. Otherwise return "regular price".',
+    vars: [{name:"inStock",type:"boolean"},{name:"isMember",type:"boolean"},{name:"price",type:"int"}],
+    tests: [
+      {vals:{inStock:false, isMember:true,  price:100}, expected:"out of stock" },
+      {vals:{inStock:true,  isMember:true,  price:120}, expected:"VIP deal"     },
+      {vals:{inStock:true,  isMember:true,  price:80},  expected:"member price" },
+      {vals:{inStock:true,  isMember:false, price:120}, expected:"sale price"   },
+      {vals:{inStock:true,  isMember:false, price:80},  expected:"regular price"},
+    ]
+  },
+  {
+    description: 'Return "sleeping" if battery is below 20. Return "charging" if isCharging is true. Return "cleaning" if task equals "clean" AND battery is 50 or above. Return "guarding" if task equals "guard". Otherwise return "idle".',
+    vars: [{name:"battery",type:"int"},{name:"isCharging",type:"boolean"},{name:"task",type:"String"}],
+    tests: [
+      {vals:{battery:5,  isCharging:false, task:"guard"}, expected:"sleeping"},
+      {vals:{battery:80, isCharging:true,  task:"clean"}, expected:"charging"},
+      {vals:{battery:80, isCharging:false, task:"clean"}, expected:"cleaning"},
+      {vals:{battery:80, isCharging:false, task:"guard"}, expected:"guarding"},
+      {vals:{battery:30, isCharging:false, task:"clean"}, expected:"idle"    },
+    ]
+  },
+  {
+    description: 'If isMale is false: return "Tiny Bella" if size is below 10, otherwise return "Bella". If breed equals "labrador": return "Big Max" if size is 30 or above, otherwise return "Max". If breed equals "husky": return "Storm". Otherwise return "Buddy".',
+    vars: [{name:"isMale",type:"boolean"},{name:"breed",type:"String"},{name:"size",type:"int"}],
+    tests: [
+      {vals:{isMale:false, breed:"labrador", size:5},  expected:"Tiny Bella"},
+      {vals:{isMale:false, breed:"labrador", size:15}, expected:"Bella"     },
+      {vals:{isMale:true,  breed:"labrador", size:35}, expected:"Big Max"   },
+      {vals:{isMale:true,  breed:"labrador", size:20}, expected:"Max"       },
+      {vals:{isMale:true,  breed:"husky",    size:25}, expected:"Storm"     },
+      {vals:{isMale:true,  breed:"poodle",   size:15}, expected:"Buddy"     },
+    ]
+  },
+];
+
+let l5Idx = -1;
+let l5Solved = false;
+
+function showLevel5() {
+  l5Idx = (l5Idx + 1) % L5_CHALLENGES.length;
+  l5Solved = false;
+  renderWriteChallenge(L5_CHALLENGES[l5Idx], "l5", checkLevel5);
+}
+function checkLevel5() { runWriteCheck("l5", L5_CHALLENGES[l5Idx], function(ok){ l5Solved = ok; }); }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Shared helpers for write-the-code levels
+// ══════════════════════════════════════════════════════════════════════════════
+function fmtVal(v) {
+  return typeof v === 'string' ? '"' + v + '"' : String(v);
+}
+
+function renderWriteChallenge(q, id, checkFn) {
+  const varDecl   = q.vars.map(v => v.type + ' ' + v.name).join(',  ');
+  const varNames  = q.vars.map(v => v.name);
+  const testLines = q.tests.map(t =>
+    '(' + varNames.map(n => fmtVal(t.vals[n])).join(', ') + ')  ->  ' + fmtVal(t.expected)
+  ).join('\n');
+
+  document.getElementById("questionArea").innerHTML = `
+    <p class="task-desc">${escHtml(q.description)}</p>
+    <div class="vars-box" id="${id}vars"></div>
+    <div class="rules-box" id="${id}tests"></div>
+    <textarea class="code-input" id="${id}code" rows="10"
+      placeholder="Write your if/else code here...\n\nif (...) {\n  return ...;\n} else {\n  return ...;\n}"></textarea>
+    <button onclick="${checkFn.name}()">Check</button>
+    <div class="test-results" id="${id}results"></div>`;
+
+  document.getElementById(id + "vars").textContent  = 'Variables:   ' + varDecl;
+  document.getElementById(id + "tests").textContent = 'Test cases:\n' + testLines;
+  setTimeout(() => { const el = document.getElementById(id + "code"); if (el) el.focus(); }, 50);
+}
+
+function runWriteCheck(id, q, onSolvedCallback) {
+  const input      = document.getElementById(id + "code").value.trim();
+  const resultsDiv = document.getElementById(id + "results");
+  if (!input) { resultsDiv.innerText = "Write some code first."; return; }
+
+  const varNames = q.vars.map(v => v.name);
+  const code     = input.replace(/(\w+)\.equals\(([^)]+)\)/g, '$1 === $2');
+
+  const passed = [], failed = [];
+  try {
+    for (let i = 0; i < q.tests.length; i++) {
+      const t      = q.tests[i];
+      const fn     = new Function(...varNames, code);
+      const result = fn(...varNames.map(n => t.vals[n]));
+      if (String(result) === String(t.expected)) passed.push(i);
+      else failed.push(i);
+    }
+
+    let html = '';
+    if (failed.length === 0) {
+      html = '<div style="color:green;font-size:18px;font-weight:bold">All tests passed!</div><br>';
+      onSolvedCallback(true);
+      if (!answered) {
+        answered = false; // keep false so onCorrect sets it
+        onCorrect();
+      }
+    } else {
+      html = '<div style="color:#c62828;font-weight:bold">' + failed.length + ' test(s) failing — fix your code and try again:</div><br>';
+    }
+
+    for (let i = 0; i < q.tests.length; i++) {
+      const t       = q.tests[i];
+      const valsStr = varNames.map(n => fmtVal(t.vals[n])).join(', ');
+      if (failed.includes(i)) {
+        let got = '?';
+        try {
+          const fn2 = new Function(...varNames, code);
+          got = fmtVal(fn2(...varNames.map(n => t.vals[n])));
+        } catch(e) { got = 'error'; }
+        html += '<div style="color:red">  (' + valsStr + ')  ->  expected ' + fmtVal(t.expected) + ', got ' + got + '</div>';
+      } else {
+        html += '<div style="color:green">  (' + valsStr + ')  ->  ' + fmtVal(t.expected) + '</div>';
+      }
+    }
+    resultsDiv.innerHTML = html;
+
+  } catch(e) {
+    resultsDiv.innerText = 'Error in your code: ' + e.message;
+  }
+}
+</script>
+</body>
+</html>
