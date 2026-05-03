@@ -67,7 +67,7 @@
   <div id="levelSelect">
     <h3>Select Level</h3>
     <button class="levelBtn" onclick="selectLevel(1)">Level 1 — Recall Mix</button><br>
-    <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — Write: 3 Outcomes</button><br>
+    <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — Write: if/else</button><br>
     <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — Write: More Options</button><br>
     <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — Predict Nested Code</button><br>
     <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write Nested if/else</button>
@@ -127,7 +127,7 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return ["Recall Mix","Write: 3 Outcomes","Write: More Options","Predict Nested Code","Write Nested if/else"][l-1] || "";
+  return ["Recall Mix","Write: if/else","Write: More Options","Predict Nested Code","Write Nested if/else"][l-1] || "";
 }
 
 function startQuiz(l) {
@@ -302,89 +302,100 @@ function checkLevel1(val) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// LEVEL 2 — Write the code: 2+ parameters, exactly 3 possible return values
+// LEVEL 2 — Write the code: 1 parameter, exactly 2 possible return values
 // ══════════════════════════════════════════════════════════════════════════════
 const L2_CHALLENGES = [
   {
-    description: 'Return "man" if isAdult is true AND isMale is true. Return "woman" if isAdult is true. Otherwise return "child".',
-    vars: [{name:"isAdult",type:"boolean"},{name:"isMale",type:"boolean"}],
+    description: 'Return "pass" if score is 60 or above. Otherwise return "fail".',
+    vars: [{name:"score",type:"int"}],
     tests: [
-      {vals:{isAdult:true,  isMale:true},  expected:"man"  },
-      {vals:{isAdult:true,  isMale:false}, expected:"woman"},
-      {vals:{isAdult:false, isMale:true},  expected:"child"},
-      {vals:{isAdult:false, isMale:false}, expected:"child"},
+      {vals:{score:80}, expected:"pass"},
+      {vals:{score:60}, expected:"pass"},
+      {vals:{score:59}, expected:"fail"},
+      {vals:{score:0},  expected:"fail"},
     ]
   },
   {
-    description: 'Return "holiday" if isHoliday is true. Return "weekend" if day equals "Saturday" or "Sunday". Otherwise return "workday".',
-    vars: [{name:"day",type:"String"},{name:"isHoliday",type:"boolean"}],
+    description: 'Return "adult" if age is 18 or above. Otherwise return "minor".',
+    vars: [{name:"age",type:"int"}],
     tests: [
-      {vals:{day:"Monday",   isHoliday:true},  expected:"holiday"},
-      {vals:{day:"Saturday", isHoliday:false}, expected:"weekend"},
-      {vals:{day:"Sunday",   isHoliday:false}, expected:"weekend"},
-      {vals:{day:"Monday",   isHoliday:false}, expected:"workday"},
-      {vals:{day:"Saturday", isHoliday:true},  expected:"holiday"},
+      {vals:{age:18}, expected:"adult"},
+      {vals:{age:25}, expected:"adult"},
+      {vals:{age:17}, expected:"minor"},
+      {vals:{age:5},  expected:"minor"},
     ]
   },
   {
-    description: 'Return "VIP" if age is 18 or above AND hasCard is true. Return "adult" if age is 18 or above. Otherwise return "minor".',
-    vars: [{name:"age",type:"int"},{name:"hasCard",type:"boolean"}],
+    description: 'Return "big" if weight is more than 10. Otherwise return "small".',
+    vars: [{name:"weight",type:"int"}],
     tests: [
-      {vals:{age:20, hasCard:true},  expected:"VIP"  },
-      {vals:{age:20, hasCard:false}, expected:"adult"},
-      {vals:{age:15, hasCard:true},  expected:"minor"},
-      {vals:{age:15, hasCard:false}, expected:"minor"},
+      {vals:{weight:11},  expected:"big"  },
+      {vals:{weight:100}, expected:"big"  },
+      {vals:{weight:10},  expected:"small"},
+      {vals:{weight:3},   expected:"small"},
     ]
   },
   {
-    description: 'Return "cold and windy" if temp is below 10 AND isWindy is true. Return "cold" if temp is below 10. Otherwise return "nice".',
-    vars: [{name:"temp",type:"int"},{name:"isWindy",type:"boolean"}],
+    description: 'Return "hot" if temp is above 25. Otherwise return "cold".',
+    vars: [{name:"temp",type:"int"}],
     tests: [
-      {vals:{temp:5,  isWindy:true},  expected:"cold and windy"},
-      {vals:{temp:5,  isWindy:false}, expected:"cold"          },
-      {vals:{temp:20, isWindy:true},  expected:"nice"          },
-      {vals:{temp:20, isWindy:false}, expected:"nice"          },
+      {vals:{temp:30}, expected:"hot" },
+      {vals:{temp:26}, expected:"hot" },
+      {vals:{temp:25}, expected:"cold"},
+      {vals:{temp:10}, expected:"cold"},
     ]
   },
   {
-    description: 'Return "gold" if isMember is true AND score is 80 or above. Return "silver" if isMember is true. Otherwise return "bronze".',
-    vars: [{name:"isMember",type:"boolean"},{name:"score",type:"int"}],
+    description: 'Return "Woofer" if isDog is true. Otherwise return "Meow".',
+    vars: [{name:"isDog",type:"boolean"}],
     tests: [
-      {vals:{isMember:true,  score:90}, expected:"gold"  },
-      {vals:{isMember:true,  score:70}, expected:"silver"},
-      {vals:{isMember:false, score:90}, expected:"bronze"},
-      {vals:{isMember:false, score:50}, expected:"bronze"},
+      {vals:{isDog:true},  expected:"Woofer"},
+      {vals:{isDog:false}, expected:"Meow"  },
     ]
   },
   {
-    description: 'Return "can drive" if age is 16 or above AND hasLicense is true. Return "too young" if age is below 16. Otherwise return "no license".',
-    vars: [{name:"age",type:"int"},{name:"hasLicense",type:"boolean"}],
+    description: 'Return "enter" if hasTicket is true. Otherwise return "stay home".',
+    vars: [{name:"hasTicket",type:"boolean"}],
     tests: [
-      {vals:{age:20, hasLicense:true},  expected:"can drive" },
-      {vals:{age:14, hasLicense:true},  expected:"too young" },
-      {vals:{age:20, hasLicense:false}, expected:"no license"},
-      {vals:{age:14, hasLicense:false}, expected:"too young" },
+      {vals:{hasTicket:true},  expected:"enter"    },
+      {vals:{hasTicket:false}, expected:"stay home"},
     ]
   },
   {
-    description: 'Return "star" if score is 90 or above OR hasBonus is true. Return "pass" if score is 60 or above. Otherwise return "fail".',
-    vars: [{name:"score",type:"int"},{name:"hasBonus",type:"boolean"}],
+    description: 'Return "even" if n is divisible by 2. Otherwise return "odd".',
+    vars: [{name:"n",type:"int"}],
     tests: [
-      {vals:{score:95, hasBonus:false}, expected:"star"},
-      {vals:{score:70, hasBonus:true},  expected:"star"},
-      {vals:{score:70, hasBonus:false}, expected:"pass"},
-      {vals:{score:50, hasBonus:false}, expected:"fail"},
-      {vals:{score:50, hasBonus:true},  expected:"star"},
+      {vals:{n:4},  expected:"even"},
+      {vals:{n:10}, expected:"even"},
+      {vals:{n:7},  expected:"odd" },
+      {vals:{n:1},  expected:"odd" },
     ]
   },
   {
-    description: 'Return "fly" if hasWings is true AND speed is above 50. Return "run" if speed is above 30. Otherwise return "walk".',
-    vars: [{name:"hasWings",type:"boolean"},{name:"speed",type:"int"}],
+    description: 'Return "Rex" if isMale is true. Otherwise return "Bella".',
+    vars: [{name:"isMale",type:"boolean"}],
     tests: [
-      {vals:{hasWings:true,  speed:60}, expected:"fly" },
-      {vals:{hasWings:false, speed:60}, expected:"run" },
-      {vals:{hasWings:true,  speed:20}, expected:"walk"},
-      {vals:{hasWings:false, speed:20}, expected:"walk"},
+      {vals:{isMale:true},  expected:"Rex"  },
+      {vals:{isMale:false}, expected:"Bella"},
+    ]
+  },
+  {
+    description: 'Return "stop" if color equals "red". Otherwise return "go".',
+    vars: [{name:"color",type:"String"}],
+    tests: [
+      {vals:{color:"red"},   expected:"stop"},
+      {vals:{color:"green"}, expected:"go"  },
+      {vals:{color:"blue"},  expected:"go"  },
+    ]
+  },
+  {
+    description: 'Return "fast" if speed is above 100. Otherwise return "slow".',
+    vars: [{name:"speed",type:"int"}],
+    tests: [
+      {vals:{speed:120}, expected:"fast"},
+      {vals:{speed:101}, expected:"fast"},
+      {vals:{speed:100}, expected:"slow"},
+      {vals:{speed:60},  expected:"slow"},
     ]
   },
 ];
