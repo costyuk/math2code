@@ -398,6 +398,367 @@ const L2_CHALLENGES = [
       {vals:{speed:60},  expected:"slow"},
     ]
   },
+  {
+    description: 'Return "sunny" if isRaining is false. Otherwise return "rainy".',
+    vars: [{name:"isRaining",type:"boolean"}],
+    tests: [
+      {vals:{isRaining:false}, expected:"sunny"},
+      {vals:{isRaining:true},  expected:"rainy"},
+    ]
+  },
+  {
+    description: 'Return "cheap" if price is below 20. Otherwise return "expensive".',
+    vars: [{name:"price",type:"int"}],
+    tests: [
+      {vals:{price:10}, expected:"cheap"    },
+      {vals:{price:19}, expected:"cheap"    },
+      {vals:{price:20}, expected:"expensive"},
+      {vals:{price:50}, expected:"expensive"},
+    ]
+  },
+  {
+    description: 'Return "yes" if isReady is true. Otherwise return "no".',
+    vars: [{name:"isReady",type:"boolean"}],
+    tests: [
+      {vals:{isReady:true},  expected:"yes"},
+      {vals:{isReady:false}, expected:"no" },
+    ]
+  },
+  {
+    description: 'Return "winner" if score is above 90. Otherwise return "loser".',
+    vars: [{name:"score",type:"int"}],
+    tests: [
+      {vals:{score:91},  expected:"winner"},
+      {vals:{score:100}, expected:"winner"},
+      {vals:{score:90},  expected:"loser" },
+      {vals:{score:50},  expected:"loser" },
+    ]
+  },
+  {
+    description: 'Return "Nimbus" if breed equals "labrador". Otherwise return "Buddy".',
+    vars: [{name:"breed",type:"String"}],
+    tests: [
+      {vals:{breed:"labrador"}, expected:"Nimbus"},
+      {vals:{breed:"poodle"},   expected:"Buddy" },
+      {vals:{breed:"husky"},    expected:"Buddy" },
+    ]
+  },
+  {
+    description: 'Return "full" if isEmpty is false. Otherwise return "empty".',
+    vars: [{name:"isEmpty",type:"boolean"}],
+    tests: [
+      {vals:{isEmpty:false}, expected:"full" },
+      {vals:{isEmpty:true},  expected:"empty"},
+    ]
+  },
+  {
+    description: 'Return "positive" if n is greater than 0. Otherwise return "not positive".',
+    vars: [{name:"n",type:"int"}],
+    tests: [
+      {vals:{n:5},  expected:"positive"    },
+      {vals:{n:1},  expected:"positive"    },
+      {vals:{n:0},  expected:"not positive"},
+      {vals:{n:-3}, expected:"not positive"},
+    ]
+  },
+  {
+    description: 'Return "open" if hour is less than 22 and hour is 8 or above. Otherwise return "closed". Hint: use &&.',
+    vars: [{name:"hour",type:"int"}],
+    tests: [
+      {vals:{hour:10}, expected:"open"  },
+      {vals:{hour:8},  expected:"open"  },
+      {vals:{hour:21}, expected:"open"  },
+      {vals:{hour:22}, expected:"closed"},
+      {vals:{hour:7},  expected:"closed"},
+    ]
+  },
+  {
+    description: 'Return "Storm" if breed equals "husky". Otherwise return "Hunter".',
+    vars: [{name:"breed",type:"String"}],
+    tests: [
+      {vals:{breed:"husky"},    expected:"Storm" },
+      {vals:{breed:"labrador"}, expected:"Hunter"},
+      {vals:{breed:"beagle"},   expected:"Hunter"},
+    ]
+  },
+  {
+    description: 'Return "on" if isActive is true. Otherwise return "off".',
+    vars: [{name:"isActive",type:"boolean"}],
+    tests: [
+      {vals:{isActive:true},  expected:"on" },
+      {vals:{isActive:false}, expected:"off"},
+    ]
+  },
+  {
+    description: 'Return "teen" if age is below 18 and 13 or above. Otherwise return "not teen". Hint: use &&.',
+    vars: [{name:"age",type:"int"}],
+    tests: [
+      {vals:{age:13}, expected:"teen"    },
+      {vals:{age:17}, expected:"teen"    },
+      {vals:{age:12}, expected:"not teen"},
+      {vals:{age:18}, expected:"not teen"},
+    ]
+  },
+  {
+    description: 'Return "lucky" if n equals 7. Otherwise return "normal".',
+    vars: [{name:"n",type:"int"}],
+    tests: [
+      {vals:{n:7},  expected:"lucky" },
+      {vals:{n:3},  expected:"normal"},
+      {vals:{n:10}, expected:"normal"},
+    ]
+  },
+  {
+    description: 'Return "weekend" if day equals "Saturday" or "Sunday". Otherwise return "weekday". Hint: use ||.',
+    vars: [{name:"day",type:"String"}],
+    tests: [
+      {vals:{day:"Saturday"}, expected:"weekend"},
+      {vals:{day:"Sunday"},   expected:"weekend"},
+      {vals:{day:"Monday"},   expected:"weekday"},
+      {vals:{day:"Friday"},   expected:"weekday"},
+    ]
+  },
+  {
+    description: 'Return "cold" if temp is below 0. Otherwise return "above zero".',
+    vars: [{name:"temp",type:"int"}],
+    tests: [
+      {vals:{temp:-5}, expected:"cold"      },
+      {vals:{temp:-1}, expected:"cold"      },
+      {vals:{temp:0},  expected:"above zero"},
+      {vals:{temp:10}, expected:"above zero"},
+    ]
+  },
+  {
+    description: 'Return "Piper" if isMale is false. Otherwise return "Max".',
+    vars: [{name:"isMale",type:"boolean"}],
+    tests: [
+      {vals:{isMale:false}, expected:"Piper"},
+      {vals:{isMale:true},  expected:"Max"  },
+    ]
+  },
+  {
+    description: 'Return "multiple of 5" if n is divisible by 5. Otherwise return "not multiple of 5".',
+    vars: [{name:"n",type:"int"}],
+    tests: [
+      {vals:{n:10}, expected:"multiple of 5"    },
+      {vals:{n:25}, expected:"multiple of 5"    },
+      {vals:{n:7},  expected:"not multiple of 5"},
+      {vals:{n:11}, expected:"not multiple of 5"},
+    ]
+  },
+  {
+    description: 'Return "logged in" if isLoggedIn is true. Otherwise return "please log in".',
+    vars: [{name:"isLoggedIn",type:"boolean"}],
+    tests: [
+      {vals:{isLoggedIn:true},  expected:"logged in"    },
+      {vals:{isLoggedIn:false}, expected:"please log in"},
+    ]
+  },
+  {
+    description: 'Return "Fluffy" if breed equals "poodle". Otherwise return "Rex".',
+    vars: [{name:"breed",type:"String"}],
+    tests: [
+      {vals:{breed:"poodle"},   expected:"Fluffy"},
+      {vals:{breed:"labrador"}, expected:"Rex"   },
+      {vals:{breed:"husky"},    expected:"Rex"   },
+    ]
+  },
+  {
+    description: 'Return "tall" if height is 180 or above. Otherwise return "short".',
+    vars: [{name:"height",type:"int"}],
+    tests: [
+      {vals:{height:180}, expected:"tall" },
+      {vals:{height:200}, expected:"tall" },
+      {vals:{height:179}, expected:"short"},
+      {vals:{height:150}, expected:"short"},
+    ]
+  },
+  {
+    description: 'Return "hungry" if foodLevel is below 3. Otherwise return "full".',
+    vars: [{name:"foodLevel",type:"int"}],
+    tests: [
+      {vals:{foodLevel:0}, expected:"hungry"},
+      {vals:{foodLevel:2}, expected:"hungry"},
+      {vals:{foodLevel:3}, expected:"full"  },
+      {vals:{foodLevel:5}, expected:"full"  },
+    ]
+  },
+  {
+    description: 'Return "allowed" if isAdult is true. Otherwise return "not allowed".',
+    vars: [{name:"isAdult",type:"boolean"}],
+    tests: [
+      {vals:{isAdult:true},  expected:"allowed"    },
+      {vals:{isAdult:false}, expected:"not allowed"},
+    ]
+  },
+  {
+    description: 'Return "night" if hour is 22 or above or below 6. Otherwise return "day". Hint: use ||.',
+    vars: [{name:"hour",type:"int"}],
+    tests: [
+      {vals:{hour:23}, expected:"night"},
+      {vals:{hour:0},  expected:"night"},
+      {vals:{hour:5},  expected:"night"},
+      {vals:{hour:6},  expected:"day"  },
+      {vals:{hour:12}, expected:"day"  },
+    ]
+  },
+  {
+    description: 'Return "discount" if hasCoupon is true. Otherwise return "full price".',
+    vars: [{name:"hasCoupon",type:"boolean"}],
+    tests: [
+      {vals:{hasCoupon:true},  expected:"discount"  },
+      {vals:{hasCoupon:false}, expected:"full price"},
+    ]
+  },
+  {
+    description: 'Return "long" if length is more than 100. Otherwise return "short".',
+    vars: [{name:"length",type:"int"}],
+    tests: [
+      {vals:{length:101}, expected:"long" },
+      {vals:{length:200}, expected:"long" },
+      {vals:{length:100}, expected:"short"},
+      {vals:{length:50},  expected:"short"},
+    ]
+  },
+  {
+    description: 'Return "cat" if animal equals "cat". Otherwise return "not a cat".',
+    vars: [{name:"animal",type:"String"}],
+    tests: [
+      {vals:{animal:"cat"},  expected:"cat"      },
+      {vals:{animal:"dog"},  expected:"not a cat"},
+      {vals:{animal:"fish"}, expected:"not a cat"},
+    ]
+  },
+  {
+    description: 'Return "awake" if isSleeping is false. Otherwise return "sleeping".',
+    vars: [{name:"isSleeping",type:"boolean"}],
+    tests: [
+      {vals:{isSleeping:false}, expected:"awake"   },
+      {vals:{isSleeping:true},  expected:"sleeping"},
+    ]
+  },
+  {
+    description: 'Return "heavy" if weight is 100 or above. Otherwise return "light".',
+    vars: [{name:"weight",type:"int"}],
+    tests: [
+      {vals:{weight:100}, expected:"heavy"},
+      {vals:{weight:150}, expected:"heavy"},
+      {vals:{weight:99},  expected:"light"},
+      {vals:{weight:50},  expected:"light"},
+    ]
+  },
+  {
+    description: 'Return "Shadow" if color equals "black". Otherwise return "Sunny".',
+    vars: [{name:"color",type:"String"}],
+    tests: [
+      {vals:{color:"black"},  expected:"Shadow"},
+      {vals:{color:"white"},  expected:"Sunny" },
+      {vals:{color:"golden"}, expected:"Sunny" },
+    ]
+  },
+  {
+    description: 'Return "triple" if n is divisible by 3. Otherwise return "no".',
+    vars: [{name:"n",type:"int"}],
+    tests: [
+      {vals:{n:9},  expected:"triple"},
+      {vals:{n:12}, expected:"triple"},
+      {vals:{n:7},  expected:"no"    },
+      {vals:{n:10}, expected:"no"    },
+    ]
+  },
+  {
+    description: 'Return "charged" if battery is 100. Otherwise return "not full".',
+    vars: [{name:"battery",type:"int"}],
+    tests: [
+      {vals:{battery:100}, expected:"charged" },
+      {vals:{battery:99},  expected:"not full"},
+      {vals:{battery:50},  expected:"not full"},
+    ]
+  },
+  {
+    description: 'Return "go to vet" if isSick is true. Otherwise return "healthy".',
+    vars: [{name:"isSick",type:"boolean"}],
+    tests: [
+      {vals:{isSick:true},  expected:"go to vet"},
+      {vals:{isSick:false}, expected:"healthy"  },
+    ]
+  },
+  {
+    description: 'Return "senior" if age is 65 or above. Otherwise return "not senior".',
+    vars: [{name:"age",type:"int"}],
+    tests: [
+      {vals:{age:65}, expected:"senior"    },
+      {vals:{age:80}, expected:"senior"    },
+      {vals:{age:64}, expected:"not senior"},
+      {vals:{age:30}, expected:"not senior"},
+    ]
+  },
+  {
+    description: 'Return "Buster" if breed equals "bulldog". Otherwise return "Buddy".',
+    vars: [{name:"breed",type:"String"}],
+    tests: [
+      {vals:{breed:"bulldog"}, expected:"Buster"},
+      {vals:{breed:"poodle"},  expected:"Buddy" },
+      {vals:{breed:"husky"},   expected:"Buddy" },
+    ]
+  },
+  {
+    description: 'Return "safe" if speed is 120 or below. Otherwise return "speeding".',
+    vars: [{name:"speed",type:"int"}],
+    tests: [
+      {vals:{speed:100}, expected:"safe"    },
+      {vals:{speed:120}, expected:"safe"    },
+      {vals:{speed:121}, expected:"speeding"},
+      {vals:{speed:200}, expected:"speeding"},
+    ]
+  },
+  {
+    description: 'Return "perfect" if score equals 100. Otherwise return "not perfect".',
+    vars: [{name:"score",type:"int"}],
+    tests: [
+      {vals:{score:100}, expected:"perfect"    },
+      {vals:{score:99},  expected:"not perfect"},
+      {vals:{score:80},  expected:"not perfect"},
+    ]
+  },
+  {
+    description: 'Return "online" if isConnected is true. Otherwise return "offline".',
+    vars: [{name:"isConnected",type:"boolean"}],
+    tests: [
+      {vals:{isConnected:true},  expected:"online" },
+      {vals:{isConnected:false}, expected:"offline"},
+    ]
+  },
+  {
+    description: 'Return "big dog" if weight is more than 25. Otherwise return "small dog".',
+    vars: [{name:"weight",type:"int"}],
+    tests: [
+      {vals:{weight:26}, expected:"big dog"  },
+      {vals:{weight:40}, expected:"big dog"  },
+      {vals:{weight:25}, expected:"small dog"},
+      {vals:{weight:10}, expected:"small dog"},
+    ]
+  },
+  {
+    description: 'Return "summer" if month is 6, 7, or 8. Otherwise return "not summer". Hint: use || and ==.',
+    vars: [{name:"month",type:"int"}],
+    tests: [
+      {vals:{month:6},  expected:"summer"    },
+      {vals:{month:7},  expected:"summer"    },
+      {vals:{month:8},  expected:"summer"    },
+      {vals:{month:1},  expected:"not summer"},
+      {vals:{month:12}, expected:"not summer"},
+    ]
+  },
+  {
+    description: 'Return "Piper" if name equals "Piper". Otherwise return "unknown".',
+    vars: [{name:"name",type:"String"}],
+    tests: [
+      {vals:{name:"Piper"},  expected:"Piper"  },
+      {vals:{name:"Buddy"},  expected:"unknown"},
+      {vals:{name:"Shadow"}, expected:"unknown"},
+    ]
+  },
 ];
 
 let l2Idx = -1;
