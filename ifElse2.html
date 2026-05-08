@@ -1042,8 +1042,8 @@ function fmtVal(v) {
 }
 
 function renderWriteChallenge(q, id, checkFn) {
-  const varDecl   = q.vars.map(v => v.type + ' ' + v.name).join(',  ');
-  const varNames  = q.vars.map(v => v.name);
+  const varDecl  = q.vars.map(v => v.type + ' ' + v.name).join(',  ');
+  const varNames = q.vars.map(v => v.name);
   const testLines = q.tests.map(t =>
     '(' + varNames.map(n => fmtVal(t.vals[n])).join(', ') + ')  ->  ' + fmtVal(t.expected)
   ).join('\n');
@@ -1051,7 +1051,7 @@ function renderWriteChallenge(q, id, checkFn) {
   document.getElementById("questionArea").innerHTML = `
     <p class="task-desc">${escHtml(q.description)}</p>
     <div class="vars-box" id="${id}vars"></div>
-    <div class="rules-box" id="${id}tests"></div>
+    <pre class="code" id="${id}tests"></pre>
     <textarea class="code-input" id="${id}code" rows="10"
       placeholder="Write your if/else code here...\n\nif (...) {\n  return ...;\n} else {\n  return ...;\n}"></textarea>
     <button onclick="${checkFn.name}()">Check</button>
