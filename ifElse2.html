@@ -69,10 +69,10 @@
     <h3>Select Level</h3>
     <button class="levelBtn" onclick="selectLevel(1)">Level 1 — Recall Mix</button><br>
     <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — Write: if/else</button><br>
-    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — Write: More Options</button><br>
-    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — Predict Nested Code</button><br>
+    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — Write: 3 Outcomes</button><br>
+    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — Write a Method</button><br>
     <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write Nested if/else</button>
-    <p style="color:#888;font-size:14px">Pass a level by scoring 40 correct answers, or ask your teacher for the PIN.</p>
+    <p style="color:#888;font-size:14px">Pass a level by scoring 30 correct answers (25 for Level 4), or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
       <input id="pinInput" type="password" placeholder="PIN"
@@ -85,7 +85,7 @@
     <h3 id="levelTitle"></h3>
     <div id="questionArea"></div>
     <div id="feedback"></div>
-    <div class="score-bar">Correct: <span id="score">0</span> / 40</div>
+    <div class="score-bar">Correct: <span id="score">0</span> / <span id="passScore">30</span></div>
     <button class="next-btn" id="nextBtn" onclick="nextQuestion()" style="display:none">Next &#8594;</button>
     <br>
     <button class="back-btn" onclick="goBack()">&#8592; Back</button>
@@ -128,14 +128,17 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return ["Recall Mix","Write: if/else","Write: More Options","Predict Nested Code","Write Nested if/else"][l-1] || "";
+  return ["Recall Mix","Write: if/else","Write: 3 Outcomes","Write a Method","Write Nested if/else"][l-1] || "";
 }
+
+function passScore() { return level === 4 ? 25 : 30; }
 
 function startQuiz(l) {
   level = l;
   score = 0;
   qIdx = 0;
   document.getElementById("score").innerText = 0;
+  document.getElementById("passScore").innerText = l === 4 ? 25 : 30;
   document.getElementById("quiz").style.display = "block";
   document.getElementById("levelSelect").style.display = "none";
   document.getElementById("levelTitle").innerText = "Level " + l + " — " + levelLabel(l);
@@ -169,7 +172,7 @@ function onCorrect() {
   document.getElementById("feedback").style.color = "#4caf50";
   document.getElementById("feedback").innerText = "Correct!";
   document.getElementById("nextBtn").style.display = "inline-block";
-  if (score >= 40) unlockNext();
+  if (score >= passScore()) unlockNext();
 }
 
 function onWrong(correctVal) {
@@ -773,73 +776,121 @@ function showLevel2() {
 function checkLevel2() { runWriteCheck("l2", L2_CHALLENGES[l2Idx], function(ok){ l2Solved = ok; }); }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// LEVEL 3 — Write the code: 3+ parameters, 4–5 possible return values
+// LEVEL 3 — Write the code: 1 parameter, exactly 3 possible return values
 // ══════════════════════════════════════════════════════════════════════════════
 const L3_CHALLENGES = [
   {
-    description: 'Return "no entry" if hasTicket is false. Return "VIP lounge" if isVIP is true. Return "main hall" if age is 18 or above. Otherwise return "kids zone".',
-    vars: [{name:"hasTicket",type:"boolean"},{name:"age",type:"int"},{name:"isVIP",type:"boolean"}],
+    description: 'Return "A" if score is 90 or above. Return "B" if score is 70 or above. Otherwise return "C".',
+    vars: [{name:"score",type:"int"}],
     tests: [
-      {vals:{hasTicket:false, age:25, isVIP:true},  expected:"no entry"  },
-      {vals:{hasTicket:true,  age:25, isVIP:true},  expected:"VIP lounge"},
-      {vals:{hasTicket:true,  age:25, isVIP:false}, expected:"main hall" },
-      {vals:{hasTicket:true,  age:12, isVIP:false}, expected:"kids zone" },
-      {vals:{hasTicket:false, age:12, isVIP:false}, expected:"no entry"  },
+      {vals:{score:95}, expected:"A"},
+      {vals:{score:90}, expected:"A"},
+      {vals:{score:75}, expected:"B"},
+      {vals:{score:70}, expected:"B"},
+      {vals:{score:65}, expected:"C"},
+      {vals:{score:0},  expected:"C"},
     ]
   },
   {
-    description: 'Return "legend" if score is 90 or above AND level is 5 or above AND hasBadge is true. Return "expert" if score is 90 or above AND level is 5 or above. Return "champion" if score is 80 or above AND level is 3 or above. Return "player" if score is 60 or above. Otherwise return "rookie".',
-    vars: [{name:"score",type:"int"},{name:"level",type:"int"},{name:"hasBadge",type:"boolean"}],
+    description: 'Return "hot" if temp is above 30. Return "warm" if temp is above 15. Otherwise return "cold".',
+    vars: [{name:"temp",type:"int"}],
     tests: [
-      {vals:{score:95, level:5, hasBadge:true},  expected:"legend"  },
-      {vals:{score:95, level:5, hasBadge:false}, expected:"expert"  },
-      {vals:{score:85, level:3, hasBadge:false}, expected:"champion"},
-      {vals:{score:70, level:1, hasBadge:false}, expected:"player"  },
-      {vals:{score:40, level:1, hasBadge:false}, expected:"rookie"  },
+      {vals:{temp:35}, expected:"hot" },
+      {vals:{temp:31}, expected:"hot" },
+      {vals:{temp:25}, expected:"warm"},
+      {vals:{temp:16}, expected:"warm"},
+      {vals:{temp:10}, expected:"cold"},
+      {vals:{temp:0},  expected:"cold"},
     ]
   },
   {
-    description: 'Return "storm" if isRaining is true AND wind is above 40. Return "windy" if wind is above 40. Return "hot" if temp is above 35. Return "rainy" if isRaining is true. Otherwise return "nice".',
-    vars: [{name:"temp",type:"int"},{name:"isRaining",type:"boolean"},{name:"wind",type:"int"}],
+    description: 'Return "adult" if age is 18 or above. Return "teen" if age is 13 or above. Otherwise return "child".',
+    vars: [{name:"age",type:"int"}],
     tests: [
-      {vals:{temp:20, isRaining:true,  wind:50}, expected:"storm"},
-      {vals:{temp:20, isRaining:false, wind:50}, expected:"windy"},
-      {vals:{temp:38, isRaining:false, wind:10}, expected:"hot"  },
-      {vals:{temp:20, isRaining:true,  wind:10}, expected:"rainy"},
-      {vals:{temp:20, isRaining:false, wind:10}, expected:"nice" },
+      {vals:{age:25}, expected:"adult"},
+      {vals:{age:18}, expected:"adult"},
+      {vals:{age:16}, expected:"teen" },
+      {vals:{age:13}, expected:"teen" },
+      {vals:{age:10}, expected:"child"},
+      {vals:{age:5},  expected:"child"},
     ]
   },
   {
-    description: 'Return "gold member" if isMember is true AND age is 18 or above AND years is 5 or above. Return "silver member" if isMember is true AND age is 18 or above. Return "junior member" if isMember is true. Otherwise return "not a member".',
-    vars: [{name:"isMember",type:"boolean"},{name:"age",type:"int"},{name:"years",type:"int"}],
+    description: 'Return "heavy" if weight is above 50. Return "medium" if weight is above 20. Otherwise return "light".',
+    vars: [{name:"weight",type:"int"}],
     tests: [
-      {vals:{isMember:true,  age:25, years:6}, expected:"gold member"  },
-      {vals:{isMember:true,  age:25, years:3}, expected:"silver member"},
-      {vals:{isMember:true,  age:15, years:6}, expected:"junior member"},
-      {vals:{isMember:false, age:25, years:6}, expected:"not a member" },
-      {vals:{isMember:false, age:15, years:1}, expected:"not a member" },
+      {vals:{weight:60}, expected:"heavy" },
+      {vals:{weight:51}, expected:"heavy" },
+      {vals:{weight:35}, expected:"medium"},
+      {vals:{weight:21}, expected:"medium"},
+      {vals:{weight:15}, expected:"light" },
+      {vals:{weight:5},  expected:"light" },
     ]
   },
   {
-    description: 'Return "emergency" if fuel is below 10. Return "turbo" if speed is above 120 AND mode equals "sport". Return "fast" if speed is above 100. Return "sport mode" if mode equals "sport". Otherwise return "cruise".',
-    vars: [{name:"speed",type:"int"},{name:"fuel",type:"int"},{name:"mode",type:"String"}],
+    description: 'Return "fast" if speed is above 120. Return "normal" if speed is above 60. Otherwise return "slow".',
+    vars: [{name:"speed",type:"int"}],
     tests: [
-      {vals:{speed:80,  fuel:5,  mode:"eco"},   expected:"emergency"},
-      {vals:{speed:130, fuel:50, mode:"sport"}, expected:"turbo"    },
-      {vals:{speed:110, fuel:50, mode:"eco"},   expected:"fast"     },
-      {vals:{speed:60,  fuel:50, mode:"sport"}, expected:"sport mode"},
-      {vals:{speed:60,  fuel:50, mode:"eco"},   expected:"cruise"   },
+      {vals:{speed:150}, expected:"fast"  },
+      {vals:{speed:121}, expected:"fast"  },
+      {vals:{speed:100}, expected:"normal"},
+      {vals:{speed:61},  expected:"normal"},
+      {vals:{speed:40},  expected:"slow"  },
+      {vals:{speed:0},   expected:"slow"  },
     ]
   },
   {
-    description: 'Return "A+" if score is 90 or above AND hasBonus is true. Return "A" if score is 90 or above. Return "B" if score is 75 or above. Return "C" if score is 60 or above. Otherwise return "F".',
-    vars: [{name:"score",type:"int"},{name:"hasBonus",type:"boolean"}],
+    description: 'Return "morning" if hour is below 12. Return "afternoon" if hour is below 18. Otherwise return "evening".',
+    vars: [{name:"hour",type:"int"}],
     tests: [
-      {vals:{score:95, hasBonus:true},  expected:"A+"},
-      {vals:{score:95, hasBonus:false}, expected:"A" },
-      {vals:{score:80, hasBonus:true},  expected:"B" },
-      {vals:{score:65, hasBonus:false}, expected:"C" },
-      {vals:{score:50, hasBonus:true},  expected:"F" },
+      {vals:{hour:8},  expected:"morning"  },
+      {vals:{hour:11}, expected:"morning"  },
+      {vals:{hour:13}, expected:"afternoon"},
+      {vals:{hour:17}, expected:"afternoon"},
+      {vals:{hour:19}, expected:"evening"  },
+      {vals:{hour:23}, expected:"evening"  },
+    ]
+  },
+  {
+    description: 'Return "positive" if n is greater than 0. Return "zero" if n equals 0. Otherwise return "negative".',
+    vars: [{name:"n",type:"int"}],
+    tests: [
+      {vals:{n:5},  expected:"positive"},
+      {vals:{n:1},  expected:"positive"},
+      {vals:{n:0},  expected:"zero"    },
+      {vals:{n:-1}, expected:"negative"},
+      {vals:{n:-9}, expected:"negative"},
+    ]
+  },
+  {
+    description: 'Return "Storm" if breed equals "husky". Return "Nimbus" if breed equals "labrador". Otherwise return "Buddy".',
+    vars: [{name:"breed",type:"String"}],
+    tests: [
+      {vals:{breed:"husky"},    expected:"Storm" },
+      {vals:{breed:"labrador"}, expected:"Nimbus"},
+      {vals:{breed:"poodle"},   expected:"Buddy" },
+      {vals:{breed:"beagle"},   expected:"Buddy" },
+    ]
+  },
+  {
+    description: 'Return "stop" if color equals "red". Return "slow down" if color equals "yellow". Otherwise return "go".',
+    vars: [{name:"color",type:"String"}],
+    tests: [
+      {vals:{color:"red"},    expected:"stop"     },
+      {vals:{color:"yellow"}, expected:"slow down"},
+      {vals:{color:"green"},  expected:"go"       },
+      {vals:{color:"blue"},   expected:"go"       },
+    ]
+  },
+  {
+    description: 'Return "excellent" if stars equals 5. Return "good" if stars is 3 or above. Otherwise return "bad".',
+    vars: [{name:"stars",type:"int"}],
+    tests: [
+      {vals:{stars:5}, expected:"excellent"},
+      {vals:{stars:4}, expected:"good"     },
+      {vals:{stars:3}, expected:"good"     },
+      {vals:{stars:2}, expected:"bad"      },
+      {vals:{stars:1}, expected:"bad"      },
     ]
   },
 ];
@@ -855,100 +906,131 @@ function showLevel3() {
 function checkLevel3() { runWriteCheck("l3", L3_CHALLENGES[l3Idx], function(ok){ l3Solved = ok; }); }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// LEVEL 4 — Predict the return value from complex nested code
+// LEVEL 4 — Write a method: 2 parameters, 4 possible return values
 // ══════════════════════════════════════════════════════════════════════════════
-
-// Library membership scenario
-function libCode(membership, books) {
-  return `String membership = "${membership}";\nint books = ${books};\nif (membership.equals("gold")) {\n  if (books < 5) {\n    return "borrow available";\n  } else {\n    return "limit reached";\n  }\n} else if (membership.equals("silver")) {\n  if (books < 3) {\n    return "borrow available";\n  } else {\n    return "limit reached";\n  }\n} else {\n  return "members only";\n}`;
-}
-
-// Game level+score scenario
-function gameCode(lvl, score) {
-  return `int level = ${lvl};\nint score = ${score};\nif (level >= 5) {\n  if (score >= 90) {\n    return "legend";\n  } else if (score >= 70) {\n    return "hero";\n  } else {\n    return "fighter";\n  }\n} else if (level >= 3) {\n  if (score >= 70) {\n    return "champion";\n  } else {\n    return "player";\n  }\n} else {\n  return "rookie";\n}`;
-}
-
-// Weather outfit scenario
-function weatherCode(isRaining, temp, hasJacket) {
-  return `boolean isRaining = ${isRaining};\nint temp = ${temp};\nboolean hasJacket = ${hasJacket};\nif (isRaining && temp < 10) {\n  if (hasJacket) {\n    return "warm and dry";\n  } else {\n    return "cold and wet";\n  }\n} else if (isRaining) {\n  return "just wet";\n} else if (temp < 10) {\n  return "just cold";\n} else {\n  return "perfect day";\n}`;
-}
-
-// Store checkout scenario
-function storeCode(inStock, isMember, price) {
-  return `boolean inStock = ${inStock};\nboolean isMember = ${isMember};\nint price = ${price};\nif (!inStock) {\n  return "out of stock";\n} else if (isMember && price >= 100) {\n  return "VIP deal";\n} else if (isMember) {\n  return "member price";\n} else if (price >= 100) {\n  return "sale price";\n} else {\n  return "regular price";\n}`;
-}
-
-// Ticket + age + VIP scenario
-function ticketCode(hasTicket, age, isVIP) {
-  return `boolean hasTicket = ${hasTicket};\nint age = ${age};\nboolean isVIP = ${isVIP};\nif (!hasTicket) {\n  return "no entry";\n} else if (isVIP) {\n  return "VIP lounge";\n} else if (age >= 18) {\n  return "main hall";\n} else {\n  return "kids zone";\n}`;
-}
-
-// Robot task scenario
-function robotCode(battery, isCharging, task) {
-  return `int battery = ${battery};\nboolean isCharging = ${isCharging};\nString task = "${task}";\nif (battery < 20) {\n  return "sleeping";\n} else if (isCharging) {\n  return "charging";\n} else if (task.equals("clean") && battery >= 50) {\n  return "cleaning";\n} else if (task.equals("guard")) {\n  return "guarding";\n} else {\n  return "idle";\n}`;
-}
-
-const L4_PREDICT = [
-  { code: libCode("gold",   3),  ans: "borrow available" },
-  { code: libCode("gold",   6),  ans: "limit reached"    },
-  { code: libCode("silver", 2),  ans: "borrow available" },
-  { code: libCode("silver", 4),  ans: "limit reached"    },
-  { code: libCode("bronze", 1),  ans: "members only"     },
-
-  { code: gameCode(5, 95), ans: "legend"   },
-  { code: gameCode(5, 75), ans: "hero"     },
-  { code: gameCode(5, 60), ans: "fighter"  },
-  { code: gameCode(3, 80), ans: "champion" },
-  { code: gameCode(3, 60), ans: "player"   },
-  { code: gameCode(1, 99), ans: "rookie"   },
-
-  { code: weatherCode(true,  5,  true),  ans: "warm and dry" },
-  { code: weatherCode(true,  5,  false), ans: "cold and wet"  },
-  { code: weatherCode(true,  20, false), ans: "just wet"      },
-  { code: weatherCode(false, 5,  false), ans: "just cold"     },
-  { code: weatherCode(false, 20, false), ans: "perfect day"   },
-
-  { code: storeCode(false, true,  100), ans: "out of stock"  },
-  { code: storeCode(true,  true,  120), ans: "VIP deal"      },
-  { code: storeCode(true,  true,  80),  ans: "member price"  },
-  { code: storeCode(true,  false, 120), ans: "sale price"    },
-  { code: storeCode(true,  false, 80),  ans: "regular price" },
-
-  { code: ticketCode(false, 25, true),  ans: "no entry"   },
-  { code: ticketCode(true,  25, true),  ans: "VIP lounge" },
-  { code: ticketCode(true,  25, false), ans: "main hall"  },
-  { code: ticketCode(true,  12, false), ans: "kids zone"  },
-  { code: ticketCode(false, 12, false), ans: "no entry"   },
-
-  { code: robotCode(5,  false, "guard"), ans: "sleeping" },
-  { code: robotCode(80, true,  "clean"), ans: "charging" },
-  { code: robotCode(80, false, "clean"), ans: "cleaning" },
-  { code: robotCode(80, false, "guard"), ans: "guarding" },
-  { code: robotCode(30, false, "clean"), ans: "idle"     },
+const L4_CHALLENGES = [
+  {
+    methodName: "checkGrade",
+    description: 'Return "A+" if score is 90 or above AND hasBonus is true. Return "A" if score is 90 or above. Return "B" if score is 70 or above. Otherwise return "fail".',
+    vars: [{name:"score",type:"int"},{name:"hasBonus",type:"boolean"}],
+    tests: [
+      {vals:{score:95, hasBonus:true},  expected:"A+" },
+      {vals:{score:95, hasBonus:false}, expected:"A"  },
+      {vals:{score:75, hasBonus:false}, expected:"B"  },
+      {vals:{score:70, hasBonus:true},  expected:"B"  },
+      {vals:{score:60, hasBonus:false}, expected:"fail"},
+    ]
+  },
+  {
+    methodName: "labelAge",
+    description: 'Return "senior man" if age is 65 or above AND isMale is true. Return "senior woman" if age is 65 or above. Return "young man" if isMale is true. Otherwise return "young woman".',
+    vars: [{name:"age",type:"int"},{name:"isMale",type:"boolean"}],
+    tests: [
+      {vals:{age:70, isMale:true},  expected:"senior man"  },
+      {vals:{age:70, isMale:false}, expected:"senior woman"},
+      {vals:{age:30, isMale:true},  expected:"young man"   },
+      {vals:{age:30, isMale:false}, expected:"young woman" },
+    ]
+  },
+  {
+    methodName: "getDayType",
+    description: 'Return "double holiday" if isHoliday is true AND day equals "Saturday" or "Sunday". Return "holiday" if isHoliday is true. Return "weekend" if day equals "Saturday" or "Sunday". Otherwise return "workday".',
+    vars: [{name:"day",type:"String"},{name:"isHoliday",type:"boolean"}],
+    tests: [
+      {vals:{day:"Saturday", isHoliday:true},  expected:"double holiday"},
+      {vals:{day:"Monday",   isHoliday:true},  expected:"holiday"       },
+      {vals:{day:"Sunday",   isHoliday:false}, expected:"weekend"       },
+      {vals:{day:"Monday",   isHoliday:false}, expected:"workday"       },
+    ]
+  },
+  {
+    methodName: "getDriveMode",
+    description: 'Return "turbo" if speed is above 120 AND mode equals "sport". Return "fast" if speed is above 120. Return "sport" if mode equals "sport". Otherwise return "cruise".',
+    vars: [{name:"speed",type:"int"},{name:"mode",type:"String"}],
+    tests: [
+      {vals:{speed:130, mode:"sport"}, expected:"turbo" },
+      {vals:{speed:130, mode:"eco"},   expected:"fast"  },
+      {vals:{speed:60,  mode:"sport"}, expected:"sport" },
+      {vals:{speed:60,  mode:"eco"},   expected:"cruise"},
+    ]
+  },
+  {
+    methodName: "getMemberLevel",
+    description: 'Return "gold" if isMember is true AND score is 80 or above. Return "silver" if isMember is true AND score is 60 or above. Return "bronze" if isMember is true. Otherwise return "none".',
+    vars: [{name:"isMember",type:"boolean"},{name:"score",type:"int"}],
+    tests: [
+      {vals:{isMember:true,  score:90}, expected:"gold"  },
+      {vals:{isMember:true,  score:65}, expected:"silver"},
+      {vals:{isMember:true,  score:40}, expected:"bronze"},
+      {vals:{isMember:false, score:90}, expected:"none"  },
+    ]
+  },
+  {
+    methodName: "getWeather",
+    description: 'Return "hot and wet" if temp is above 30 AND isRaining is true. Return "hot" if temp is above 30. Return "rainy" if isRaining is true. Otherwise return "nice".',
+    vars: [{name:"temp",type:"int"},{name:"isRaining",type:"boolean"}],
+    tests: [
+      {vals:{temp:35, isRaining:true},  expected:"hot and wet"},
+      {vals:{temp:35, isRaining:false}, expected:"hot"        },
+      {vals:{temp:20, isRaining:true},  expected:"rainy"      },
+      {vals:{temp:20, isRaining:false}, expected:"nice"       },
+    ]
+  },
+  {
+    methodName: "getAccess",
+    description: 'Return "blocked" if isLoggedIn is false. Return "admin" if role equals "admin". Return "user" if role equals "user". Otherwise return "guest".',
+    vars: [{name:"isLoggedIn",type:"boolean"},{name:"role",type:"String"}],
+    tests: [
+      {vals:{isLoggedIn:false, role:"admin"},  expected:"blocked"},
+      {vals:{isLoggedIn:true,  role:"admin"},  expected:"admin"  },
+      {vals:{isLoggedIn:true,  role:"user"},   expected:"user"   },
+      {vals:{isLoggedIn:true,  role:"viewer"}, expected:"guest"  },
+    ]
+  },
+  {
+    methodName: "getPetName",
+    description: 'Return "Storm" if breed equals "husky" AND isMale is true. Return "Nimbus" if breed equals "labrador" AND isMale is true. Return "Piper" if isMale is false. Otherwise return "Buddy".',
+    vars: [{name:"breed",type:"String"},{name:"isMale",type:"boolean"}],
+    tests: [
+      {vals:{breed:"husky",    isMale:true},  expected:"Storm" },
+      {vals:{breed:"labrador", isMale:true},  expected:"Nimbus"},
+      {vals:{breed:"poodle",   isMale:false}, expected:"Piper" },
+      {vals:{breed:"poodle",   isMale:true},  expected:"Buddy" },
+    ]
+  },
 ];
 
-let l4CorrectAnswer;
+let l4Idx = -1;
+let l4Solved = false;
 
 function showLevel4() {
-  const q = L4_PREDICT[Math.floor(Math.random() * L4_PREDICT.length)];
-  l4CorrectAnswer = q.ans;
-  document.getElementById("questionArea").innerHTML = `
-    <p class="q-label">What value does this code return?</p>
-    <pre class="code" id="l4code"></pre>
-    <input type="text" id="ans4" placeholder='type answer...'
-           onkeypress="if(event.key==='Enter')checkLevel4()">
-    <button onclick="checkLevel4()">Check</button>`;
-  document.getElementById("l4code").textContent = q.code;
-  setTimeout(() => { const el = document.getElementById("ans4"); if (el) el.focus(); }, 50);
+  l4Idx = (l4Idx + 1) % L4_CHALLENGES.length;
+  l4Solved = false;
+  renderMethodChallenge(L4_CHALLENGES[l4Idx], "l4", checkLevel4);
 }
+function checkLevel4() { runWriteCheck("l4", L4_CHALLENGES[l4Idx], function(ok){ l4Solved = ok; }); }
 
-function checkLevel4() {
-  if (answered) return;
-  const val = document.getElementById("ans4").value;
-  if (!val.trim()) return;
-  answered = true;
-  if (normalizeAnswer(val) === normalizeAnswer(l4CorrectAnswer)) onCorrect();
-  else onWrong(l4CorrectAnswer);
+function renderMethodChallenge(q, id, checkFn) {
+  const varNames  = q.vars.map(v => v.name);
+  const paramList = q.vars.map(v => v.type + ' ' + v.name).join(', ');
+  const sig       = 'public String ' + q.methodName + '(' + paramList + ') {';
+  const testLines = q.tests.map(t =>
+    '(' + varNames.map(n => fmtVal(t.vals[n])).join(', ') + ')  ->  ' + fmtVal(t.expected)
+  ).join('\n');
+
+  document.getElementById("questionArea").innerHTML = `
+    <p class="task-desc">${escHtml(q.description)}</p>
+    <pre class="code" id="${id}tests"></pre>
+    <pre class="code" style="margin-bottom:0;border-radius:8px 8px 0 0;padding-bottom:6px">${escHtml(sig)}</pre>
+    <textarea class="code-input" id="${id}code" rows="7"
+      style="border-radius:0;border-top:none;border-bottom:none;margin:0;"
+      placeholder="  if (...) {\n    return ...;\n  } else {\n    return ...;\n  }"></textarea>
+    <pre class="code" style="margin-top:0;border-radius:0 0 8px 8px;padding-top:6px">}</pre>
+    <button onclick="${checkFn.name}()">Check</button>
+    <div class="test-results" id="${id}results"></div>`;
+
+  document.getElementById(id + "tests").textContent = 'Test cases:\n' + testLines;
+  setTimeout(() => { const el = document.getElementById(id + "code"); if (el) el.focus(); }, 50);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
