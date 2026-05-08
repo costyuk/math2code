@@ -71,7 +71,8 @@
     <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — Write: if/else</button><br>
     <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — Write: 3 Outcomes</button><br>
     <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — Write a Method</button><br>
-    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write Full Method</button>
+    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write Signature</button><br>
+    <button class="levelBtn locked" id="btn6" onclick="selectLevel(6)">Level 6 — Write Full Method</button>
     <p style="color:#888;font-size:14px">Pass a level by scoring 30 correct answers (25 for Level 4), or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
@@ -100,7 +101,7 @@ let score = 0;
 let answered = false;
 let qIdx = 0;
 let requestedLevel = null;
-let unlockedLevels = [true, false, false, false, false];
+let unlockedLevels = [true, false, false, false, false, false];
 
 // ── navigation ────────────────────────────────────────────────────────────────
 function selectLevel(l) {
@@ -128,17 +129,17 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return ["Recall Mix","Write: if/else","Write: 3 Outcomes","Write a Method","Write Full Method"][l-1] || "";
+  return ["Recall Mix","Write: if/else","Write: 3 Outcomes","Write a Method","Write Signature","Write Full Method"][l-1] || "";
 }
 
-function passScore() { return level === 4 ? 25 : 30; }
+function passScore() { return (level === 4 || level === 5) ? 25 : 30; }
 
 function startQuiz(l) {
   level = l;
   score = 0;
   qIdx = 0;
   document.getElementById("score").innerText = 0;
-  document.getElementById("passScore").innerText = l === 4 ? 25 : 30;
+  document.getElementById("passScore").innerText = (l === 4 || l === 5) ? 25 : 30;
   document.getElementById("quiz").style.display = "block";
   document.getElementById("levelSelect").style.display = "none";
   document.getElementById("levelTitle").innerText = "Level " + l + " — " + levelLabel(l);
@@ -159,6 +160,7 @@ function nextQuestion() {
   else if (level === 3) showLevel3();
   else if (level === 4) showLevel4();
   else if (level === 5) showLevel5();
+  else if (level === 6) showLevel6();
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -182,7 +184,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 5) {
+  if (level < 6) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); btn.innerText = "Level " + (level+1) + " — " + levelLabel(level+1); }
@@ -1034,9 +1036,136 @@ function renderMethodChallenge(q, id, checkFn) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// LEVEL 5 — Write the full method: 3 parameters, 4 possible return values
+// LEVEL 5 — Write signature + body: 2 parameters, 4 possible return values
+//           Closing } is shown; student writes the signature and body.
 // ══════════════════════════════════════════════════════════════════════════════
 const L5_CHALLENGES = [
+  {
+    methodName: "moodLabel",
+    description: 'Write the signature and body for moodLabel(int energy, boolean isHappy). Return "excited" if energy is 80 or above AND isHappy is true. Return "happy" if isHappy is true. Return "energetic" if energy is 80 or above. Otherwise return "tired".',
+    vars: [{name:"energy",type:"int"},{name:"isHappy",type:"boolean"}],
+    tests: [
+      {vals:{energy:90, isHappy:true},  expected:"excited"  },
+      {vals:{energy:50, isHappy:true},  expected:"happy"    },
+      {vals:{energy:85, isHappy:false}, expected:"energetic"},
+      {vals:{energy:40, isHappy:false}, expected:"tired"    },
+    ]
+  },
+  {
+    methodName: "doorAccess",
+    description: 'Write the signature and body for doorAccess(boolean hasKey, int floor). Return "penthouse" if hasKey is true AND floor is 30 or above. Return "VIP floor" if hasKey is true AND floor is 10 or above. Return "lobby" if hasKey is true. Otherwise return "denied".',
+    vars: [{name:"hasKey",type:"boolean"},{name:"floor",type:"int"}],
+    tests: [
+      {vals:{hasKey:true,  floor:35}, expected:"penthouse"},
+      {vals:{hasKey:true,  floor:15}, expected:"VIP floor"},
+      {vals:{hasKey:true,  floor:2},  expected:"lobby"    },
+      {vals:{hasKey:false, floor:35}, expected:"denied"   },
+    ]
+  },
+  {
+    methodName: "bookStatus",
+    description: 'Write the signature and body for bookStatus(boolean isAvailable, String category). Return "rare pick" if isAvailable is true AND category equals "rare". Return "available" if isAvailable is true. Return "rare waitlist" if category equals "rare". Otherwise return "unavailable".',
+    vars: [{name:"isAvailable",type:"boolean"},{name:"category",type:"String"}],
+    tests: [
+      {vals:{isAvailable:true,  category:"rare"},   expected:"rare pick"   },
+      {vals:{isAvailable:true,  category:"normal"}, expected:"available"   },
+      {vals:{isAvailable:false, category:"rare"},   expected:"rare waitlist"},
+      {vals:{isAvailable:false, category:"normal"}, expected:"unavailable" },
+    ]
+  },
+  {
+    methodName: "flightClass",
+    description: 'Write the signature and body for flightClass(int price, boolean hasPoints). Return "business" if price is 500 or above AND hasPoints is true. Return "premium" if hasPoints is true. Return "first" if price is 500 or above. Otherwise return "economy".',
+    vars: [{name:"price",type:"int"},{name:"hasPoints",type:"boolean"}],
+    tests: [
+      {vals:{price:600, hasPoints:true},  expected:"business"},
+      {vals:{price:200, hasPoints:true},  expected:"premium" },
+      {vals:{price:600, hasPoints:false}, expected:"first"   },
+      {vals:{price:200, hasPoints:false}, expected:"economy" },
+    ]
+  },
+  {
+    methodName: "dogAge",
+    description: 'Write the signature and body for dogAge(int age, boolean isSmall). Return "senior small" if age is 8 or above AND isSmall is true. Return "senior" if age is 8 or above. Return "puppy" if age is 1 or below. Otherwise return "adult".',
+    vars: [{name:"age",type:"int"},{name:"isSmall",type:"boolean"}],
+    tests: [
+      {vals:{age:10, isSmall:true},  expected:"senior small"},
+      {vals:{age:10, isSmall:false}, expected:"senior"      },
+      {vals:{age:1,  isSmall:false}, expected:"puppy"       },
+      {vals:{age:4,  isSmall:true},  expected:"adult"       },
+    ]
+  },
+  {
+    methodName: "getSpeed",
+    description: 'Write the signature and body for getSpeed(int speed, boolean isRace). Return "race champion" if speed is above 150 AND isRace is true. Return "racer" if isRace is true AND speed is above 100. Return "speeding" if speed is above 120. Otherwise return "safe".',
+    vars: [{name:"speed",type:"int"},{name:"isRace",type:"boolean"}],
+    tests: [
+      {vals:{speed:160, isRace:true},  expected:"race champion"},
+      {vals:{speed:110, isRace:true},  expected:"racer"        },
+      {vals:{speed:130, isRace:false}, expected:"speeding"     },
+      {vals:{speed:80,  isRace:false}, expected:"safe"         },
+    ]
+  },
+  {
+    methodName: "petStatus",
+    description: 'Write the signature and body for petStatus(boolean isSick, String pet). Return "vet urgent" if isSick is true AND pet equals "cat". Return "vet needed" if isSick is true. Return "happy cat" if pet equals "cat". Otherwise return "happy pet".',
+    vars: [{name:"isSick",type:"boolean"},{name:"pet",type:"String"}],
+    tests: [
+      {vals:{isSick:true,  pet:"cat"}, expected:"vet urgent"},
+      {vals:{isSick:true,  pet:"dog"}, expected:"vet needed"},
+      {vals:{isSick:false, pet:"cat"}, expected:"happy cat" },
+      {vals:{isSick:false, pet:"dog"}, expected:"happy pet" },
+    ]
+  },
+  {
+    methodName: "getLabel",
+    description: 'Write the signature and body for getLabel(int score, String category). Return "top" if score is 90 or above AND category equals "elite". Return "elite" if category equals "elite". Return "high" if score is 80 or above. Otherwise return "standard".',
+    vars: [{name:"score",type:"int"},{name:"category",type:"String"}],
+    tests: [
+      {vals:{score:95, category:"elite"},   expected:"top"     },
+      {vals:{score:70, category:"elite"},   expected:"elite"   },
+      {vals:{score:85, category:"regular"}, expected:"high"    },
+      {vals:{score:60, category:"regular"}, expected:"standard"},
+    ]
+  },
+];
+
+let l5Idx = -1;
+let l5Solved = false;
+
+function showLevel5() {
+  l5Idx = (l5Idx + 1) % L5_CHALLENGES.length;
+  l5Solved = false;
+  renderSigBodyChallenge(L5_CHALLENGES[l5Idx], "l5", checkLevel5);
+}
+function checkLevel5() { runWriteCheck("l5", L5_CHALLENGES[l5Idx], function(ok){ l5Solved = ok; }, true); }
+
+function renderSigBodyChallenge(q, id, checkFn) {
+  const varNames  = q.vars.map(v => v.name);
+  const paramList = q.vars.map(v => v.type + ' ' + v.name).join(', ');
+  const testLines = q.tests.map(t =>
+    '(' + varNames.map(n => n + '=' + fmtVal(t.vals[n])).join(', ') + ')  ->  ' + fmtVal(t.expected)
+  ).join('\n');
+  const placeholder = 'public String ' + q.methodName + '(' + paramList + ') {\n  if (...) {\n    return ...;\n  }\n  ...';
+
+  document.getElementById("questionArea").innerHTML = `
+    <p class="task-desc">${escHtml(q.description)}</p>
+    <pre class="code" id="${id}tests"></pre>
+    <textarea class="code-input" id="${id}code" rows="9"
+      style="border-radius:8px 8px 0 0;border-bottom:none;margin-bottom:0;"
+      placeholder="${escHtml(placeholder)}"></textarea>
+    <pre class="code" style="margin-top:0;border-radius:0 0 8px 8px;padding-top:6px">}</pre>
+    <button onclick="${checkFn.name}()">Check</button>
+    <div class="test-results" id="${id}results"></div>`;
+
+  document.getElementById(id + "tests").textContent = 'Test cases:\n' + testLines;
+  setTimeout(() => { const el = document.getElementById(id + "code"); if (el) el.focus(); }, 50);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEVEL 6 — Write the full method: 3 parameters, 4 possible return values
+// ══════════════════════════════════════════════════════════════════════════════
+const L6_CHALLENGES = [
   {
     methodName: "checkAccess",
     description: 'Write the full method checkAccess(boolean isLoggedIn, String role, boolean isAdmin). Return "super admin" if isLoggedIn is true AND isAdmin is true AND role equals "admin". Return "admin" if isLoggedIn is true AND role equals "admin". Return "user" if isLoggedIn is true. Otherwise return "guest".',
@@ -1129,15 +1258,15 @@ const L5_CHALLENGES = [
   },
 ];
 
-let l5Idx = -1;
-let l5Solved = false;
+let l6Idx = -1;
+let l6Solved = false;
 
-function showLevel5() {
-  l5Idx = (l5Idx + 1) % L5_CHALLENGES.length;
-  l5Solved = false;
-  renderFullMethodChallenge(L5_CHALLENGES[l5Idx], "l5", checkLevel5);
+function showLevel6() {
+  l6Idx = (l6Idx + 1) % L6_CHALLENGES.length;
+  l6Solved = false;
+  renderFullMethodChallenge(L6_CHALLENGES[l6Idx], "l6", checkLevel6);
 }
-function checkLevel5() { runWriteCheck("l5", L5_CHALLENGES[l5Idx], function(ok){ l5Solved = ok; }, true); }
+function checkLevel6() { runWriteCheck("l6", L6_CHALLENGES[l6Idx], function(ok){ l6Solved = ok; }, true); }
 
 function renderFullMethodChallenge(q, id, checkFn) {
   const varNames  = q.vars.map(v => v.name);
