@@ -1166,7 +1166,7 @@ function renderSigBodyChallenge(q, id, checkFn) {
 const L6_CHALLENGES = [
   {
     methodName: "checkAccess",
-    description: 'Write the full method checkAccess(boolean isLoggedIn, String role, boolean isAdmin). Return "super admin" if isLoggedIn is true AND isAdmin is true AND role equals "admin". Return "admin" if isLoggedIn is true AND role equals "admin". Return "user" if isLoggedIn is true. Otherwise return "guest".',
+    description: 'Create a method named checkAccess with a flag isLoggedIn, a text role, and a flag isAdmin. Return "super admin" if isLoggedIn AND isAdmin AND role equals "admin". Return "admin" if isLoggedIn AND role equals "admin". Return "user" if isLoggedIn. Otherwise return "guest".',
     vars: [{name:"isLoggedIn",type:"boolean"},{name:"role",type:"String"},{name:"isAdmin",type:"boolean"}],
     tests: [
       {vals:{isLoggedIn:true,  role:"admin",  isAdmin:true},  expected:"super admin"},
@@ -1177,7 +1177,7 @@ const L6_CHALLENGES = [
   },
   {
     methodName: "getWeather",
-    description: 'Write the full method getWeather(int temp, boolean isRaining, boolean isWindy). Return "blizzard" if isRaining is true AND isWindy is true. Return "windy" if isWindy is true. Return "rainy" if isRaining is true. Otherwise return "clear".',
+    description: 'Create a method named getWeather with a number temp, a flag isRaining, and a flag isWindy. Return "blizzard" if isRaining AND isWindy. Return "windy" if isWindy. Return "rainy" if isRaining. Otherwise return "clear".',
     vars: [{name:"temp",type:"int"},{name:"isRaining",type:"boolean"},{name:"isWindy",type:"boolean"}],
     tests: [
       {vals:{temp:5,  isRaining:true,  isWindy:true},  expected:"blizzard"},
@@ -1188,7 +1188,7 @@ const L6_CHALLENGES = [
   },
   {
     methodName: "getDogName",
-    description: 'Write the full method getDogName(boolean isMale, String breed, String color). Return "Shadow" if isMale is false AND color equals "black". Return "Piper" if isMale is false. Return "Nimbus" if breed equals "labrador" AND color equals "brown". Otherwise return "Hunter".',
+    description: 'Create a method named getDogName with a flag isMale, a text breed, and a text color. Return "Shadow" if isMale is false AND color equals "black". Return "Piper" if isMale is false. Return "Nimbus" if breed equals "labrador" AND color equals "brown". Otherwise return "Hunter".',
     vars: [{name:"isMale",type:"boolean"},{name:"breed",type:"String"},{name:"color",type:"String"}],
     tests: [
       {vals:{isMale:false, breed:"labrador", color:"black"}, expected:"Shadow"},
@@ -1199,7 +1199,7 @@ const L6_CHALLENGES = [
   },
   {
     methodName: "getDiscount",
-    description: 'Write the full method getDiscount(boolean isMember, int total, boolean hasCoupon). Return "30% off" if isMember is true AND hasCoupon is true AND total is 100 or above. Return "20% off" if isMember is true AND total is 100 or above. Return "10% off" if isMember is true OR hasCoupon is true. Otherwise return "no discount".',
+    description: 'Create a method named getDiscount with a flag isMember, a number total, and a flag hasCoupon. Return "30% off" if isMember AND hasCoupon AND total is 100 or above. Return "20% off" if isMember AND total is 100 or above. Return "10% off" if isMember OR hasCoupon. Otherwise return "no discount".',
     vars: [{name:"isMember",type:"boolean"},{name:"total",type:"int"},{name:"hasCoupon",type:"boolean"}],
     tests: [
       {vals:{isMember:true,  total:120, hasCoupon:true},  expected:"30% off"    },
@@ -1211,7 +1211,7 @@ const L6_CHALLENGES = [
   },
   {
     methodName: "scoreLabel",
-    description: 'Write the full method scoreLabel(int score, int attempts, boolean isPerfect). Return "perfect" if isPerfect is true. Return "first try" if score is 70 or above AND attempts equals 1. Return "pass" if score is 70 or above. Otherwise return "fail".',
+    description: 'Create a method named scoreLabel with a number score, a number attempts, and a flag isPerfect. Return "perfect" if isPerfect. Return "first try" if score is 70 or above AND attempts equals 1. Return "pass" if score is 70 or above. Otherwise return "fail".',
     vars: [{name:"score",type:"int"},{name:"attempts",type:"int"},{name:"isPerfect",type:"boolean"}],
     tests: [
       {vals:{score:80, attempts:1, isPerfect:true},  expected:"perfect"   },
@@ -1222,7 +1222,7 @@ const L6_CHALLENGES = [
   },
   {
     methodName: "getTicket",
-    description: 'Write the full method getTicket(int age, boolean hasCard, String section). Return "VIP" if section equals "VIP" AND hasCard is true. Return "premium" if hasCard is true AND age is 18 or above. Return "standard" if age is 18 or above. Otherwise return "child".',
+    description: 'Create a method named getTicket with a number age, a flag hasCard, and a text section. Return "VIP" if section equals "VIP" AND hasCard. Return "premium" if hasCard AND age is 18 or above. Return "standard" if age is 18 or above. Otherwise return "child".',
     vars: [{name:"age",type:"int"},{name:"hasCard",type:"boolean"},{name:"section",type:"String"}],
     tests: [
       {vals:{age:25, hasCard:true,  section:"VIP"},     expected:"VIP"     },
@@ -1233,7 +1233,7 @@ const L6_CHALLENGES = [
   },
   {
     methodName: "robotAction",
-    description: 'Write the full method robotAction(int battery, String task, boolean isCharging). Return "charging" if isCharging is true. Return "working" if battery is 50 or above AND task does not equal "idle". Return "low power" if battery is 20 or above. Otherwise return "sleeping".',
+    description: 'Create a method named robotAction with a number battery, a text task, and a flag isCharging. Return "charging" if isCharging. Return "working" if battery is 50 or above AND task does not equal "idle". Return "low power" if battery is 20 or above. Otherwise return "sleeping".',
     vars: [{name:"battery",type:"int"},{name:"task",type:"String"},{name:"isCharging",type:"boolean"}],
     tests: [
       {vals:{battery:80, task:"clean", isCharging:true},  expected:"charging" },
@@ -1245,7 +1245,7 @@ const L6_CHALLENGES = [
   },
   {
     methodName: "classifyPet",
-    description: 'Write the full method classifyPet(String animal, boolean isPet, int age). Return "senior pet" if isPet is true AND age is 10 or above. Return "young pet" if isPet is true. Return "senior wild" if age is 10 or above. Otherwise return "wild".',
+    description: 'Create a method named classifyPet with a text animal, a flag isPet, and a number age. Return "senior pet" if isPet AND age is 10 or above. Return "young pet" if isPet. Return "senior wild" if age is 10 or above. Otherwise return "wild".',
     vars: [{name:"animal",type:"String"},{name:"isPet",type:"boolean"},{name:"age",type:"int"}],
     tests: [
       {vals:{animal:"dog", isPet:true,  age:12}, expected:"senior pet"  },
