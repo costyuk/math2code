@@ -71,7 +71,7 @@
     <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — Write: if/else</button><br>
     <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — Write: 3 Outcomes</button><br>
     <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — Write a Method</button><br>
-    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write Nested if/else</button>
+    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write Full Method</button>
     <p style="color:#888;font-size:14px">Pass a level by scoring 30 correct answers (25 for Level 4), or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
@@ -128,7 +128,7 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return ["Recall Mix","Write: if/else","Write: 3 Outcomes","Write a Method","Write Nested if/else"][l-1] || "";
+  return ["Recall Mix","Write: if/else","Write: 3 Outcomes","Write a Method","Write Full Method"][l-1] || "";
 }
 
 function passScore() { return level === 4 ? 25 : 30; }
@@ -1034,75 +1034,97 @@ function renderMethodChallenge(q, id, checkFn) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// LEVEL 5 — Write nested if/else code, 3+ parameters
+// LEVEL 5 — Write the full method: 3 parameters, 4 possible return values
 // ══════════════════════════════════════════════════════════════════════════════
 const L5_CHALLENGES = [
   {
-    description: 'If membership equals "gold": return "borrow available" if books is below 5, otherwise return "limit reached". If membership equals "silver": return "borrow available" if books is below 3, otherwise return "limit reached". Otherwise return "members only".',
-    vars: [{name:"membership",type:"String"},{name:"books",type:"int"}],
+    methodName: "checkAccess",
+    description: 'Write the full method checkAccess(boolean isLoggedIn, String role, boolean isAdmin). Return "super admin" if isLoggedIn is true AND isAdmin is true AND role equals "admin". Return "admin" if isLoggedIn is true AND role equals "admin". Return "user" if isLoggedIn is true. Otherwise return "guest".',
+    vars: [{name:"isLoggedIn",type:"boolean"},{name:"role",type:"String"},{name:"isAdmin",type:"boolean"}],
     tests: [
-      {vals:{membership:"gold",   books:3}, expected:"borrow available"},
-      {vals:{membership:"gold",   books:6}, expected:"limit reached"   },
-      {vals:{membership:"silver", books:2}, expected:"borrow available"},
-      {vals:{membership:"silver", books:4}, expected:"limit reached"   },
-      {vals:{membership:"bronze", books:1}, expected:"members only"    },
+      {vals:{isLoggedIn:true,  role:"admin",  isAdmin:true},  expected:"super admin"},
+      {vals:{isLoggedIn:true,  role:"admin",  isAdmin:false}, expected:"admin"      },
+      {vals:{isLoggedIn:true,  role:"user",   isAdmin:false}, expected:"user"       },
+      {vals:{isLoggedIn:false, role:"admin",  isAdmin:true},  expected:"guest"      },
     ]
   },
   {
-    description: 'If level is 5 or above: return "legend" if score is 90 or above, return "hero" if score is 70 or above, otherwise return "fighter". If level is 3 or above: return "champion" if score is 70 or above, otherwise return "player". Otherwise return "rookie".',
-    vars: [{name:"level",type:"int"},{name:"score",type:"int"}],
+    methodName: "getWeather",
+    description: 'Write the full method getWeather(int temp, boolean isRaining, boolean isWindy). Return "blizzard" if isRaining is true AND isWindy is true. Return "windy" if isWindy is true. Return "rainy" if isRaining is true. Otherwise return "clear".',
+    vars: [{name:"temp",type:"int"},{name:"isRaining",type:"boolean"},{name:"isWindy",type:"boolean"}],
     tests: [
-      {vals:{level:5, score:95}, expected:"legend"  },
-      {vals:{level:5, score:75}, expected:"hero"    },
-      {vals:{level:5, score:60}, expected:"fighter" },
-      {vals:{level:3, score:80}, expected:"champion"},
-      {vals:{level:3, score:60}, expected:"player"  },
-      {vals:{level:1, score:99}, expected:"rookie"  },
+      {vals:{temp:5,  isRaining:true,  isWindy:true},  expected:"blizzard"},
+      {vals:{temp:20, isRaining:false, isWindy:true},  expected:"windy"   },
+      {vals:{temp:15, isRaining:true,  isWindy:false}, expected:"rainy"   },
+      {vals:{temp:22, isRaining:false, isWindy:false}, expected:"clear"   },
     ]
   },
   {
-    description: 'If isRaining is true AND temp is below 10: return "warm and dry" if hasJacket is true, otherwise return "cold and wet". If isRaining is true: return "just wet". If temp is below 10: return "just cold". Otherwise return "perfect day".',
-    vars: [{name:"isRaining",type:"boolean"},{name:"temp",type:"int"},{name:"hasJacket",type:"boolean"}],
+    methodName: "getDogName",
+    description: 'Write the full method getDogName(boolean isMale, String breed, String color). Return "Shadow" if isMale is false AND color equals "black". Return "Piper" if isMale is false. Return "Nimbus" if breed equals "labrador" AND color equals "brown". Otherwise return "Hunter".',
+    vars: [{name:"isMale",type:"boolean"},{name:"breed",type:"String"},{name:"color",type:"String"}],
     tests: [
-      {vals:{isRaining:true,  temp:5,  hasJacket:true},  expected:"warm and dry"},
-      {vals:{isRaining:true,  temp:5,  hasJacket:false}, expected:"cold and wet"},
-      {vals:{isRaining:true,  temp:20, hasJacket:false}, expected:"just wet"    },
-      {vals:{isRaining:false, temp:5,  hasJacket:false}, expected:"just cold"   },
-      {vals:{isRaining:false, temp:20, hasJacket:false}, expected:"perfect day" },
+      {vals:{isMale:false, breed:"labrador", color:"black"}, expected:"Shadow"},
+      {vals:{isMale:false, breed:"husky",    color:"brown"}, expected:"Piper" },
+      {vals:{isMale:true,  breed:"labrador", color:"brown"}, expected:"Nimbus"},
+      {vals:{isMale:true,  breed:"husky",    color:"black"}, expected:"Hunter"},
     ]
   },
   {
-    description: 'Return "out of stock" if inStock is false. Return "VIP deal" if isMember is true AND price is 100 or above. Return "member price" if isMember is true. Return "sale price" if price is 100 or above. Otherwise return "regular price".',
-    vars: [{name:"inStock",type:"boolean"},{name:"isMember",type:"boolean"},{name:"price",type:"int"}],
+    methodName: "getDiscount",
+    description: 'Write the full method getDiscount(boolean isMember, int total, boolean hasCoupon). Return "30% off" if isMember is true AND hasCoupon is true AND total is 100 or above. Return "20% off" if isMember is true AND total is 100 or above. Return "10% off" if isMember is true OR hasCoupon is true. Otherwise return "no discount".',
+    vars: [{name:"isMember",type:"boolean"},{name:"total",type:"int"},{name:"hasCoupon",type:"boolean"}],
     tests: [
-      {vals:{inStock:false, isMember:true,  price:100}, expected:"out of stock" },
-      {vals:{inStock:true,  isMember:true,  price:120}, expected:"VIP deal"     },
-      {vals:{inStock:true,  isMember:true,  price:80},  expected:"member price" },
-      {vals:{inStock:true,  isMember:false, price:120}, expected:"sale price"   },
-      {vals:{inStock:true,  isMember:false, price:80},  expected:"regular price"},
+      {vals:{isMember:true,  total:120, hasCoupon:true},  expected:"30% off"    },
+      {vals:{isMember:true,  total:120, hasCoupon:false}, expected:"20% off"    },
+      {vals:{isMember:true,  total:50,  hasCoupon:false}, expected:"10% off"    },
+      {vals:{isMember:false, total:50,  hasCoupon:true},  expected:"10% off"    },
+      {vals:{isMember:false, total:50,  hasCoupon:false}, expected:"no discount"},
     ]
   },
   {
-    description: 'Return "sleeping" if battery is below 20. Return "charging" if isCharging is true. Return "cleaning" if task equals "clean" AND battery is 50 or above. Return "guarding" if task equals "guard". Otherwise return "idle".',
-    vars: [{name:"battery",type:"int"},{name:"isCharging",type:"boolean"},{name:"task",type:"String"}],
+    methodName: "scoreLabel",
+    description: 'Write the full method scoreLabel(int score, int attempts, boolean isPerfect). Return "perfect" if isPerfect is true. Return "first try" if score is 70 or above AND attempts equals 1. Return "pass" if score is 70 or above. Otherwise return "fail".',
+    vars: [{name:"score",type:"int"},{name:"attempts",type:"int"},{name:"isPerfect",type:"boolean"}],
     tests: [
-      {vals:{battery:5,  isCharging:false, task:"guard"}, expected:"sleeping"},
-      {vals:{battery:80, isCharging:true,  task:"clean"}, expected:"charging"},
-      {vals:{battery:80, isCharging:false, task:"clean"}, expected:"cleaning"},
-      {vals:{battery:80, isCharging:false, task:"guard"}, expected:"guarding"},
-      {vals:{battery:30, isCharging:false, task:"clean"}, expected:"idle"    },
+      {vals:{score:80, attempts:1, isPerfect:true},  expected:"perfect"   },
+      {vals:{score:80, attempts:1, isPerfect:false}, expected:"first try" },
+      {vals:{score:75, attempts:2, isPerfect:false}, expected:"pass"      },
+      {vals:{score:50, attempts:1, isPerfect:false}, expected:"fail"      },
     ]
   },
   {
-    description: 'If isMale is false: return "Tiny Bella" if size is below 10, otherwise return "Bella". If breed equals "labrador": return "Big Max" if size is 30 or above, otherwise return "Max". If breed equals "husky": return "Storm". Otherwise return "Buddy".',
-    vars: [{name:"isMale",type:"boolean"},{name:"breed",type:"String"},{name:"size",type:"int"}],
+    methodName: "getTicket",
+    description: 'Write the full method getTicket(int age, boolean hasCard, String section). Return "VIP" if section equals "VIP" AND hasCard is true. Return "premium" if hasCard is true AND age is 18 or above. Return "standard" if age is 18 or above. Otherwise return "child".',
+    vars: [{name:"age",type:"int"},{name:"hasCard",type:"boolean"},{name:"section",type:"String"}],
     tests: [
-      {vals:{isMale:false, breed:"labrador", size:5},  expected:"Tiny Bella"},
-      {vals:{isMale:false, breed:"labrador", size:15}, expected:"Bella"     },
-      {vals:{isMale:true,  breed:"labrador", size:35}, expected:"Big Max"   },
-      {vals:{isMale:true,  breed:"labrador", size:20}, expected:"Max"       },
-      {vals:{isMale:true,  breed:"husky",    size:25}, expected:"Storm"     },
-      {vals:{isMale:true,  breed:"poodle",   size:15}, expected:"Buddy"     },
+      {vals:{age:25, hasCard:true,  section:"VIP"},     expected:"VIP"     },
+      {vals:{age:25, hasCard:true,  section:"regular"}, expected:"premium" },
+      {vals:{age:25, hasCard:false, section:"regular"}, expected:"standard"},
+      {vals:{age:12, hasCard:false, section:"regular"}, expected:"child"   },
+    ]
+  },
+  {
+    methodName: "robotAction",
+    description: 'Write the full method robotAction(int battery, String task, boolean isCharging). Return "charging" if isCharging is true. Return "working" if battery is 50 or above AND task does not equal "idle". Return "low power" if battery is 20 or above. Otherwise return "sleeping".',
+    vars: [{name:"battery",type:"int"},{name:"task",type:"String"},{name:"isCharging",type:"boolean"}],
+    tests: [
+      {vals:{battery:80, task:"clean", isCharging:true},  expected:"charging" },
+      {vals:{battery:80, task:"clean", isCharging:false}, expected:"working"  },
+      {vals:{battery:80, task:"idle",  isCharging:false}, expected:"low power"},
+      {vals:{battery:30, task:"clean", isCharging:false}, expected:"low power"},
+      {vals:{battery:10, task:"clean", isCharging:false}, expected:"sleeping" },
+    ]
+  },
+  {
+    methodName: "classifyPet",
+    description: 'Write the full method classifyPet(String animal, boolean isPet, int age). Return "senior pet" if isPet is true AND age is 10 or above. Return "young pet" if isPet is true. Return "senior wild" if age is 10 or above. Otherwise return "wild".',
+    vars: [{name:"animal",type:"String"},{name:"isPet",type:"boolean"},{name:"age",type:"int"}],
+    tests: [
+      {vals:{animal:"dog", isPet:true,  age:12}, expected:"senior pet"  },
+      {vals:{animal:"cat", isPet:true,  age:3},  expected:"young pet"   },
+      {vals:{animal:"fox", isPet:false, age:11}, expected:"senior wild" },
+      {vals:{animal:"fox", isPet:false, age:4},  expected:"wild"        },
     ]
   },
 ];
@@ -1113,9 +1135,29 @@ let l5Solved = false;
 function showLevel5() {
   l5Idx = (l5Idx + 1) % L5_CHALLENGES.length;
   l5Solved = false;
-  renderWriteChallenge(L5_CHALLENGES[l5Idx], "l5", checkLevel5);
+  renderFullMethodChallenge(L5_CHALLENGES[l5Idx], "l5", checkLevel5);
 }
-function checkLevel5() { runWriteCheck("l5", L5_CHALLENGES[l5Idx], function(ok){ l5Solved = ok; }); }
+function checkLevel5() { runWriteCheck("l5", L5_CHALLENGES[l5Idx], function(ok){ l5Solved = ok; }, true); }
+
+function renderFullMethodChallenge(q, id, checkFn) {
+  const varNames  = q.vars.map(v => v.name);
+  const paramList = q.vars.map(v => v.type + ' ' + v.name).join(', ');
+  const testLines = q.tests.map(t =>
+    '(' + varNames.map(n => n + '=' + fmtVal(t.vals[n])).join(', ') + ')  ->  ' + fmtVal(t.expected)
+  ).join('\n');
+  const placeholder = 'public String ' + q.methodName + '(' + paramList + ') {\n  if (...) {\n    return ...;\n  }\n  ...\n}';
+
+  document.getElementById("questionArea").innerHTML = `
+    <p class="task-desc">${escHtml(q.description)}</p>
+    <pre class="code" id="${id}tests"></pre>
+    <textarea class="code-input" id="${id}code" rows="10"
+      placeholder="${escHtml(placeholder)}"></textarea>
+    <button onclick="${checkFn.name}()">Check</button>
+    <div class="test-results" id="${id}results"></div>`;
+
+  document.getElementById(id + "tests").textContent = 'Test cases:\n' + testLines;
+  setTimeout(() => { const el = document.getElementById(id + "code"); if (el) el.focus(); }, 50);
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Shared helpers for write-the-code levels
@@ -1145,13 +1187,22 @@ function renderWriteChallenge(q, id, checkFn) {
   setTimeout(() => { const el = document.getElementById(id + "code"); if (el) el.focus(); }, 50);
 }
 
-function runWriteCheck(id, q, onSolvedCallback) {
+function runWriteCheck(id, q, onSolvedCallback, extractBody) {
   const input      = document.getElementById(id + "code").value.trim();
   const resultsDiv = document.getElementById(id + "results");
   if (!input) { resultsDiv.innerText = "Write some code first."; return; }
 
   const varNames = q.vars.map(v => v.name);
-  const code     = input.replace(/(\w+)\.equals\(([^)]+)\)/g, '$1 === $2');
+  let code = input.replace(/(\w+)\.equals\(([^)]+)\)/g, '$1 === $2');
+  if (extractBody) {
+    const firstBrace = code.indexOf('{');
+    const lastBrace  = code.lastIndexOf('}');
+    if (firstBrace === -1 || lastBrace === -1) {
+      resultsDiv.innerText = 'Write the full method including { and }.';
+      return;
+    }
+    code = code.substring(firstBrace + 1, lastBrace);
+  }
 
   const passed = [], failed = [];
   try {
