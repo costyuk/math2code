@@ -43,9 +43,10 @@
     <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — Method Trace</button><br>
     <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — String Trace</button><br>
     <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — Write ++/-- Method</button><br>
-    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write: If + ++/--</button><br>
-    <button class="levelBtn locked" id="btn6" onclick="selectLevel(6)">Level 6 — String Iteration</button>
-    <p style="color:#888;font-size:14px">Pass levels 1–3 with 40/30/25, levels 4–5 with 20/15, level 6 with 20. Or ask your teacher for the PIN.</p>
+    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write: Num + String</button><br>
+    <button class="levelBtn locked" id="btn6" onclick="selectLevel(6)">Level 6 — Write: If + ++/--</button><br>
+    <button class="levelBtn locked" id="btn7" onclick="selectLevel(7)">Level 7 — String Iteration</button>
+    <p style="color:#888;font-size:14px">Pass levels 1–3 with 40/30/25, levels 4–5 with 20, level 6 with 15, level 7 with 20. Or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
       <input id="pinInput" type="password" placeholder="PIN"
@@ -74,7 +75,7 @@ let level = 1;
 let score = 0;
 let answered = false;
 let requestedLevel = null;
-let unlockedLevels = [true, false, false, false, false, false];
+let unlockedLevels = [true, false, false, false, false, false, false];
 let currentQ = null;
 let challengeIdx = 0;
 
@@ -104,7 +105,7 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return ["Variables & ++/--", "Method Trace", "String Trace", "Write: ++/-- Method", "Write: If + ++/--", "String Iteration"][l - 1] || "";
+  return ["Variables & ++/--", "Method Trace", "String Trace", "Write: ++/-- Method", "Write: Num + String", "Write: If + ++/--", "String Iteration"][l - 1] || "";
 }
 
 function passScore() {
@@ -112,7 +113,8 @@ function passScore() {
   if (level === 2) return 30;
   if (level === 3) return 25;
   if (level === 4) return 20;
-  if (level === 5) return 15;
+  if (level === 5) return 20;
+  if (level === 6) return 15;
   return 20;
 }
 
@@ -148,11 +150,11 @@ function nextQuestion() {
   } else if (level === 3) {
     currentQ = generateL3();
     renderInputQ(`If the input is <strong>"${currentQ.inputVal}"</strong>, what does this method return?`);
-  } else if (level === 6) {
+  } else if (level === 7) {
     currentQ = generateL6();
     renderInputQ("What does this code return?");
   } else {
-    const challenges = level === 4 ? L3_CHALLENGES : L4_CHALLENGES;
+    const challenges = level === 4 ? L3_CHALLENGES : level === 5 ? L5_CHALLENGES : L4_CHALLENGES;
     currentQ = { ...challenges[challengeIdx % challenges.length], type: "write" };
     challengeIdx++;
     renderWriteChallenge(currentQ);
@@ -173,9 +175,12 @@ function renderInputQ(label) {
 
 function renderWriteChallenge(challenge) {
   const area = document.getElementById("questionArea");
-  const testsHtml = challenge.tests.map(([inp, out]) =>
-    `(${challenge.param}=${inp}) → ${out}`
-  ).join(',  ');
+  const params = challenge.params || [challenge.param];
+  const testsHtml = challenge.tests.map(test => {
+    const inputs = test.slice(0, -1);
+    const expected = test[test.length - 1];
+    return `(${params.map((p, i) => `${p}=${JSON.stringify(inputs[i])}`).join(', ')}) → ${JSON.stringify(expected)}`;
+  }).join(',  ');
   area.innerHTML = `
     <p class="q-label">${challenge.desc}</p>
     <pre class="code" id="sigBlock"></pre>
@@ -208,7 +213,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 6) {
+  if (level < 7) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); btn.innerText = "Level " + (level + 1) + " — " + levelLabel(level + 1); }
@@ -232,14 +237,18 @@ function checkWrite() {
   const challenge = currentQ;
   const code = document.getElementById("codeTA").value.trim();
   if (!code) return;
+  const params = challenge.params || [challenge.param];
   try {
-    const fn = new Function(challenge.param, code);
-    for (const [inp, expected] of challenge.tests) {
-      const result = fn(inp);
+    const fn = new Function(...params, code);
+    for (const test of challenge.tests) {
+      const inputs = test.slice(0, -1);
+      const expected = test[test.length - 1];
+      const result = fn(...inputs);
       if (String(result) !== String(expected)) {
+        const inputDesc = params.map((p, i) => `${p}=${JSON.stringify(inputs[i])}`).join(', ');
         document.getElementById("feedback").style.color = "#f44336";
         document.getElementById("feedback").innerText =
-          `Test failed: (${challenge.param}=${inp}) → got ${result}, expected ${expected}`;
+          `Test failed: (${inputDesc}) → got "${result}", expected "${expected}"`;
         return;
       }
     }
@@ -435,6 +444,58 @@ function generateL6() {
 
   return { type: "input", code, ans: String(ans) };
 }
+
+// ── level 5 challenges (write method: number ++ + string concatenation) ───────
+const L5_CHALLENGES = [
+  {
+    desc: 'Increment n using ++, then append n to s using +=. Return s.',
+    sig: 'String addNum(int n, String s)',
+    params: ['n', 's'],
+    tests: [[3, "count: ", "count: 4"], [0, "val=", "val=1"], [9, "num:", "num:10"]],
+  },
+  {
+    desc: 'Append n to s using +=, then increment n using ++. Return s.',
+    sig: 'String appendFirst(int n, String s)',
+    params: ['n', 's'],
+    tests: [[5, "score=", "score=5"], [0, "x=", "x=0"], [9, "n=", "n=9"]],
+  },
+  {
+    desc: 'Increment n twice using ++, then append n to s. Return s.',
+    sig: 'String incTwice(int n, String s)',
+    params: ['n', 's'],
+    tests: [[3, "result:", "result:5"], [0, "n=", "n=2"], [8, "val=", "val=10"]],
+  },
+  {
+    desc: 'Append n to s using +=, then append "!" to s using +=. Return s.',
+    sig: 'String numBang(int n, String s)',
+    params: ['n', 's'],
+    tests: [[7, "val=", "val=7!"], [0, "x=", "x=0!"], [3, "score:", "score:3!"]],
+  },
+  {
+    desc: 'Build the string using: s = "I have " + n + " " + s. Return s.',
+    sig: 'String buildStr(int n, String s)',
+    params: ['n', 's'],
+    tests: [[3, "cats", "I have 3 cats"], [1, "dog", "I have 1 dog"], [5, "fish", "I have 5 fish"]],
+  },
+  {
+    desc: 'Add 3 to n using +=, then append n to s using +=. Return s.',
+    sig: 'String add3(int n, String s)',
+    params: ['n', 's'],
+    tests: [[2, "total:", "total:5"], [0, "n=", "n=3"], [7, "val=", "val=10"]],
+  },
+  {
+    desc: 'Append n to s using +=, then append " done" to s using +=. Return s.',
+    sig: 'String withDone(int n, String s)',
+    params: ['n', 's'],
+    tests: [[5, "step ", "step 5 done"], [0, "item ", "item 0 done"], [3, "task ", "task 3 done"]],
+  },
+  {
+    desc: 'Decrement n using --, then append n to s using +=. Return s.',
+    sig: 'String decAppend(int n, String s)',
+    params: ['n', 's'],
+    tests: [[5, "count:", "count:4"], [1, "n=", "n=0"], [10, "val=", "val=9"]],
+  },
+];
 
 // ── level 3 challenges (write ++/-- method body) ───────────────────────────────
 const L3_CHALLENGES = [
