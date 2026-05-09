@@ -41,10 +41,11 @@
     <h3>Select Level</h3>
     <button class="levelBtn" onclick="selectLevel(1)">Level 1 — Variables &amp; ++/--</button><br>
     <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — Method Trace</button><br>
-    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — String Iteration</button><br>
+    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — String Trace</button><br>
     <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — Write ++/-- Method</button><br>
-    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write: If + ++/--</button>
-    <p style="color:#888;font-size:14px">Pass level 1 with 40, level 2 with 30, level 3 with 25, level 4 with 20, level 5 with 15. Or ask your teacher for the PIN.</p>
+    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write: If + ++/--</button><br>
+    <button class="levelBtn locked" id="btn6" onclick="selectLevel(6)">Level 6 — String Iteration</button>
+    <p style="color:#888;font-size:14px">Pass levels 1–3 with 40/30/25, levels 4–5 with 20/15, level 6 with 20. Or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
       <input id="pinInput" type="password" placeholder="PIN"
@@ -73,7 +74,7 @@ let level = 1;
 let score = 0;
 let answered = false;
 let requestedLevel = null;
-let unlockedLevels = [true, false, false, false, false];
+let unlockedLevels = [true, false, false, false, false, false];
 let currentQ = null;
 let challengeIdx = 0;
 
@@ -103,7 +104,7 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return ["Variables & ++/--", "Method Trace", "String Iteration", "Write: ++/-- Method", "Write: If + ++/--"][l - 1] || "";
+  return ["Variables & ++/--", "Method Trace", "String Trace", "Write: ++/-- Method", "Write: If + ++/--", "String Iteration"][l - 1] || "";
 }
 
 function passScore() {
@@ -111,7 +112,8 @@ function passScore() {
   if (level === 2) return 30;
   if (level === 3) return 25;
   if (level === 4) return 20;
-  return 15;
+  if (level === 5) return 15;
+  return 20;
 }
 
 function startQuiz(l) {
@@ -145,6 +147,9 @@ function nextQuestion() {
     renderInputQ(`If the input is <strong>${currentQ.inputVal}</strong>, what does this method return?`);
   } else if (level === 3) {
     currentQ = generateL3();
+    renderInputQ(`If the input is <strong>"${currentQ.inputVal}"</strong>, what does this method return?`);
+  } else if (level === 6) {
+    currentQ = generateL6();
     renderInputQ("What does this code return?");
   } else {
     const challenges = level === 4 ? L3_CHALLENGES : L4_CHALLENGES;
@@ -203,7 +208,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 5) {
+  if (level < 6) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); btn.innerText = "Level " + (level + 1) + " — " + levelLabel(level + 1); }
@@ -347,8 +352,60 @@ function generateL2() {
   return { type: "input", code, inputVal, ans: String(ans) };
 }
 
-// ── level 3 generator (string iteration) ─────────────────────────────────────
+// ── level 3 generator (string concatenation trace) ───────────────────────────
+const L3_STR_NAMES = ["process","modify","transform","format","update","adjust","build","convert"];
+let l3StrNameIdx = 0;
+
 function generateL3() {
+  const r = (m) => Math.floor(Math.random() * m);
+  const inputs = ["tomato","apple","dog","cat","hello","java","pizza","sun","ball","mango"];
+  const s = inputs[r(inputs.length)];
+  const name = L3_STR_NAMES[l3StrNameIdx % L3_STR_NAMES.length];
+  l3StrNameIdx++;
+  const qType = r(8);
+  let code, ans;
+
+  if (qType === 0) {
+    const suffixes = [" eat"," time"," day","!"," is good"];
+    const suf = suffixes[r(suffixes.length)];
+    code = `String ${name}(String s) {\n  s += "${suf}";\n  return s;\n}`;
+    ans = s + suf;
+  } else if (qType === 1) {
+    const prefixes = ["I like ","Hello ","My ","A fresh "];
+    const pre = prefixes[r(prefixes.length)];
+    code = `String ${name}(String s) {\n  s = "${pre}" + s;\n  return s;\n}`;
+    ans = pre + s;
+  } else if (qType === 2) {
+    code = `String ${name}(String s) {\n  s += "!";\n  s += "?";\n  return s;\n}`;
+    ans = s + "!?";
+  } else if (qType === 3) {
+    code = `String ${name}(String s) {\n  s = s + " " + s;\n  return s;\n}`;
+    ans = s + " " + s;
+  } else if (qType === 4) {
+    const mid1 = [" is"," and"][r(2)];
+    const mid2 = [" good"," fun"," nice"," cool"][r(4)];
+    code = `String ${name}(String s) {\n  s += "${mid1}";\n  s += "${mid2}";\n  return s;\n}`;
+    ans = s + mid1 + mid2;
+  } else if (qType === 5) {
+    code = `String ${name}(String s) {\n  s = s + s;\n  return s;\n}`;
+    ans = s + s;
+  } else if (qType === 6) {
+    const n = r(2) + 2;
+    let body = "";
+    for (let i = 0; i < n; i++) body += `  s += "!";\n`;
+    body += `  return s;`;
+    code = `String ${name}(String s) {\n${body}\n}`;
+    ans = s + "!".repeat(n);
+  } else {
+    code = `String ${name}(String s) {\n  s = "(" + s + ")";\n  return s;\n}`;
+    ans = "(" + s + ")";
+  }
+
+  return { type: "input", code, inputVal: s, ans };
+}
+
+// ── level 6 generator (string iteration) ─────────────────────────────────────
+function generateL6() {
   const r = (m) => Math.floor(Math.random() * m);
   const words = ["apple","banana","cat","dog","hello","world","java","code","loop","string","pass","class"];
   const s = words[r(words.length)];
@@ -356,25 +413,20 @@ function generateL3() {
   let code, ans;
 
   if (qType === 0) {
-    // count all characters
     code = `String s = "${s}";\nint count = 0;\nfor (int i = 0; i < s.length(); i++) {\n  count++;\n}\nreturn count;`;
     ans = s.length;
   } else if (qType === 1) {
-    // count a specific character
     const char = s[r(s.length)];
     const cnt = s.split("").filter(c => c === char).length;
     code = `String s = "${s}";\nint count = 0;\nfor (int i = 0; i < s.length(); i++) {\n  if (s.charAt(i) == '${char}') count++;\n}\nreturn count;`;
     ans = cnt;
   } else if (qType === 2) {
-    // step of 2 — count iterations
     code = `String s = "${s}";\nint count = 0;\nfor (int i = 0; i < s.length(); i += 2) {\n  count++;\n}\nreturn count;`;
     ans = Math.ceil(s.length / 2);
   } else if (qType === 3) {
-    // sum of all indices
     code = `String s = "${s}";\nint total = 0;\nfor (int i = 0; i < s.length(); i++) {\n  total += i;\n}\nreturn total;`;
     ans = (s.length * (s.length - 1)) / 2;
   } else {
-    // find index of first occurrence of a character
     const char = s[r(s.length)];
     const idx = s.indexOf(char);
     code = `String s = "${s}";\nint i = 0;\nwhile (i < s.length() && s.charAt(i) != '${char}') {\n  i++;\n}\nreturn i;`;
