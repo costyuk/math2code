@@ -44,9 +44,8 @@
     <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — String Trace</button><br>
     <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — Write ++/-- Method</button><br>
     <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — Write: Num + String</button><br>
-    <button class="levelBtn locked" id="btn6" onclick="selectLevel(6)">Level 6 — Write: If + ++/--</button><br>
-    <button class="levelBtn locked" id="btn7" onclick="selectLevel(7)">Level 7 — String Iteration</button>
-    <p style="color:#888;font-size:14px">Pass levels 1–3 with 40/30/25, levels 4–5 with 20, level 6 with 15, level 7 with 20. Or ask your teacher for the PIN.</p>
+    <button class="levelBtn locked" id="btn6" onclick="selectLevel(6)">Level 6 — Write: If + ++/--</button>
+    <p style="color:#888;font-size:14px">Pass levels 1–3 with 40/30/25, levels 4–5 with 20, level 6 with 15. Or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
       <input id="pinInput" type="password" placeholder="PIN"
@@ -75,7 +74,7 @@ let level = 1;
 let score = 0;
 let answered = false;
 let requestedLevel = null;
-let unlockedLevels = [true, false, false, false, false, false, false];
+let unlockedLevels = [true, false, false, false, false, false];
 let currentQ = null;
 let challengeIdx = 0;
 
@@ -105,7 +104,7 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return ["Variables & ++/--", "Method Trace", "String Trace", "Write: ++/-- Method", "Write: Num + String", "Write: If + ++/--", "String Iteration"][l - 1] || "";
+  return ["Variables & ++/--", "Method Trace", "String Trace", "Write: ++/-- Method", "Write: Num + String", "Write: If + ++/--"][l - 1] || "";
 }
 
 function passScore() {
@@ -114,8 +113,7 @@ function passScore() {
   if (level === 3) return 25;
   if (level === 4) return 20;
   if (level === 5) return 20;
-  if (level === 6) return 15;
-  return 20;
+  return 15;
 }
 
 function startQuiz(l) {
@@ -150,9 +148,6 @@ function nextQuestion() {
   } else if (level === 3) {
     currentQ = generateL3();
     renderInputQ(`If the input is <strong>"${currentQ.inputVal}"</strong>, what does this method return?`);
-  } else if (level === 7) {
-    currentQ = generateL6();
-    renderInputQ("What does this code return?");
   } else {
     const challenges = level === 4 ? L3_CHALLENGES : level === 5 ? L5_CHALLENGES : L4_CHALLENGES;
     currentQ = { ...challenges[challengeIdx % challenges.length], type: "write" };
@@ -213,7 +208,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 7) {
+  if (level < 6) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); btn.innerText = "Level " + (level + 1) + " — " + levelLabel(level + 1); }
@@ -411,38 +406,6 @@ function generateL3() {
   }
 
   return { type: "input", code, inputVal: s, ans };
-}
-
-// ── level 6 generator (string iteration) ─────────────────────────────────────
-function generateL6() {
-  const r = (m) => Math.floor(Math.random() * m);
-  const words = ["apple","banana","cat","dog","hello","world","java","code","loop","string","pass","class"];
-  const s = words[r(words.length)];
-  const qType = r(5);
-  let code, ans;
-
-  if (qType === 0) {
-    code = `String s = "${s}";\nint count = 0;\nfor (int i = 0; i < s.length(); i++) {\n  count++;\n}\nreturn count;`;
-    ans = s.length;
-  } else if (qType === 1) {
-    const char = s[r(s.length)];
-    const cnt = s.split("").filter(c => c === char).length;
-    code = `String s = "${s}";\nint count = 0;\nfor (int i = 0; i < s.length(); i++) {\n  if (s.charAt(i) == '${char}') count++;\n}\nreturn count;`;
-    ans = cnt;
-  } else if (qType === 2) {
-    code = `String s = "${s}";\nint count = 0;\nfor (int i = 0; i < s.length(); i += 2) {\n  count++;\n}\nreturn count;`;
-    ans = Math.ceil(s.length / 2);
-  } else if (qType === 3) {
-    code = `String s = "${s}";\nint total = 0;\nfor (int i = 0; i < s.length(); i++) {\n  total += i;\n}\nreturn total;`;
-    ans = (s.length * (s.length - 1)) / 2;
-  } else {
-    const char = s[r(s.length)];
-    const idx = s.indexOf(char);
-    code = `String s = "${s}";\nint i = 0;\nwhile (i < s.length() && s.charAt(i) != '${char}') {\n  i++;\n}\nreturn i;`;
-    ans = idx;
-  }
-
-  return { type: "input", code, ans: String(ans) };
 }
 
 // ── level 5 challenges (write method: number ++ + string concatenation) ───────

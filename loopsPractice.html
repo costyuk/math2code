@@ -54,7 +54,8 @@
     <button class="levelBtn" onclick="selectLevel(1)">Level 1 — True / False</button><br>
     <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — Simple Loop</button><br>
     <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — Nested Loops</button><br>
-    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — While Loop</button>
+    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — While Loop</button><br>
+    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — String Iteration</button>
     <p style="color:#888;font-size:14px">Pass each level with 30 correct answers. Or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
@@ -82,7 +83,7 @@ let level = 1;
 let score = 0;
 let answered = false;
 let requestedLevel = null;
-let unlockedLevels = [true, false, false, false];
+let unlockedLevels = [true, false, false, false, false];
 let currentQ = null;
 
 // ── navigation ────────────────────────────────────────────────────────────────
@@ -111,7 +112,7 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return ["True / False", "Simple Loop", "Nested Loops", "While Loop"][l - 1] || "";
+  return ["True / False", "Simple Loop", "Nested Loops", "While Loop", "String Iteration"][l - 1] || "";
 }
 
 function startQuiz(l) {
@@ -175,7 +176,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 4) {
+  if (level < 5) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); btn.innerText = "Level " + (level + 1) + " — " + levelLabel(level + 1); }
@@ -233,14 +234,42 @@ function generateQ(l) {
     };
   }
 
-  // l === 4
-  const x = r(15) + 10, sub = r(3) + 2;
-  const result = x - Math.ceil((x - 5) / sub) * sub;
-  return {
-    type: "input",
-    code: `int x = ${x};\nwhile (x > 5) {\n  x = x - ${sub};\n}\nreturn x;`,
-    ans: String(result)
-  };
+  if (l === 4) {
+    const x = r(15) + 10, sub = r(3) + 2;
+    const result = x - Math.ceil((x - 5) / sub) * sub;
+    return {
+      type: "input",
+      code: `int x = ${x};\nwhile (x > 5) {\n  x = x - ${sub};\n}\nreturn x;`,
+      ans: String(result)
+    };
+  }
+
+  // l === 5 — string iteration
+  const words = ["apple","banana","cat","dog","hello","world","java","code","loop","string","pass","class"];
+  const s = words[r(words.length)];
+  const qType = r(5);
+  let code, ans;
+  if (qType === 0) {
+    code = `String s = "${s}";\nint count = 0;\nfor (int i = 0; i < s.length(); i++) {\n  count++;\n}\nreturn count;`;
+    ans = s.length;
+  } else if (qType === 1) {
+    const char = s[r(s.length)];
+    const cnt = s.split("").filter(c => c === char).length;
+    code = `String s = "${s}";\nint count = 0;\nfor (int i = 0; i < s.length(); i++) {\n  if (s.charAt(i) == '${char}') count++;\n}\nreturn count;`;
+    ans = cnt;
+  } else if (qType === 2) {
+    code = `String s = "${s}";\nint count = 0;\nfor (int i = 0; i < s.length(); i += 2) {\n  count++;\n}\nreturn count;`;
+    ans = Math.ceil(s.length / 2);
+  } else if (qType === 3) {
+    code = `String s = "${s}";\nint total = 0;\nfor (int i = 0; i < s.length(); i++) {\n  total += i;\n}\nreturn total;`;
+    ans = (s.length * (s.length - 1)) / 2;
+  } else {
+    const char = s[r(s.length)];
+    const idx = s.indexOf(char);
+    code = `String s = "${s}";\nint i = 0;\nwhile (i < s.length() && s.charAt(i) != '${char}') {\n  i++;\n}\nreturn i;`;
+    ans = idx;
+  }
+  return { type: "input", code, ans: String(ans) };
 }
 </script>
 </body>
