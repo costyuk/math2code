@@ -18,7 +18,7 @@
       max-width: 680px; overflow-x: auto; white-space: pre;
       border-left: 4px solid #3f51b5;
     }
-    .q-label { font-size: 12px; color: #666; margin-bottom: 4px; }
+    .q-label { font-size: 16px; color: #333; margin-bottom: 8px; }
     input[type="text"] {
       padding: 7px 10px; font-size: 14px; width: 200px;
       border: 2px solid #ccc; border-radius: 8px; margin: 6px;
@@ -173,9 +173,8 @@ function nextQuestion() {
 
 function renderInputQ(label) {
   const area = document.getElementById("questionArea");
-  const pStyle = level === 2 ? ' style="font-size:16px;color:#333;margin-bottom:8px"' : '';
   area.innerHTML = `
-    <p class="q-label"${pStyle}>${label}</p>
+    <p class="q-label">${label}</p>
     <pre class="code" id="codeBlock"></pre>
     <input type="text" id="ansI" placeholder="type answer..."
            onkeypress="if(event.key==='Enter')check()">
