@@ -173,14 +173,14 @@ function onCorrect() {
   document.getElementById("score").innerText = score;
   document.getElementById("feedback").style.color = "#4caf50";
   document.getElementById("feedback").innerText = "Correct!";
-  document.getElementById("nextBtn").style.display = "inline-block";
+  const nb = document.getElementById("nextBtn"); nb.style.display = "inline-block"; nb.focus();
   if (score >= passScore()) unlockNext();
 }
 
 function onWrong(correctVal) {
   document.getElementById("feedback").style.color = "#f44336";
   document.getElementById("feedback").innerText = `Wrong! Answer: "${correctVal}"`;
-  document.getElementById("nextBtn").style.display = "inline-block";
+  const nb = document.getElementById("nextBtn"); nb.style.display = "inline-block"; nb.focus();
 }
 
 function unlockNext() {
