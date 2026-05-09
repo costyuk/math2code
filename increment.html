@@ -272,7 +272,7 @@ function startCountdown() {
   const el = document.getElementById("countdown");
   const txt = document.getElementById("countdown-text");
   el.style.display = "block";
-  const duration = 3000;
+  const duration = 2000;
   const startTime = performance.now();
   function frame(now) {
     const remaining = Math.max(0, duration - (now - startTime));
