@@ -74,11 +74,12 @@ function check() {
     document.getElementById("score").innerText = score;
     document.getElementById("feedback").style.color = "#4caf50";
     document.getElementById("feedback").innerText = score >= 40 ? "Correct!  You completed the level!" : "Correct!";
+    setTimeout(nextQuestion, 3000);
   } else {
     document.getElementById("feedback").style.color = "#f44336";
     document.getElementById("feedback").innerText = `Wrong! Answer: "${currentQ.ans}"`;
+    document.getElementById("nextBtn").style.display = "inline-block";
   }
-  document.getElementById("nextBtn").style.display = "inline-block";
 }
 
 function generateQ() {
