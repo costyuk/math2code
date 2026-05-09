@@ -173,8 +173,9 @@ function nextQuestion() {
 
 function renderInputQ(label) {
   const area = document.getElementById("questionArea");
+  const pStyle = level === 2 ? ' style="font-size:16px;color:#333;margin-bottom:8px"' : '';
   area.innerHTML = `
-    <p class="q-label">${label}</p>
+    <p class="q-label"${pStyle}>${label}</p>
     <pre class="code" id="codeBlock"></pre>
     <input type="text" id="ansI" placeholder="type answer..."
            onkeypress="if(event.key==='Enter')check()">
@@ -210,7 +211,7 @@ function onCorrect() {
   document.getElementById("feedback").style.color = "#4caf50";
   document.getElementById("feedback").innerText = "Correct!";
   if (score >= passScore()) unlockNext();
-  if (level === 1) {
+  if (level === 1 || level === 2) {
     startCountdown();
   } else {
     document.getElementById("nextBtn").style.display = "inline-block";
@@ -339,51 +340,56 @@ function generateL1() {
 }
 
 // ── level 2 generator ─────────────────────────────────────────────────────────
+const L2_NAMES = ["calculate","process","transform","compute","update","modify","adjust","convert","evaluate","apply"];
+let l2NameIdx = 0;
+
 function generateL2() {
   const r = (m) => Math.floor(Math.random() * m);
   const inputVal = r(7) + 2; // 2–8
   const qType = r(10);
+  const name = L2_NAMES[l2NameIdx % L2_NAMES.length];
+  l2NameIdx++;
   let code, ans;
 
   if (qType === 0) {
-    code = `int f(int n) {\n  return ++n;\n}`;
+    code = `int ${name}(int n) {\n  return ++n;\n}`;
     ans = inputVal + 1;
   } else if (qType === 1) {
-    code = `int f(int n) {\n  return n++;\n}`;
+    code = `int ${name}(int n) {\n  return n++;\n}`;
     ans = inputVal; // post-increment returns original
   } else if (qType === 2) {
-    code = `int f(int n) {\n  return --n;\n}`;
+    code = `int ${name}(int n) {\n  return --n;\n}`;
     ans = inputVal - 1;
   } else if (qType === 3) {
-    code = `int f(int n) {\n  return n--;\n}`;
+    code = `int ${name}(int n) {\n  return n--;\n}`;
     ans = inputVal; // post-decrement returns original
   } else if (qType === 4) {
     const times = r(3) + 2;
     let body = "";
     for (let i = 0; i < times; i++) body += `  n++;\n`;
     body += `  return n;`;
-    code = `int f(int n) {\n${body}\n}`;
+    code = `int ${name}(int n) {\n${body}\n}`;
     ans = inputVal + times;
   } else if (qType === 5) {
     const times = r(2) + 2;
     let body = "";
     for (let i = 0; i < times; i++) body += `  n--;\n`;
     body += `  return n;`;
-    code = `int f(int n) {\n${body}\n}`;
+    code = `int ${name}(int n) {\n${body}\n}`;
     ans = inputVal - times;
   } else if (qType === 6) {
     const k = r(5) + 2;
-    code = `int f(int n) {\n  n += ${k};\n  return n;\n}`;
+    code = `int ${name}(int n) {\n  n += ${k};\n  return n;\n}`;
     ans = inputVal + k;
   } else if (qType === 7) {
     const k = r(Math.min(inputVal - 1, 4)) + 1;
-    code = `int f(int n) {\n  n -= ${k};\n  return n;\n}`;
+    code = `int ${name}(int n) {\n  n -= ${k};\n  return n;\n}`;
     ans = inputVal - k;
   } else if (qType === 8) {
-    code = `int f(int n) {\n  ++n;\n  return n;\n}`;
+    code = `int ${name}(int n) {\n  ++n;\n  return n;\n}`;
     ans = inputVal + 1;
   } else {
-    code = `int f(int n) {\n  n++;\n  n--;\n  return n;\n}`;
+    code = `int ${name}(int n) {\n  n++;\n  n--;\n  return n;\n}`;
     ans = inputVal;
   }
 
