@@ -51,12 +51,11 @@
 
   <div id="levelSelect">
     <h3>Select Level</h3>
-    <button class="levelBtn" onclick="selectLevel(1)">Level 1 — Variables &amp; ++/--</button><br>
-    <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — True / False</button><br>
-    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — Simple Loop</button><br>
-    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — Nested Loops</button><br>
-    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 — While Loop</button>
-    <p style="color:#888;font-size:14px">Pass level 1 with 40 correct answers, other levels with 30. Or ask your teacher for the PIN.</p>
+    <button class="levelBtn" onclick="selectLevel(1)">Level 1 — True / False</button><br>
+    <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 — Simple Loop</button><br>
+    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 — Nested Loops</button><br>
+    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 — While Loop</button>
+    <p style="color:#888;font-size:14px">Pass each level with 30 correct answers. Or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
       <input id="pinInput" type="password" placeholder="PIN"
@@ -83,7 +82,7 @@ let level = 1;
 let score = 0;
 let answered = false;
 let requestedLevel = null;
-let unlockedLevels = [true, false, false, false, false];
+let unlockedLevels = [true, false, false, false];
 let currentQ = null;
 
 // ── navigation ────────────────────────────────────────────────────────────────
@@ -112,16 +111,14 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return ["Variables & ++/--", "True / False", "Simple Loop", "Nested Loops", "While Loop"][l - 1] || "";
+  return ["True / False", "Simple Loop", "Nested Loops", "While Loop"][l - 1] || "";
 }
-
-function passScore() { return level === 1 ? 40 : 30; }
 
 function startQuiz(l) {
   level = l;
   score = 0;
   document.getElementById("score").innerText = 0;
-  document.getElementById("passScore").innerText = l === 1 ? 40 : 30;
+  document.getElementById("passScore").innerText = 30;
   document.getElementById("quiz").style.display = "block";
   document.getElementById("levelSelect").style.display = "none";
   document.getElementById("levelTitle").innerText = "Level " + l + " — " + levelLabel(l);
@@ -168,7 +165,7 @@ function onCorrect() {
   document.getElementById("feedback").style.color = "#4caf50";
   document.getElementById("feedback").innerText = "Correct!";
   document.getElementById("nextBtn").style.display = "inline-block";
-  if (score >= passScore()) unlockNext();
+  if (score >= 30) unlockNext();
 }
 
 function onWrong(correctVal) {
@@ -178,7 +175,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 5) {
+  if (level < 4) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); btn.innerText = "Level " + (level + 1) + " — " + levelLabel(level + 1); }
@@ -207,48 +204,6 @@ function generateQ(l) {
   const r = (m) => Math.floor(Math.random() * m);
 
   if (l === 1) {
-    const start = r(8) + 2; // 2–9
-    const qType = r(8);
-    let code, ans;
-    if (qType === 0) {
-      code = `int i = ${start};\ni++;\n// What is i?`;
-      ans = start + 1;
-    } else if (qType === 1) {
-      code = `int i = ${start};\ni--;\n// What is i?`;
-      ans = start - 1;
-    } else if (qType === 2) {
-      code = `int i = ${start};\ni++;\ni++;\ni++;\n// What is i?`;
-      ans = start + 3;
-    } else if (qType === 3) {
-      const n = r(2) + 2;
-      let lines = `int i = ${start + n};\n`;
-      for (let k = 0; k < n; k++) lines += `i--;\n`;
-      lines += `// What is i?`;
-      code = lines; ans = start;
-    } else if (qType === 4) {
-      const step = r(5) + 1;
-      code = `int i = ${start};\ni += ${step};\n// What is i?`;
-      ans = start + step;
-    } else if (qType === 5) {
-      const step = r(start - 1) + 1;
-      code = `int i = ${start};\ni -= ${step};\n// What is i?`;
-      ans = start - step;
-    } else if (qType === 6) {
-      const inc = r(3) + 1, dec = r(3) + 1;
-      let lines = `int i = ${start};\n`;
-      for (let k = 0; k < inc; k++) lines += `i++;\n`;
-      for (let k = 0; k < dec; k++) lines += `i--;\n`;
-      lines += `// What is i?`;
-      code = lines; ans = start + inc - dec;
-    } else {
-      const step = r(5) + 1;
-      code = `int i = ${start};\ni = i + ${step};\n// What is i?`;
-      ans = start + step;
-    }
-    return { type: "input", code, ans: String(ans) };
-  }
-
-  if (l === 2) {
     const a = r(5) + 2, b = r(4) + 3;
     const total = a * b;
     const isT = Math.random() > 0.5;
@@ -260,7 +215,7 @@ function generateQ(l) {
     };
   }
 
-  if (l === 3) {
+  if (l === 2) {
     const start = r(10), loops = r(4) + 3, step = r(3) + 2;
     return {
       type: "input",
@@ -269,7 +224,7 @@ function generateQ(l) {
     };
   }
 
-  if (l === 4) {
+  if (l === 3) {
     const out = r(3) + 2, inn = r(2) + 2;
     return {
       type: "input",
@@ -278,7 +233,7 @@ function generateQ(l) {
     };
   }
 
-  // l === 5
+  // l === 4
   const x = r(15) + 10, sub = r(3) + 2;
   const result = x - Math.ceil((x - 5) / sub) * sub;
   return {
