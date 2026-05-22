@@ -117,6 +117,31 @@
     .next-btn { background: #3f51b5; color: white; font-size: 14px; padding: 9px 26px; border-radius: 8px; margin-top: 8px; }
     .next-btn:focus { outline: 2px solid #1a237e; outline-offset: 2px; }
 
+    /* Speak */
+    .speak-img-wrap { width: 90px; height: 90px; position: relative; margin: 8px auto; }
+    .speak-img-wrap .fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 44px; z-index: 1; }
+    .speak-img-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; z-index: 2; }
+    .speak-en { font-size: 22px; font-weight: bold; color: #1a237e; margin: 8px 0 4px; }
+    .speak-prompt { font-size: 13px; color: #666; margin-bottom: 10px; }
+    .mic-btn {
+      width: 72px; height: 72px; border-radius: 50%; border: none; cursor: pointer;
+      background: #3f51b5; color: white; font-size: 28px; margin: 8px auto; display: block;
+      transition: background 0.2s; position: relative;
+    }
+    .mic-btn:hover:not(:disabled) { background: #303f9f; }
+    .mic-btn.listening {
+      background: #f44336;
+      animation: mic-pulse 1s ease-in-out infinite;
+    }
+    .mic-btn:disabled { background: #bdbdbd; cursor: default; }
+    @keyframes mic-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(244,67,54,0.5); }
+      50%       { box-shadow: 0 0 0 14px rgba(244,67,54,0); }
+    }
+    .mic-status { font-size: 13px; color: #888; min-height: 18px; margin: 4px 0; }
+    .mic-transcript { font-size: 15px; color: #333; font-style: italic; min-height: 22px; margin: 4px 0; }
+    .no-speech-msg { color: #e65100; font-size: 13px; }
+
     /* Result */
     #resultScreen { display: none; }
     .result-score { font-size: 40px; font-weight: bold; color: #1a237e; margin: 10px 0; }
@@ -180,6 +205,21 @@ let scorable = 0;
 let answered = false;
 let currentChoiceAnswer = null;
 let currentTypeAnswer = null;
+let currentSpeakAnswer = null;
+
+// ── speech recognition setup ─────────────────────────────────────────────────
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = "fr-FR";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 5;
+}
+
+function normalizeText(s) {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
 
 // ── screens ──────────────────────────────────────────────────────────────────
 function showLessons() {
@@ -254,6 +294,7 @@ function nextTask() {
 
   if (task.type === "flashcard") renderFlashcard(task.word);
   else if (task.type === "choice") renderChoice(task.word);
+  else if (task.type === "speak") renderSpeak(task.word);
   else renderType(task.word);
 }
 
@@ -379,6 +420,106 @@ function checkType() {
     fb.style.color = "#4caf50"; fb.textContent = "Correct!";
   } else {
     fb.style.color = "#f44336"; fb.textContent = `Wrong! Answer: "${currentTypeAnswer}"`;
+  }
+  const nb = document.getElementById("nextBtn");
+  nb.style.display = "inline-block"; nb.focus();
+}
+
+// ── speak task ───────────────────────────────────────────────────────────────
+function renderSpeak(word) {
+  scorable++;
+  currentSpeakAnswer = word.fr;
+  const area = document.getElementById("taskArea");
+
+  if (!recognition) {
+    area.innerHTML = `
+      <p class="task-label">Say in French</p>
+      <div class="speak-img-wrap">
+        <div class="fallback">${word.emoji}</div>
+        <img src="images/${word.image}" alt="${word.fr}" onerror="this.style.display='none'">
+      </div>
+      <div class="speak-en">${word.en}</div>
+      <p class="no-speech-msg">Speech recognition is not supported in this browser.<br>Try Chrome or Edge.</p>`;
+    // Auto-skip to next after showing the word
+    answered = true;
+    const nb = document.getElementById("nextBtn");
+    nb.style.display = "inline-block"; nb.focus();
+    return;
+  }
+
+  area.innerHTML = `
+    <p class="task-label">Say this in French</p>
+    <div class="speak-img-wrap">
+      <div class="fallback">${word.emoji}</div>
+      <img src="images/${word.image}" alt="${word.fr}" onerror="this.style.display='none'">
+    </div>
+    <div class="speak-en">${word.en}</div>
+    <p class="speak-prompt">Press the mic and say the French word</p>
+    <button class="mic-btn" id="micBtn" onclick="startListening()">&#127908;</button>
+    <div class="mic-status" id="micStatus">Ready</div>
+    <div class="mic-transcript" id="micTranscript"></div>`;
+}
+
+function startListening() {
+  if (!recognition || answered) return;
+  const micBtn = document.getElementById("micBtn");
+  const micStatus = document.getElementById("micStatus");
+  const micTranscript = document.getElementById("micTranscript");
+
+  micBtn.classList.add("listening");
+  micBtn.disabled = true;
+  micStatus.textContent = "Listening...";
+  micTranscript.textContent = "";
+  document.getElementById("feedback").textContent = "";
+
+  recognition.onresult = (e) => {
+    const alternatives = Array.from(e.results[0]).map(r => r.transcript.trim());
+    micTranscript.textContent = "\u201c" + alternatives[0] + "\u201d";
+    checkSpeak(alternatives);
+  };
+
+  recognition.onerror = (e) => {
+    micBtn.classList.remove("listening");
+    micBtn.disabled = false;
+    if (e.error === "no-speech") {
+      micStatus.textContent = "No speech detected. Try again.";
+    } else if (e.error === "not-allowed") {
+      micStatus.textContent = "Microphone access denied.";
+      micBtn.disabled = true;
+    } else {
+      micStatus.textContent = "Error: " + e.error + ". Try again.";
+    }
+  };
+
+  recognition.onend = () => {
+    micBtn.classList.remove("listening");
+    if (!answered) micBtn.disabled = false;
+  };
+
+  recognition.start();
+}
+
+function checkSpeak(alternatives) {
+  if (answered) return;
+  answered = true;
+  document.getElementById("micBtn").disabled = true;
+  document.getElementById("micStatus").textContent = "Done";
+
+  const expected = currentSpeakAnswer;
+  const normExpected = normalizeText(expected);
+  const isCorrect = alternatives.some(alt => {
+    const normAlt = normalizeText(alt);
+    return normAlt === normExpected || alt.toLowerCase().trim() === expected.toLowerCase().trim();
+  });
+
+  const fb = document.getElementById("feedback");
+  if (isCorrect) {
+    score++;
+    document.getElementById("score").textContent = score;
+    fb.style.color = "#4caf50"; fb.textContent = "Correct!";
+  } else {
+    fb.style.color = "#f44336";
+    fb.textContent = `Wrong! Expected: "${expected}"`;
   }
   const nb = document.getElementById("nextBtn");
   nb.style.display = "inline-block"; nb.focus();

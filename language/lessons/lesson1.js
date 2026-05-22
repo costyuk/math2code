@@ -12,5 +12,5 @@ FRENCH_LESSONS.push({
     { fr: "non",        en: "no",                    image: "non.jpg",        emoji: "❌" },
     { fr: "comment allez-vous", en: "how are you",   image: "comment.jpg",    emoji: "😊" }
   ],
-  tasks: ["flashcard", "choice", "type"]
+  tasks: ["flashcard", "choice", "type", "speak"]
 });
