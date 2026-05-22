@@ -304,6 +304,8 @@ function navigate(delta) {
 }
 
 // ── round 3: speak ───────────────────────────────────────────────────────────
+let listenTimer = null;
+
 function startListening() {
   if (!recognition || answered) return;
   const micBtn = document.getElementById("micBtn");
@@ -316,13 +318,19 @@ function startListening() {
   micTranscript.textContent = "";
   document.getElementById("feedback").textContent = "";
 
+  listenTimer = setTimeout(() => {
+    recognition.stop();
+  }, 5000);
+
   recognition.onresult = (e) => {
+    clearTimeout(listenTimer);
     const alts = Array.from(e.results[0]).map(r => r.transcript.trim());
     micTranscript.textContent = "\u201c" + alts[0] + "\u201d";
     checkSpeak(alts);
   };
 
   recognition.onerror = (e) => {
+    clearTimeout(listenTimer);
     micBtn.classList.remove("listening");
     micBtn.disabled = false;
     const msgs = { "no-speech": "No speech detected. Try again.", "not-allowed": "Microphone access denied." };
@@ -331,8 +339,15 @@ function startListening() {
   };
 
   recognition.onend = () => {
+    clearTimeout(listenTimer);
     micBtn.classList.remove("listening");
-    if (!answered) micBtn.disabled = false;
+    if (!answered) {
+      micBtn.disabled = false;
+      const micStatus = document.getElementById("micStatus");
+      if (micStatus && micStatus.textContent === "Listening...") {
+        micStatus.textContent = "Time's up. Try again.";
+      }
+    }
   };
 
   recognition.start();
