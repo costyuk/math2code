@@ -6,14 +6,12 @@
   <style>
     * { box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: #f0f4ff; margin: 0; padding: 10px; text-align: center; }
-    .container { background: white; max-width: 700px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
-    h1 { color: #1a237e; font-size: 22px; margin: 0 0 6px; }
-    h2 { color: #333; font-size: 17px; margin: 6px 0; }
-    h3 { color: #555; font-size: 15px; margin: 4px 0; }
-
-    button { padding: 8px 16px; margin: 4px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .container { background: white; max-width: 680px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); min-height: 400px; }
+    h1 { color: #1a237e; font-size: 22px; margin: 0 0 10px; }
+    button { padding: 8px 18px; margin: 4px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
     .btn-primary   { background: #3f51b5; color: white; }
     .btn-secondary { background: #9e9e9e; color: white; }
+    .btn-large     { font-size: 16px; padding: 11px 30px; }
     .btn-primary:hover   { background: #303f9f; }
     .btn-secondary:hover { background: #757575; }
     .btn-primary:focus, .btn-secondary:focus { outline: 2px solid #1a237e; outline-offset: 2px; }
@@ -22,111 +20,61 @@
     .lesson-card {
       background: #e8eaf6; border-radius: 10px; padding: 14px 18px;
       margin: 8px 0; cursor: pointer; text-align: left;
-      display: flex; align-items: center; gap: 14px;
-      transition: background 0.15s;
+      display: flex; align-items: center; gap: 14px; transition: background 0.15s;
     }
     .lesson-card:hover { background: #c5cae9; }
-    .lesson-emoji { font-size: 28px; }
-    .lesson-info .title    { font-weight: bold; font-size: 16px; color: #1a237e; }
-    .lesson-info .subtitle { font-size: 13px; color: #666; }
-    .lesson-info .count    { font-size: 12px; color: #888; }
+    .lesson-flag { font-size: 30px; }
+    .lesson-info .l-title    { font-weight: bold; font-size: 16px; color: #1a237e; }
+    .lesson-info .l-subtitle { font-size: 13px; color: #666; }
+    .lesson-info .l-count    { font-size: 12px; color: #888; margin-top: 2px; }
 
-    /* Vocab preview */
-    .vocab-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 10px; margin: 12px 0;
+    /* Round badge */
+    .round-badge {
+      display: inline-block; background: #e8eaf6; color: #3f51b5;
+      font-size: 12px; font-weight: bold; padding: 3px 12px;
+      border-radius: 20px; margin-bottom: 10px; letter-spacing: 0.5px;
     }
-    .vocab-card {
-      background: #f5f5f5; border-radius: 10px; padding: 10px 6px;
-      font-size: 13px; border: 1px solid #e0e0e0;
+
+    /* Word image */
+    .word-img-wrap {
+      width: 200px; height: 200px; position: relative;
+      margin: 10px auto; border-radius: 16px; overflow: hidden;
+      background: #e8eaf6;
     }
-    .vocab-card .img-wrap {
-      width: 64px; height: 64px; margin: 0 auto 6px; position: relative;
-    }
-    .vocab-card .img-wrap .fallback {
+    .word-img-wrap .placeholder {
       position: absolute; inset: 0; display: flex; align-items: center;
-      justify-content: center; font-size: 30px; z-index: 1;
+      justify-content: center; font-size: 70px; font-weight: bold;
+      color: #9fa8da; text-transform: uppercase;
     }
-    .vocab-card .img-wrap img {
+    .word-img-wrap img {
       position: absolute; inset: 0; width: 100%; height: 100%;
-      object-fit: cover; border-radius: 6px; z-index: 2;
+      object-fit: cover;
     }
-    .vocab-card .fr { font-weight: bold; color: #1a237e; font-size: 14px; }
-    .vocab-card .en { color: #555; font-size: 12px; }
 
-    /* Task area */
-    #taskScreen { display: none; }
-    .task-label { font-size: 12px; color: #888; margin-bottom: 4px; }
-    .progress-bar-wrap { background: #e0e0e0; border-radius: 6px; height: 6px; margin: 8px 0; }
-    .progress-bar { background: #3f51b5; height: 6px; border-radius: 6px; transition: width 0.3s; }
+    /* Word text */
+    .word-fr { font-size: 34px; font-weight: bold; color: #1a237e; margin: 10px 0 4px; }
+    .word-en { font-size: 18px; color: #555; margin: 4px 0 10px; }
 
-    /* Flashcard */
-    .flashcard {
-      width: 220px; height: 220px; margin: 12px auto; perspective: 800px; cursor: pointer;
+    /* Pronounce button */
+    .pronounce-btn {
+      background: #e8eaf6; color: #3f51b5; border: 2px solid #c5cae9;
+      border-radius: 50%; width: 44px; height: 44px; padding: 0;
+      font-size: 20px; cursor: pointer; vertical-align: middle;
     }
-    .flashcard-inner {
-      width: 100%; height: 100%; position: relative;
-      transform-style: preserve-3d; transition: transform 0.45s;
-    }
-    .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
-    .flashcard-front, .flashcard-back {
-      position: absolute; inset: 0; backface-visibility: hidden;
-      border-radius: 14px; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; padding: 12px;
-      border: 2px solid #c5cae9;
-    }
-    .flashcard-front { background: #e8eaf6; }
-    .flashcard-back  { background: #fff8e1; transform: rotateY(180deg); }
-    .fc-img-wrap { width: 80px; height: 80px; position: relative; margin-bottom: 8px; }
-    .fc-img-wrap .fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 40px; z-index: 1; }
-    .fc-img-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 8px; z-index: 2; }
-    .fc-fr { font-size: 20px; font-weight: bold; color: #1a237e; }
-    .fc-en { font-size: 15px; color: #555; margin-top: 4px; }
-    .fc-hint { font-size: 11px; color: #aaa; margin-top: 6px; }
+    .pronounce-btn:hover { background: #c5cae9; }
 
-    /* Choice */
-    .choice-img-wrap { width: 100px; height: 100px; position: relative; margin: 10px auto; }
-    .choice-img-wrap .fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 50px; z-index: 1; }
-    .choice-img-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; z-index: 2; }
-    .choice-word { font-size: 24px; font-weight: bold; color: #1a237e; margin: 8px 0; }
-    .choice-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 400px; margin: 10px auto; }
-    .choice-btn {
-      padding: 12px 8px; border-radius: 8px; font-size: 14px;
-      background: #e8eaf6; border: 2px solid #c5cae9; color: #333; cursor: pointer;
-    }
-    .choice-btn:hover:not(:disabled) { background: #c5cae9; }
-    .choice-btn.correct { background: #c8e6c9; border-color: #4caf50; color: #1b5e20; }
-    .choice-btn.wrong   { background: #ffcdd2; border-color: #f44336; color: #b71c1c; }
-    .choice-btn:disabled { cursor: default; }
+    /* Navigation row */
+    .nav-row { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 10px 0; }
+    .nav-btn  { background: #e8eaf6; color: #3f51b5; font-size: 20px; padding: 6px 18px; border-radius: 8px; border: none; cursor: pointer; }
+    .nav-btn:hover { background: #c5cae9; }
+    .nav-btn:disabled { background: #f5f5f5; color: #bdbdbd; cursor: default; }
+    .word-counter { font-size: 15px; color: #888; min-width: 50px; }
 
-    /* Type */
-    .type-word { font-size: 22px; font-weight: bold; color: #1a237e; margin: 10px 0 4px; }
-    .type-img-wrap { width: 90px; height: 90px; position: relative; margin: 8px auto; }
-    .type-img-wrap .fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 44px; z-index: 1; }
-    .type-img-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; z-index: 2; }
-    input[type="text"] {
-      padding: 9px 12px; font-size: 16px; width: 260px;
-      border: 2px solid #ccc; border-radius: 8px; margin: 8px;
-      font-family: Arial; text-align: center;
-    }
-    input[type="text"]:focus { outline: none; border-color: #3f51b5; }
-
-    #feedback { font-size: 15px; font-weight: bold; min-height: 22px; margin: 6px 0; }
-    .score-bar { font-size: 13px; color: #777; margin: 4px 0; }
-
-    .next-btn { background: #3f51b5; color: white; font-size: 14px; padding: 9px 26px; border-radius: 8px; margin-top: 8px; }
-    .next-btn:focus { outline: 2px solid #1a237e; outline-offset: 2px; }
-
-    /* Speak */
-    .speak-img-wrap { width: 90px; height: 90px; position: relative; margin: 8px auto; }
-    .speak-img-wrap .fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 44px; z-index: 1; }
-    .speak-img-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 10px; z-index: 2; }
-    .speak-en { font-size: 22px; font-weight: bold; color: #1a237e; margin: 8px 0 4px; }
-    .speak-prompt { font-size: 13px; color: #666; margin-bottom: 10px; }
+    /* Mic */
     .mic-btn {
-      width: 72px; height: 72px; border-radius: 50%; border: none; cursor: pointer;
-      background: #3f51b5; color: white; font-size: 28px; margin: 8px auto; display: block;
-      transition: background 0.2s; position: relative;
+      width: 76px; height: 76px; border-radius: 50%; border: none; cursor: pointer;
+      background: #3f51b5; color: white; font-size: 30px; margin: 10px auto; display: block;
+      transition: background 0.2s;
     }
     .mic-btn:hover:not(:disabled) { background: #303f9f; }
     .mic-btn.listening {
@@ -136,60 +84,54 @@
     .mic-btn:disabled { background: #bdbdbd; cursor: default; }
     @keyframes mic-pulse {
       0%, 100% { box-shadow: 0 0 0 0 rgba(244,67,54,0.5); }
-      50%       { box-shadow: 0 0 0 14px rgba(244,67,54,0); }
+      50%       { box-shadow: 0 0 0 16px rgba(244,67,54,0); }
     }
-    .mic-status { font-size: 13px; color: #888; min-height: 18px; margin: 4px 0; }
-    .mic-transcript { font-size: 15px; color: #333; font-style: italic; min-height: 22px; margin: 4px 0; }
-    .no-speech-msg { color: #e65100; font-size: 13px; }
+    .mic-status     { font-size: 13px; color: #888; min-height: 18px; margin: 2px 0; }
+    .mic-transcript { font-size: 16px; color: #333; font-style: italic; min-height: 24px; margin: 4px 0; }
+
+    /* Feedback & score */
+    #feedback { font-size: 16px; font-weight: bold; min-height: 24px; margin: 6px 0; }
+    .score-bar { font-size: 13px; color: #777; margin: 4px 0; }
+    .next-btn { background: #3f51b5; color: white; font-size: 14px; padding: 9px 26px; border-radius: 8px; margin-top: 6px; }
+    .next-btn:focus { outline: 2px solid #1a237e; outline-offset: 2px; }
+    .continue-row { margin-top: 16px; border-top: 1px solid #eee; padding-top: 14px; }
 
     /* Result */
     #resultScreen { display: none; }
-    .result-score { font-size: 40px; font-weight: bold; color: #1a237e; margin: 10px 0; }
-    .result-stars { font-size: 32px; margin: 4px 0; }
+    .result-score { font-size: 44px; font-weight: bold; color: #1a237e; margin: 10px 0; }
+    .result-stars { font-size: 36px; margin: 4px 0; }
   </style>
 </head>
 <body>
 <div class="container">
-
   <h1>French Practice</h1>
 
   <!-- Lesson list -->
   <div id="lessonSelect">
-    <h2>Choose a Lesson</h2>
     <div id="lessonList"></div>
   </div>
 
-  <!-- Vocab preview -->
-  <div id="vocabScreen" style="display:none">
-    <h2 id="vocabTitle"></h2>
-    <h3 id="vocabSubtitle"></h3>
-    <p style="font-size:13px;color:#666">Study the words, then start practice.</p>
-    <div class="vocab-grid" id="vocabGrid"></div>
-    <button class="btn-primary" onclick="startTasks()">Start Practice</button>
-    <button class="btn-secondary" onclick="showLessons()">Back</button>
-  </div>
-
-  <!-- Task screen -->
-  <div id="taskScreen">
-    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
-    <div class="score-bar">Score: <span id="score">0</span> / <span id="totalTasks">0</span></div>
-    <div id="taskArea"></div>
+  <!-- Round screen (all 3 rounds) -->
+  <div id="roundScreen" style="display:none">
+    <div class="round-badge" id="roundBadge"></div>
+    <div id="wordArea"></div>
     <div id="feedback"></div>
-    <button class="next-btn" id="nextBtn" onclick="nextTask()" style="display:none">Next &#8594;</button>
-    <br>
-    <button class="btn-secondary" style="margin-top:8px" onclick="showLessons()">&#8592; Lessons</button>
+    <button class="next-btn" id="nextBtn" onclick="nextSpeakWord()" style="display:none">Next &#8594;</button>
+    <div class="score-bar" id="scoreBar" style="display:none">
+      Score: <span id="score">0</span> / <span id="scorable">0</span>
+    </div>
+    <div class="continue-row" id="continueRow"></div>
   </div>
 
   <!-- Result screen -->
   <div id="resultScreen">
-    <h2>Lesson Complete!</h2>
+    <h2>Round 3 Complete!</h2>
     <div class="result-stars" id="resultStars"></div>
     <div class="result-score" id="resultScore"></div>
-    <p id="resultMsg" style="color:#555;font-size:14px"></p>
-    <button class="btn-primary" onclick="replayLesson()">Try Again</button>
-    <button class="btn-secondary" onclick="showLessons()">All Lessons</button>
+    <p id="resultMsg" style="color:#555;font-size:15px"></p>
+    <button class="btn-primary btn-large" onclick="startRound(1)">Start Over</button>
+    <button class="btn-secondary btn-large" onclick="showLessons()">All Lessons</button>
   </div>
-
 </div>
 
 <script>
@@ -198,16 +140,23 @@ const FRENCH_LESSONS = [];
 
 // ── state ────────────────────────────────────────────────────────────────────
 let currentLesson = null;
-let taskQueue = [];
-let taskPos = 0;
+let currentRound = 1;
+let wordIdx = 0;
 let score = 0;
 let scorable = 0;
 let answered = false;
-let currentChoiceAnswer = null;
-let currentTypeAnswer = null;
 let currentSpeakAnswer = null;
 
-// ── speech recognition setup ─────────────────────────────────────────────────
+// ── speech synthesis ─────────────────────────────────────────────────────────
+function pronounce(text) {
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = "fr-FR";
+  utt.rate = 0.82;
+  window.speechSynthesis.speak(utt);
+}
+
+// ── speech recognition ───────────────────────────────────────────────────────
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
 if (SpeechRecognition) {
@@ -223,243 +172,138 @@ function normalizeText(s) {
 
 // ── screens ──────────────────────────────────────────────────────────────────
 function showLessons() {
-  hide("vocabScreen"); hide("taskScreen"); hide("resultScreen");
+  window.speechSynthesis.cancel();
+  hide("roundScreen"); hide("resultScreen");
   show("lessonSelect");
 }
 
-function showVocab(lesson) {
+function openLesson(lesson) {
   currentLesson = lesson;
-  hide("lessonSelect");
-  document.getElementById("vocabTitle").textContent = lesson.titleEn;
-  document.getElementById("vocabSubtitle").textContent = lesson.title;
-
-  const grid = document.getElementById("vocabGrid");
-  grid.innerHTML = lesson.words.map(w => `
-    <div class="vocab-card">
-      <div class="img-wrap">
-        <div class="fallback">${w.emoji}</div>
-        <img src="images/${w.image}" alt="${w.fr}" onerror="this.style.display='none'">
-      </div>
-      <div class="fr">${w.fr}</div>
-      <div class="en">${w.en}</div>
-    </div>`).join("");
-
-  show("vocabScreen");
+  startRound(1);
 }
 
-function startTasks() {
-  hide("vocabScreen");
-  const lesson = currentLesson;
-  taskQueue = buildTaskQueue(lesson);
-  taskPos = 0; score = 0; scorable = 0; answered = false;
-  document.getElementById("score").textContent = 0;
-  document.getElementById("totalTasks").textContent = taskQueue.length;
-  updateProgress();
-  show("taskScreen");
-  nextTask();
-}
+function startRound(n) {
+  currentRound = n;
+  wordIdx = 0;
+  score = 0; scorable = 0; answered = false;
+  hide("lessonSelect"); hide("resultScreen");
 
-function replayLesson() {
-  hide("resultScreen");
-  startTasks();
-}
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("nextBtn").style.display = "none";
+  const sb = document.getElementById("scoreBar");
 
-// ── task queue builder ───────────────────────────────────────────────────────
-function buildTaskQueue(lesson) {
-  const queue = [];
-  for (const taskType of lesson.tasks) {
-    for (const word of lesson.words) {
-      queue.push({ type: taskType, word });
-    }
+  if (n === 1) {
+    document.getElementById("roundBadge").textContent = "Round 1 of 3 — Study";
+    sb.style.display = "none";
+  } else if (n === 2) {
+    document.getElementById("roundBadge").textContent = "Round 2 of 3 — Recognize";
+    sb.style.display = "none";
+  } else {
+    document.getElementById("roundBadge").textContent = "Round 3 of 3 — Speak";
+    sb.style.display = "block";
+    document.getElementById("score").textContent = 0;
+    document.getElementById("scorable").textContent = currentLesson.words.length;
   }
-  // Shuffle
-  for (let i = queue.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [queue[i], queue[j]] = [queue[j], queue[i]];
-  }
-  return queue;
+
+  show("roundScreen");
+  renderWord();
 }
 
-// ── task rendering ───────────────────────────────────────────────────────────
-function nextTask() {
-  if (taskPos >= taskQueue.length) { showResult(); return; }
+// ── word rendering ───────────────────────────────────────────────────────────
+function renderWord() {
   answered = false;
   document.getElementById("feedback").textContent = "";
   document.getElementById("nextBtn").style.display = "none";
-  updateProgress();
 
-  const task = taskQueue[taskPos];
-  taskPos++;
-  document.getElementById("totalTasks").textContent = taskQueue.length;
+  const word = currentLesson.words[wordIdx];
+  const area = document.getElementById("wordArea");
+  const continueRow = document.getElementById("continueRow");
 
-  if (task.type === "flashcard") renderFlashcard(task.word);
-  else if (task.type === "choice") renderChoice(task.word);
-  else if (task.type === "speak") renderSpeak(task.word);
-  else renderType(task.word);
-}
-
-function renderFlashcard(word) {
-  scorable++;
-  const area = document.getElementById("taskArea");
-  area.innerHTML = `
-    <p class="task-label">Click the card to reveal the translation</p>
-    <div class="flashcard" id="fc" onclick="flipCard()">
-      <div class="flashcard-inner">
-        <div class="flashcard-front">
-          <div class="fc-img-wrap">
-            <div class="fallback">${word.emoji}</div>
-            <img src="images/${word.image}" alt="${word.fr}" onerror="this.style.display='none'">
-          </div>
-          <div class="fc-fr">${word.fr}</div>
-          <div class="fc-hint">tap to flip</div>
-        </div>
-        <div class="flashcard-back">
-          <div class="fc-en">${word.en}</div>
-          <div class="fc-fr" style="margin-top:6px">${word.fr}</div>
-        </div>
-      </div>
-    </div>`;
-  // Flashcard auto-advances after flip via button
-}
-
-function flipCard() {
-  if (answered) return;
-  answered = true;
-  document.getElementById("fc").classList.add("flipped");
-  score++;
-  document.getElementById("score").textContent = score;
-  const nb = document.getElementById("nextBtn");
-  nb.style.display = "inline-block";
-  nb.focus();
-}
-
-function renderChoice(word) {
-  scorable++;
-  const lesson = currentLesson;
-  // Pick 3 wrong options from other words
-  const others = lesson.words.filter(w => w.fr !== word.fr);
-  shuffle(others);
-  const distractors = others.slice(0, 3);
-  const options = shuffle([word, ...distractors]);
-  currentChoiceAnswer = word.en;
-
-  const area = document.getElementById("taskArea");
-  area.innerHTML = `
-    <p class="task-label">What does this mean in English?</p>
-    <div class="choice-img-wrap">
-      <div class="fallback">${word.emoji}</div>
+  // image block (shared by all rounds)
+  const imgBlock = `
+    <div class="word-img-wrap">
+      <div class="placeholder">${word.fr.charAt(0)}</div>
       <img src="images/${word.image}" alt="${word.fr}" onerror="this.style.display='none'">
-    </div>
-    <div class="choice-word">${word.fr}</div>
-    <div class="choice-options" id="choiceOpts">
-      ${options.map((w, i) => `<button class="choice-btn" id="copt${i}" onclick="checkChoice(${i})">${w.en}</button>`).join("")}
     </div>`;
-  // store option order for checking
-  window._choiceOptions = options;
-}
 
-function checkChoice(idx) {
-  if (answered) return;
-  answered = true;
-  const selected = window._choiceOptions[idx];
-  const btns = document.querySelectorAll(".choice-btn");
-  btns.forEach(b => b.disabled = true);
-
-  const fb = document.getElementById("feedback");
-  if (selected.en === currentChoiceAnswer) {
-    document.getElementById("copt" + idx).classList.add("correct");
-    score++;
-    document.getElementById("score").textContent = score;
-    fb.style.color = "#4caf50"; fb.textContent = "Correct!";
-  } else {
-    document.getElementById("copt" + idx).classList.add("wrong");
-    // highlight correct
-    window._choiceOptions.forEach((w, i) => {
-      if (w.en === currentChoiceAnswer) document.getElementById("copt" + i).classList.add("correct");
-    });
-    fb.style.color = "#f44336"; fb.textContent = `Wrong! It means: "${currentChoiceAnswer}"`;
-  }
-  const nb = document.getElementById("nextBtn");
-  nb.style.display = "inline-block"; nb.focus();
-}
-
-function renderType(word) {
-  scorable++;
-  // Ask: given the French word, type the English meaning
-  currentTypeAnswer = word.en;
-  const area = document.getElementById("taskArea");
-  area.innerHTML = `
-    <p class="task-label">Type the English meaning</p>
-    <div class="type-img-wrap">
-      <div class="fallback">${word.emoji}</div>
-      <img src="images/${word.image}" alt="${word.fr}" onerror="this.style.display='none'">
-    </div>
-    <div class="type-word">${word.fr}</div>
-    <input type="text" id="typeInput" placeholder="type in English..."
-           onkeydown="if(event.key==='Enter')checkType()">
-    <button class="btn-primary" onclick="checkType()">Check</button>`;
-  setTimeout(() => { const el = document.getElementById("typeInput"); if (el) el.focus(); }, 50);
-}
-
-function checkType() {
-  if (answered) return;
-  const input = document.getElementById("typeInput");
-  const val = input ? input.value.trim().toLowerCase() : "";
-  if (!val) return;
-  answered = true;
-
-  const correct = currentTypeAnswer.toLowerCase();
-  const fb = document.getElementById("feedback");
-  // Accept if typed answer matches any part of the correct answer (e.g. "hello" matches "hello / good morning")
-  const parts = correct.split(/\s*\/\s*/);
-  const isCorrect = parts.some(p => val === p.trim()) || val === correct;
-
-  if (isCorrect) {
-    score++;
-    document.getElementById("score").textContent = score;
-    fb.style.color = "#4caf50"; fb.textContent = "Correct!";
-  } else {
-    fb.style.color = "#f44336"; fb.textContent = `Wrong! Answer: "${currentTypeAnswer}"`;
-  }
-  const nb = document.getElementById("nextBtn");
-  nb.style.display = "inline-block"; nb.focus();
-}
-
-// ── speak task ───────────────────────────────────────────────────────────────
-function renderSpeak(word) {
-  scorable++;
-  currentSpeakAnswer = word.fr;
-  const area = document.getElementById("taskArea");
-
-  if (!recognition) {
+  if (currentRound === 1) {
+    // fr word + english + image + pronounce, navigate
     area.innerHTML = `
-      <p class="task-label">Say in French</p>
-      <div class="speak-img-wrap">
-        <div class="fallback">${word.emoji}</div>
-        <img src="images/${word.image}" alt="${word.fr}" onerror="this.style.display='none'">
+      ${imgBlock}
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+        <div class="word-fr">${word.fr}</div>
+        <button class="pronounce-btn" onclick="pronounce('${word.fr.replace(/'/g,"\\'")}')">&#128264;</button>
       </div>
-      <div class="speak-en">${word.en}</div>
-      <p class="no-speech-msg">Speech recognition is not supported in this browser.<br>Try Chrome or Edge.</p>`;
-    // Auto-skip to next after showing the word
-    answered = true;
-    const nb = document.getElementById("nextBtn");
-    nb.style.display = "inline-block"; nb.focus();
-    return;
-  }
+      <div class="word-en">${word.en}</div>
+      ${navRowHTML()}`;
+    pronounce(word.fr);
+    updateContinue("Continue to Round 2 &#8594;", () => startRound(2));
 
-  area.innerHTML = `
-    <p class="task-label">Say this in French</p>
-    <div class="speak-img-wrap">
-      <div class="fallback">${word.emoji}</div>
-      <img src="images/${word.image}" alt="${word.fr}" onerror="this.style.display='none'">
-    </div>
-    <div class="speak-en">${word.en}</div>
-    <p class="speak-prompt">Press the mic and say the French word</p>
-    <button class="mic-btn" id="micBtn" onclick="startListening()">&#127908;</button>
-    <div class="mic-status" id="micStatus">Ready</div>
-    <div class="mic-transcript" id="micTranscript"></div>`;
+  } else if (currentRound === 2) {
+    // fr word + image, NO english, pronounce
+    area.innerHTML = `
+      ${imgBlock}
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px">
+        <div class="word-fr">${word.fr}</div>
+        <button class="pronounce-btn" onclick="pronounce('${word.fr.replace(/'/g,"\\'")}')">&#128264;</button>
+      </div>
+      ${navRowHTML()}`;
+    pronounce(word.fr);
+    updateContinue("Continue to Round 3 &#8594;", () => startRound(3));
+
+  } else {
+    // round 3: image only, student speaks
+    scorable++;
+    currentSpeakAnswer = word.fr;
+    document.getElementById("scorable").textContent = currentLesson.words.length;
+
+    const micHtml = recognition
+      ? `<button class="mic-btn" id="micBtn" onclick="startListening()">&#127908;</button>
+         <div class="mic-status" id="micStatus">Press mic and say the French word</div>
+         <div class="mic-transcript" id="micTranscript"></div>`
+      : `<p style="color:#e65100;font-size:13px">Speech recognition not supported.<br>Try Chrome or Edge.</p>`;
+
+    area.innerHTML = `${imgBlock}${micHtml}`;
+    continueRow.innerHTML = "";
+  }
 }
 
+function navRowHTML() {
+  const total = currentLesson.words.length;
+  const prevDis = wordIdx === 0 ? "disabled" : "";
+  const nextDis = wordIdx === total - 1 ? "disabled" : "";
+  return `
+    <div class="nav-row">
+      <button class="nav-btn" ${prevDis} onclick="navigate(-1)">&#8592;</button>
+      <span class="word-counter">${wordIdx + 1} / ${total}</span>
+      <button class="nav-btn" ${nextDis} onclick="navigate(1)">&#8594;</button>
+    </div>`;
+}
+
+function updateContinue(label, action) {
+  const row = document.getElementById("continueRow");
+  const btn = document.createElement("button");
+  btn.className = "btn-primary btn-large";
+  btn.innerHTML = label;
+  btn.onclick = action;
+  row.innerHTML = "";
+  row.appendChild(btn);
+  row.appendChild(document.createElement("br"));
+  const back = document.createElement("button");
+  back.className = "btn-secondary";
+  back.style.marginTop = "6px";
+  back.textContent = "Back to Lessons";
+  back.onclick = showLessons;
+  row.appendChild(back);
+}
+
+function navigate(delta) {
+  const total = currentLesson.words.length;
+  wordIdx = Math.max(0, Math.min(total - 1, wordIdx + delta));
+  renderWord();
+}
+
+// ── round 3: speak ───────────────────────────────────────────────────────────
 function startListening() {
   if (!recognition || answered) return;
   const micBtn = document.getElementById("micBtn");
@@ -473,22 +317,17 @@ function startListening() {
   document.getElementById("feedback").textContent = "";
 
   recognition.onresult = (e) => {
-    const alternatives = Array.from(e.results[0]).map(r => r.transcript.trim());
-    micTranscript.textContent = "\u201c" + alternatives[0] + "\u201d";
-    checkSpeak(alternatives);
+    const alts = Array.from(e.results[0]).map(r => r.transcript.trim());
+    micTranscript.textContent = "\u201c" + alts[0] + "\u201d";
+    checkSpeak(alts);
   };
 
   recognition.onerror = (e) => {
     micBtn.classList.remove("listening");
     micBtn.disabled = false;
-    if (e.error === "no-speech") {
-      micStatus.textContent = "No speech detected. Try again.";
-    } else if (e.error === "not-allowed") {
-      micStatus.textContent = "Microphone access denied.";
-      micBtn.disabled = true;
-    } else {
-      micStatus.textContent = "Error: " + e.error + ". Try again.";
-    }
+    const msgs = { "no-speech": "No speech detected. Try again.", "not-allowed": "Microphone access denied." };
+    micStatus.textContent = msgs[e.error] || "Error: " + e.error + ". Try again.";
+    if (e.error === "not-allowed") micBtn.disabled = true;
   };
 
   recognition.onend = () => {
@@ -499,18 +338,17 @@ function startListening() {
   recognition.start();
 }
 
-function checkSpeak(alternatives) {
+function checkSpeak(alts) {
   if (answered) return;
   answered = true;
-  document.getElementById("micBtn").disabled = true;
-  document.getElementById("micStatus").textContent = "Done";
+  const micBtn = document.getElementById("micBtn");
+  if (micBtn) micBtn.disabled = true;
+  const micStatus = document.getElementById("micStatus");
+  if (micStatus) micStatus.textContent = "";
 
   const expected = currentSpeakAnswer;
-  const normExpected = normalizeText(expected);
-  const isCorrect = alternatives.some(alt => {
-    const normAlt = normalizeText(alt);
-    return normAlt === normExpected || alt.toLowerCase().trim() === expected.toLowerCase().trim();
-  });
+  const normExp = normalizeText(expected);
+  const isCorrect = alts.some(a => normalizeText(a) === normExp || a.toLowerCase().trim() === expected.toLowerCase().trim());
 
   const fb = document.getElementById("feedback");
   if (isCorrect) {
@@ -518,22 +356,31 @@ function checkSpeak(alternatives) {
     document.getElementById("score").textContent = score;
     fb.style.color = "#4caf50"; fb.textContent = "Correct!";
   } else {
-    fb.style.color = "#f44336";
-    fb.textContent = `Wrong! Expected: "${expected}"`;
+    fb.style.color = "#f44336"; fb.textContent = `Wrong! Expected: "${expected}"`;
   }
+
   const nb = document.getElementById("nextBtn");
   nb.style.display = "inline-block"; nb.focus();
 }
 
+function nextSpeakWord() {
+  wordIdx++;
+  if (wordIdx >= currentLesson.words.length) {
+    showResult();
+    return;
+  }
+  renderWord();
+}
+
 // ── result ───────────────────────────────────────────────────────────────────
 function showResult() {
-  hide("taskScreen");
-  const pct = scorable > 0 ? Math.round((score / scorable) * 100) : 0;
-  document.getElementById("resultScore").textContent = `${score} / ${scorable}`;
-  let stars = "★★★";
-  let msg = "Excellent! Keep it up!";
-  if (pct < 80) { stars = "★★☆"; msg = "Good job! Practice more to perfect it."; }
-  if (pct < 50) { stars = "★☆☆"; msg = "Keep studying! You'll get there."; }
+  window.speechSynthesis.cancel();
+  hide("roundScreen");
+  const pct = currentLesson.words.length > 0 ? Math.round((score / currentLesson.words.length) * 100) : 0;
+  document.getElementById("resultScore").textContent = `${score} / ${currentLesson.words.length}`;
+  let stars = "★★★", msg = "Excellent! Perfect pronunciation!";
+  if (pct < 80) { stars = "★★☆"; msg = "Good effort! Keep practicing your pronunciation."; }
+  if (pct < 50) { stars = "★☆☆"; msg = "Keep going! Say each word clearly and try again."; }
   document.getElementById("resultStars").textContent = stars;
   document.getElementById("resultMsg").textContent = msg;
   show("resultScreen");
@@ -543,19 +390,6 @@ function showResult() {
 function show(id) { document.getElementById(id).style.display = "block"; }
 function hide(id) { document.getElementById(id).style.display = "none"; }
 
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function updateProgress() {
-  const pct = taskQueue.length > 0 ? (taskPos / taskQueue.length) * 100 : 0;
-  document.getElementById("progressBar").style.width = pct + "%";
-}
-
 // ── lesson list renderer ─────────────────────────────────────────────────────
 function renderLessonList() {
   const list = document.getElementById("lessonList");
@@ -563,22 +397,21 @@ function renderLessonList() {
     list.innerHTML = "<p style='color:#999'>No lessons loaded.</p>";
     return;
   }
-  list.innerHTML = FRENCH_LESSONS.map(l => `
-    <div class="lesson-card" onclick="showVocab(FRENCH_LESSONS[${FRENCH_LESSONS.indexOf(l)}])">
-      <div class="lesson-emoji">🇫🇷</div>
+  list.innerHTML = FRENCH_LESSONS.map((l, i) => `
+    <div class="lesson-card" onclick="openLesson(FRENCH_LESSONS[${i}])">
+      <div class="lesson-flag">&#127467;&#127479;</div>
       <div class="lesson-info">
-        <div class="title">Lesson ${l.id}: ${l.titleEn}</div>
-        <div class="subtitle">${l.title}</div>
-        <div class="count">${l.words.length} words &bull; ${l.tasks.join(", ")}</div>
+        <div class="l-title">Lesson ${l.id}: ${l.titleEn}</div>
+        <div class="l-subtitle">${l.title}</div>
+        <div class="l-count">${l.words.length} words &bull; 3 rounds</div>
       </div>
     </div>`).join("");
 }
 
-// Run after all lesson scripts are loaded
 window.addEventListener("DOMContentLoaded", renderLessonList);
 </script>
 
-<!-- Load lesson files here. Add more lessons by adding <script src="lessons/lessonN.js"> -->
+<!-- Add more lessons: <script src="lessons/lesson2.js"></script> -->
 <script src="lessons/lesson1.js"></script>
 
 </body>
