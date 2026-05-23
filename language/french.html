@@ -164,27 +164,16 @@ let currentSpeakAnswer = null;
 // ── speech synthesis ─────────────────────────────────────────────────────────
 function pronounce(text) {
   window.speechSynthesis.cancel();
-  const speak = () => {
+  setTimeout(() => {
     const utt = new SpeechSynthesisUtterance(text);
-    // prefer a French voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const frVoice = voices.find(v => v.lang.startsWith("fr"));
-    if (frVoice) utt.voice = frVoice;
     utt.lang = "fr-FR";
     utt.rate = 0.82;
-    console.log("[TTS] speaking:", text, "voice:", frVoice ? frVoice.name : "default");
+    utt.onerror = (e) => console.error("[TTS] error:", e.error);
+    utt.onstart = () => console.log("[TTS] speaking:", text);
     window.speechSynthesis.speak(utt);
-  };
-  // Chrome: voices load async and cancel() needs a tick before speak()
-  const voices = window.speechSynthesis.getVoices();
-  if (voices.length > 0) {
-    setTimeout(speak, 50);
-  } else {
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.onvoiceschanged = null;
-      setTimeout(speak, 50);
-    };
-  }
+    // Chrome bug: synthesis can get stuck in paused state
+    if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+  }, 150);
 }
 
 // ── speech recognition ───────────────────────────────────────────────────────
