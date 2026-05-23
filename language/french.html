@@ -292,7 +292,7 @@ function renderWord() {
       <input type="text" id="typeInput" placeholder="Type in French..."
              onkeydown="if(event.key==='Enter')checkTypeAnswer()">
       <button class="btn-primary" onclick="checkTypeAnswer()">Check</button>`;
-    continueRow.innerHTML = "";
+    continueRow.innerHTML = `<button class="btn-secondary" onclick="showLessons()">&#8592; Back to Lessons</button>`;
     setTimeout(() => { const el = document.getElementById("typeInput"); if (el) el.focus(); }, 50);
   }
 }
