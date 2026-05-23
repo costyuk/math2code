@@ -356,8 +356,14 @@ function doStartListening() {
   const micStatus = document.getElementById("micStatus");
   const micTranscript = document.getElementById("micTranscript");
 
-  // abort previous instance
-  if (recognition) { try { recognition.abort(); } catch(e) {} }
+  // abort previous instance — null out handlers first to prevent duplicate callbacks
+  if (recognition) {
+    recognition.onresult = null;
+    recognition.onerror  = null;
+    recognition.onend    = null;
+    recognition.onstart  = null;
+    try { recognition.abort(); } catch(e) {}
+  }
 
   // create fresh instance — must be synchronous inside user gesture for Safari
   recognition = new SpeechRecognition();
