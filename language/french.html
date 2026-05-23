@@ -176,10 +176,30 @@ function pronounce(text) {
 // ── speech recognition ───────────────────────────────────────────────────────
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
+let micStream = null; // held open so Safari recognises mic is in use
 console.log("[SR] window.SpeechRecognition:", window.SpeechRecognition);
 console.log("[SR] window.webkitSpeechRecognition:", window.webkitSpeechRecognition);
 console.log("[SR] SpeechRecognition available:", !!SpeechRecognition);
 console.log("[SR] userAgent:", navigator.userAgent);
+
+// Request mic permission as soon as round 3 is shown (not inside recognition start)
+function ensureMicPermission(callback) {
+  if (micStream) { callback(); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { callback(); return; }
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      micStream = stream;
+      console.log("[MIC] permission granted, tracks:", stream.getTracks().length);
+      callback();
+    })
+    .catch(err => {
+      console.error("[MIC] permission denied:", err.name, err.message);
+      const s = document.getElementById("micStatus");
+      if (s) s.textContent = "Microphone access denied. Check browser settings.";
+      const b = document.getElementById("micBtn");
+      if (b) b.disabled = true;
+    });
+}
 
 function normalizeText(s) {
   return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -283,6 +303,18 @@ function renderWord() {
 
     area.innerHTML = `${imgBlock}${micHtml}`;
     updateContinue("Continue to Round 4 &#8594;", () => startRound(4));
+
+    // Ensure mic permission is granted (Safari doesn't prompt via webkitSpeechRecognition alone)
+    if (SpeechRecognition) {
+      const btn = document.getElementById("micBtn");
+      if (btn) btn.disabled = true;
+      ensureMicPermission(() => {
+        const b = document.getElementById("micBtn");
+        if (b) { b.disabled = false; }
+        const s = document.getElementById("micStatus");
+        if (s) s.textContent = "Press mic and say the French word";
+      });
+    }
 
   } else {
     // round 4: image + english, student types french
