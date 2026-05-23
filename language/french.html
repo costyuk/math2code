@@ -275,7 +275,7 @@ function renderWord() {
       : `<p style="color:#e65100;font-size:13px">Speech recognition not supported.<br>Try Chrome or Edge.</p>`;
 
     area.innerHTML = `${imgBlock}${micHtml}`;
-    continueRow.innerHTML = "";
+    updateContinue("Continue to Round 4 &#8594;", () => startRound(4));
 
   } else {
     // round 4: image + english, student types french
