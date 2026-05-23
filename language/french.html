@@ -332,6 +332,7 @@ let listenTimer = null;
 
 function startListening() {
   console.log("[SR] startListening() called, SpeechRecognition:", !!SpeechRecognition, "answered:", answered);
+  console.log("[SR] protocol:", location.protocol, "host:", location.host);
   if (!SpeechRecognition || answered) {
     console.log("[SR] early return — SpeechRecognition:", !!SpeechRecognition, "answered:", answered);
     return;
@@ -340,24 +341,36 @@ function startListening() {
   const micStatus = document.getElementById("micStatus");
   const micTranscript = document.getElementById("micTranscript");
 
-  // create a fresh instance every time
-  if (recognition) { try { recognition.abort(); } catch(e) {} }
-  recognition = new SpeechRecognition();
-  recognition.lang = "fr-FR";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 5;
-
   micBtn.classList.add("listening");
   micBtn.disabled = true;
-  micStatus.textContent = "Listening...";
-  micTranscript.textContent = "";
-  document.getElementById("feedback").innerHTML = "";
+  micStatus.textContent = "Requesting mic...";
 
-  listenTimer = setTimeout(() => {
-    try { recognition.stop(); } catch(e) {}
-  }, 5000);
+  // Safari requires explicit getUserMedia permission before SpeechRecognition works
+  const startRecognition = () => {
+    if (recognition) { try { recognition.abort(); } catch(e) { console.log("[SR] abort error:", e); } }
+    try {
+      recognition = new SpeechRecognition();
+    } catch(e) {
+      console.error("[SR] new SpeechRecognition() threw:", e);
+      micStatus.textContent = "Speech recognition unavailable.";
+      micBtn.classList.remove("listening"); micBtn.disabled = false;
+      return;
+    }
+    recognition.lang = "fr-FR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 5;
+    console.log("[SR] instance created:", recognition);
 
-  recognition.onstart = () => {
+    micStatus.textContent = "Listening...";
+    micTranscript.textContent = "";
+    document.getElementById("feedback").innerHTML = "";
+
+    listenTimer = setTimeout(() => {
+      console.log("[SR] 5s timeout — stopping");
+      try { recognition.stop(); } catch(e) {}
+    }, 5000);
+
+    recognition.onstart = () => {
     console.log("[SR] recognition started, lang:", recognition.lang);
   };
 
@@ -395,14 +408,34 @@ function startListening() {
     }
   };
 
-  try {
-    recognition.start();
-    console.log("[SR] recognition.start() called");
-  } catch(e) {
-    console.error("[SR] start() threw:", e);
-    micStatus.textContent = "Could not start microphone. Try again.";
-    micBtn.classList.remove("listening");
-    micBtn.disabled = false;
+    try {
+      recognition.start();
+      console.log("[SR] recognition.start() called");
+    } catch(e) {
+      console.error("[SR] start() threw:", e.name, e.message);
+      micStatus.textContent = "Could not start: " + e.message;
+      micBtn.classList.remove("listening");
+      micBtn.disabled = false;
+    }
+  }; // end startRecognition
+
+  // Request mic permission explicitly first (required by Safari)
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        console.log("[SR] getUserMedia granted, tracks:", stream.getTracks().length);
+        stream.getTracks().forEach(t => t.stop()); // release stream, SR manages its own
+        startRecognition();
+      })
+      .catch(err => {
+        console.error("[SR] getUserMedia denied:", err.name, err.message);
+        micStatus.textContent = "Microphone access denied.";
+        micBtn.classList.remove("listening");
+        micBtn.disabled = false;
+      });
+  } else {
+    console.log("[SR] no getUserMedia, calling startRecognition directly");
+    startRecognition();
   }
 }
 
