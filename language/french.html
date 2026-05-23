@@ -168,6 +168,10 @@ function pronounce(text) {
 // ── speech recognition ───────────────────────────────────────────────────────
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
+console.log("[SR] window.SpeechRecognition:", window.SpeechRecognition);
+console.log("[SR] window.webkitSpeechRecognition:", window.webkitSpeechRecognition);
+console.log("[SR] SpeechRecognition available:", !!SpeechRecognition);
+console.log("[SR] userAgent:", navigator.userAgent);
 
 function normalizeText(s) {
   return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -327,7 +331,11 @@ function navigate(delta) {
 let listenTimer = null;
 
 function startListening() {
-  if (!SpeechRecognition || answered) return;
+  console.log("[SR] startListening() called, SpeechRecognition:", !!SpeechRecognition, "answered:", answered);
+  if (!SpeechRecognition || answered) {
+    console.log("[SR] early return — SpeechRecognition:", !!SpeechRecognition, "answered:", answered);
+    return;
+  }
   const micBtn = document.getElementById("micBtn");
   const micStatus = document.getElementById("micStatus");
   const micTranscript = document.getElementById("micTranscript");
