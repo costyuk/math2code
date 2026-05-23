@@ -168,12 +168,6 @@ function pronounce(text) {
 // ── speech recognition ───────────────────────────────────────────────────────
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
-if (SpeechRecognition) {
-  recognition = new SpeechRecognition();
-  recognition.lang = "fr-FR";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 5;
-}
 
 function normalizeText(s) {
   return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -269,7 +263,7 @@ function renderWord() {
     currentSpeakAnswer = word.fr;
     document.getElementById("scorable").textContent = currentLesson.words.length;
 
-    const micHtml = recognition
+    const micHtml = SpeechRecognition
       ? `<button class="mic-btn" id="micBtn" onclick="startListening()">&#127908;</button>
          <div class="mic-status" id="micStatus">Press mic and say the French word</div>
          <div class="mic-transcript" id="micTranscript"></div>`
@@ -333,19 +327,26 @@ function navigate(delta) {
 let listenTimer = null;
 
 function startListening() {
-  if (!recognition || answered) return;
+  if (!SpeechRecognition || answered) return;
   const micBtn = document.getElementById("micBtn");
   const micStatus = document.getElementById("micStatus");
   const micTranscript = document.getElementById("micTranscript");
+
+  // create a fresh instance every time
+  if (recognition) { try { recognition.abort(); } catch(e) {} }
+  recognition = new SpeechRecognition();
+  recognition.lang = "fr-FR";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 5;
 
   micBtn.classList.add("listening");
   micBtn.disabled = true;
   micStatus.textContent = "Listening...";
   micTranscript.textContent = "";
-  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").innerHTML = "";
 
   listenTimer = setTimeout(() => {
-    recognition.stop();
+    try { recognition.stop(); } catch(e) {}
   }, 5000);
 
   recognition.onresult = (e) => {
@@ -369,14 +370,18 @@ function startListening() {
     micBtn.classList.remove("listening");
     if (!answered) {
       micBtn.disabled = false;
-      const micStatus = document.getElementById("micStatus");
-      if (micStatus && micStatus.textContent === "Listening...") {
-        micStatus.textContent = "Time's up. Try again.";
-      }
+      const s = document.getElementById("micStatus");
+      if (s && s.textContent === "Listening...") s.textContent = "Time's up. Try again.";
     }
   };
 
-  recognition.start();
+  try {
+    recognition.start();
+  } catch(e) {
+    micStatus.textContent = "Could not start microphone. Try again.";
+    micBtn.classList.remove("listening");
+    micBtn.disabled = false;
+  }
 }
 
 function checkSpeak(alts) {
