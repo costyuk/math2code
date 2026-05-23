@@ -405,12 +405,12 @@ function doStartListening() {
     micBtn.classList.remove("listening");
     micBtn.disabled = false;
     const msgs = {
-      "no-speech":  "No speech detected. Try again.",
-      "not-allowed": "Microphone access denied.",
-      "aborted": "Aborted — on Safari enable Dictation: System Settings \u2192 Keyboard \u2192 Dictation."
+      "no-speech":   "No speech detected. Try again.",
+      "not-allowed": "Microphone access denied. Check browser permissions.",
+      "aborted":     "Safari requires Dictation to be enabled: System Settings \u2192 Keyboard \u2192 Dictation \u2192 On. Then try again."
     };
     micStatus.textContent = msgs[e.error] || "Error: " + e.error + ". Try again.";
-    if (e.error === "not-allowed" || e.error === "aborted") micBtn.disabled = true;
+    if (e.error === "not-allowed") micBtn.disabled = true;
   };
 
   recognition.onend = () => {
