@@ -349,15 +349,26 @@ function startListening() {
     try { recognition.stop(); } catch(e) {}
   }, 5000);
 
+  recognition.onstart = () => {
+    console.log("[SR] recognition started, lang:", recognition.lang);
+  };
+
+  recognition.onsoundstart = () => console.log("[SR] sound detected");
+  recognition.onspeechstart = () => console.log("[SR] speech detected");
+  recognition.onspeechend  = () => console.log("[SR] speech ended");
+
   recognition.onresult = (e) => {
     clearTimeout(listenTimer);
     const alts = Array.from(e.results[0]).map(r => r.transcript.trim());
+    console.log("[SR] result — alternatives:", alts);
+    console.log("[SR] expected:", currentSpeakAnswer);
     micTranscript.textContent = "\u201c" + alts[0] + "\u201d";
     checkSpeak(alts);
   };
 
   recognition.onerror = (e) => {
     clearTimeout(listenTimer);
+    console.error("[SR] error:", e.error, e.message);
     micBtn.classList.remove("listening");
     micBtn.disabled = false;
     const msgs = { "no-speech": "No speech detected. Try again.", "not-allowed": "Microphone access denied." };
@@ -367,6 +378,7 @@ function startListening() {
 
   recognition.onend = () => {
     clearTimeout(listenTimer);
+    console.log("[SR] recognition ended, answered:", answered);
     micBtn.classList.remove("listening");
     if (!answered) {
       micBtn.disabled = false;
@@ -377,7 +389,9 @@ function startListening() {
 
   try {
     recognition.start();
+    console.log("[SR] recognition.start() called");
   } catch(e) {
+    console.error("[SR] start() threw:", e);
     micStatus.textContent = "Could not start microphone. Try again.";
     micBtn.classList.remove("listening");
     micBtn.disabled = false;
