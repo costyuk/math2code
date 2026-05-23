@@ -420,7 +420,9 @@ function doStartListening() {
     if (!answered) {
       micBtn.disabled = false;
       const s = document.getElementById("micStatus");
-      if (s && s.textContent === "Listening...") s.textContent = "Time's up. Try again.";
+      if (s && s.textContent === "Listening...") {
+        s.textContent = "No result. On Safari, enable Dictation: System Settings \u2192 Keyboard \u2192 Dictation.";
+      }
     }
   };
 
