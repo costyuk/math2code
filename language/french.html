@@ -164,10 +164,27 @@ let currentSpeakAnswer = null;
 // ── speech synthesis ─────────────────────────────────────────────────────────
 function pronounce(text) {
   window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = "fr-FR";
-  utt.rate = 0.82;
-  window.speechSynthesis.speak(utt);
+  const speak = () => {
+    const utt = new SpeechSynthesisUtterance(text);
+    // prefer a French voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const frVoice = voices.find(v => v.lang.startsWith("fr"));
+    if (frVoice) utt.voice = frVoice;
+    utt.lang = "fr-FR";
+    utt.rate = 0.82;
+    console.log("[TTS] speaking:", text, "voice:", frVoice ? frVoice.name : "default");
+    window.speechSynthesis.speak(utt);
+  };
+  // Chrome: voices load async and cancel() needs a tick before speak()
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    setTimeout(speak, 50);
+  } else {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      setTimeout(speak, 50);
+    };
+  }
 }
 
 // ── speech recognition ───────────────────────────────────────────────────────
@@ -398,9 +415,13 @@ function doStartListening() {
     }
     micBtn.classList.remove("listening");
     micBtn.disabled = false;
-    const msgs = { "no-speech": "No speech detected. Try again.", "not-allowed": "Microphone access denied." };
+    const msgs = {
+      "no-speech":  "No speech detected. Try again.",
+      "not-allowed": "Microphone access denied.",
+      "aborted": "Aborted — on Safari enable Dictation: System Settings \u2192 Keyboard \u2192 Dictation."
+    };
     micStatus.textContent = msgs[e.error] || "Error: " + e.error + ". Try again.";
-    if (e.error === "not-allowed") micBtn.disabled = true;
+    if (e.error === "not-allowed" || e.error === "aborted") micBtn.disabled = true;
   };
 
   recognition.onend = () => {
