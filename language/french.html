@@ -35,7 +35,7 @@
       border-radius: 20px; margin-bottom: 10px; letter-spacing: 0.5px;
     }
 
-    /* Word image */
+    /* Word image — single */
     .word-img-wrap {
       width: 200px; height: 200px; position: relative;
       margin: 10px auto; border-radius: 16px; overflow: hidden;
@@ -50,6 +50,20 @@
       position: absolute; inset: 0; width: 100%; height: 100%;
       object-fit: cover;
     }
+
+    /* Word image — multiple */
+    .word-img-multi { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px auto; }
+    .word-img-small {
+      width: 110px; height: 110px; position: relative;
+      border-radius: 12px; overflow: hidden; background: #e8eaf6; flex-shrink: 0;
+    }
+    .word-img-small .placeholder {
+      position: absolute; inset: 0; display: flex; align-items: center;
+      justify-content: center; font-size: 40px; font-weight: bold;
+      color: #9fa8da; text-transform: uppercase;
+    }
+    .word-img-small img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .word-img-plus { font-size: 28px; color: #9fa8da; font-weight: bold; flex-shrink: 0; }
 
     /* Word text */
     .word-fr { font-size: 34px; font-weight: bold; color: #1a237e; margin: 10px 0 4px; }
@@ -258,11 +272,7 @@ function renderWord() {
   const continueRow = document.getElementById("continueRow");
 
   // image block (shared by all rounds)
-  const imgBlock = `
-    <div class="word-img-wrap">
-      <div class="placeholder">${word.fr.charAt(0)}</div>
-      <img src="images/${word.image}" alt="${word.fr}" onerror="this.style.display='none'">
-    </div>`;
+  const imgBlock = buildImgBlock(word);
 
   if (currentRound === 1) {
     // fr word + english + image + pronounce, navigate
@@ -330,6 +340,25 @@ function renderWord() {
     continueRow.innerHTML = `<button class="btn-secondary" onclick="showLessons()">&#8592; Back to Lessons</button>`;
     setTimeout(() => { const el = document.getElementById("typeInput"); if (el) el.focus(); }, 50);
   }
+}
+
+function buildImgBlock(word) {
+  const imgs = word.images ? word.images : (word.image ? [word.image] : []);
+  const parts = word.fr.split(" ");
+  if (imgs.length > 1) {
+    return `<div class="word-img-multi">${imgs.map((img, i) => `
+      ${i > 0 ? '<span class="word-img-plus">+</span>' : ""}
+      <div class="word-img-small">
+        <div class="placeholder">${(parts[i] || parts[0]).charAt(0)}</div>
+        <img src="images/${img}" alt="${parts[i] || ""}" onerror="this.style.display='none'">
+      </div>`).join("")}
+    </div>`;
+  }
+  const img = imgs[0] || "";
+  return `<div class="word-img-wrap">
+    <div class="placeholder">${word.fr.charAt(0)}</div>
+    ${img ? `<img src="images/${img}" alt="${word.fr}" onerror="this.style.display='none'">` : ""}
+  </div>`;
 }
 
 function navRowHTML() {
@@ -605,6 +634,7 @@ document.addEventListener("keydown", (e) => {
 
 <script src="lessons/lesson1.js"></script>
 <script src="lessons/lesson2.js"></script>
+<script src="lessons/lesson3.js"></script>
 
 </body>
 </html>
