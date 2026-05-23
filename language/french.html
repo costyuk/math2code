@@ -162,20 +162,15 @@ let answered = false;
 let currentSpeakAnswer = null;
 
 // ── speech synthesis ─────────────────────────────────────────────────────────
-let ttsTimer = null;
-
 function pronounce(text) {
-  if (ttsTimer) { clearTimeout(ttsTimer); ttsTimer = null; }
   window.speechSynthesis.cancel();
-  ttsTimer = setTimeout(() => {
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = "fr-FR";
-    utt.rate = 0.82;
-    utt.onstart = () => console.log("[TTS] speaking:", text);
-    utt.onend   = () => console.log("[TTS] done");
-    utt.onerror = (e) => console.error("[TTS] error:", e.error);
-    window.speechSynthesis.speak(utt);
-  }, 150);
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = "fr-FR";
+  utt.rate = 0.82;
+  utt.onstart = () => console.log("[TTS] speaking:", text);
+  utt.onend   = () => console.log("[TTS] done");
+  utt.onerror = (e) => console.error("[TTS] error:", e.error);
+  window.speechSynthesis.speak(utt);
 }
 
 // ── speech recognition ───────────────────────────────────────────────────────
