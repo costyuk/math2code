@@ -224,10 +224,7 @@ function startRound(n) {
 function renderWord() {
   answered = false;
   const fb = document.getElementById("feedback");
-  fb.textContent = "";
-  // remove any injected answer element from previous round 4 wrong answer
-  const prev = fb.nextElementSibling;
-  if (prev && prev.classList.contains("word-fr") && !prev.id) prev.remove();
+  fb.innerHTML = "";
   document.getElementById("nextBtn").style.display = "none";
 
   const word = currentLesson.words[wordIdx];
@@ -425,12 +422,8 @@ function checkTypeAnswer() {
     document.getElementById("score").textContent = score;
     fb.style.color = "#4caf50"; fb.textContent = "Correct!";
   } else {
-    fb.style.color = "#f44336"; fb.textContent = "Wrong!";
-    const answer = document.createElement("div");
-    answer.className = "word-fr";
-    answer.style.marginTop = "6px";
-    answer.textContent = expected;
-    fb.after(answer);
+    fb.innerHTML = `<span style="color:#f44336">Wrong!</span><br>
+      <span style="color:#1a237e;font-size:28px;font-weight:bold">${expected}</span>`;
   }
   const nb = document.getElementById("nextBtn");
   nb.style.display = "inline-block"; nb.focus();
