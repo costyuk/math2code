@@ -89,6 +89,15 @@
     .mic-status     { font-size: 13px; color: #888; min-height: 18px; margin: 2px 0; }
     .mic-transcript { font-size: 16px; color: #333; font-style: italic; min-height: 24px; margin: 4px 0; }
 
+    /* Type input */
+    .type-prompt { font-size: 18px; color: #555; margin: 8px 0 12px; }
+    input[type="text"] {
+      padding: 10px 14px; font-size: 18px; width: 280px;
+      border: 2px solid #ccc; border-radius: 8px; margin: 6px;
+      font-family: Arial; text-align: center;
+    }
+    input[type="text"]:focus { outline: none; border-color: #3f51b5; }
+
     /* Feedback & score */
     #feedback { font-size: 16px; font-weight: bold; min-height: 24px; margin: 6px 0; }
     .score-bar { font-size: 13px; color: #777; margin: 4px 0; }
@@ -111,12 +120,12 @@
     <div id="lessonList"></div>
   </div>
 
-  <!-- Round screen (all 3 rounds) -->
+  <!-- Round screen (all 4 rounds) -->
   <div id="roundScreen" style="display:none">
     <div class="round-badge" id="roundBadge"></div>
     <div id="wordArea"></div>
     <div id="feedback"></div>
-    <button class="next-btn" id="nextBtn" onclick="nextSpeakWord()" style="display:none">Next &#8594;</button>
+    <button class="next-btn" id="nextBtn" onclick="nextWord()" style="display:none">Next &#8594;</button>
     <div class="score-bar" id="scoreBar" style="display:none">
       Score: <span id="score">0</span> / <span id="scorable">0</span>
     </div>
@@ -125,11 +134,11 @@
 
   <!-- Result screen -->
   <div id="resultScreen">
-    <h2>Round 3 Complete!</h2>
+    <h2 id="resultTitle">Round Complete!</h2>
     <div class="result-stars" id="resultStars"></div>
     <div class="result-score" id="resultScore"></div>
     <p id="resultMsg" style="color:#555;font-size:15px"></p>
-    <button class="btn-primary btn-large" onclick="startRound(1)">Start Over</button>
+    <div id="resultActions"></div>
     <button class="btn-secondary btn-large" onclick="showLessons()">All Lessons</button>
   </div>
 </div>
@@ -192,17 +201,19 @@ function startRound(n) {
   document.getElementById("nextBtn").style.display = "none";
   const sb = document.getElementById("scoreBar");
 
-  if (n === 1) {
-    document.getElementById("roundBadge").textContent = "Round 1 of 3 — Study";
-    sb.style.display = "none";
-  } else if (n === 2) {
-    document.getElementById("roundBadge").textContent = "Round 2 of 3 — Recognize";
-    sb.style.display = "none";
-  } else {
-    document.getElementById("roundBadge").textContent = "Round 3 of 3 — Speak";
+  const badges = {
+    1: "Round 1 of 4 — Study",
+    2: "Round 2 of 4 — Recognize",
+    3: "Round 3 of 4 — Speak",
+    4: "Round 4 of 4 — Write"
+  };
+  document.getElementById("roundBadge").textContent = badges[n];
+  if (n === 3 || n === 4) {
     sb.style.display = "block";
     document.getElementById("score").textContent = 0;
     document.getElementById("scorable").textContent = currentLesson.words.length;
+  } else {
+    sb.style.display = "none";
   }
 
   show("roundScreen");
@@ -251,7 +262,7 @@ function renderWord() {
     pronounce(word.fr);
     updateContinue("Continue to Round 3 &#8594;", () => startRound(3));
 
-  } else {
+  } else if (currentRound === 3) {
     // round 3: image only, student speaks
     scorable++;
     currentSpeakAnswer = word.fr;
@@ -265,6 +276,20 @@ function renderWord() {
 
     area.innerHTML = `${imgBlock}${micHtml}`;
     continueRow.innerHTML = "";
+
+  } else {
+    // round 4: image + english, student types french
+    scorable++;
+    document.getElementById("scorable").textContent = currentLesson.words.length;
+
+    area.innerHTML = `
+      ${imgBlock}
+      <div class="type-prompt">${word.en}</div>
+      <input type="text" id="typeInput" placeholder="Type in French..."
+             onkeydown="if(event.key==='Enter')checkTypeAnswer()">
+      <button class="btn-primary" onclick="checkTypeAnswer()">Check</button>`;
+    continueRow.innerHTML = "";
+    setTimeout(() => { const el = document.getElementById("typeInput"); if (el) el.focus(); }, 50);
   }
 }
 
@@ -378,7 +403,31 @@ function checkSpeak(alts) {
   nb.style.display = "inline-block"; nb.focus();
 }
 
-function nextSpeakWord() {
+// ── round 4: type ────────────────────────────────────────────────────────────
+function checkTypeAnswer() {
+  if (answered) return;
+  const input = document.getElementById("typeInput");
+  const val = input ? input.value.trim() : "";
+  if (!val) return;
+  answered = true;
+  input.disabled = true;
+
+  const expected = currentLesson.words[wordIdx].fr;
+  const isCorrect = normalizeText(val) === normalizeText(expected);
+
+  const fb = document.getElementById("feedback");
+  if (isCorrect) {
+    score++;
+    document.getElementById("score").textContent = score;
+    fb.style.color = "#4caf50"; fb.textContent = "Correct!";
+  } else {
+    fb.style.color = "#f44336"; fb.textContent = `Wrong! Expected: "${expected}"`;
+  }
+  const nb = document.getElementById("nextBtn");
+  nb.style.display = "inline-block"; nb.focus();
+}
+
+function nextWord() {
   wordIdx++;
   if (wordIdx >= currentLesson.words.length) {
     showResult();
@@ -391,13 +440,26 @@ function nextSpeakWord() {
 function showResult() {
   window.speechSynthesis.cancel();
   hide("roundScreen");
-  const pct = currentLesson.words.length > 0 ? Math.round((score / currentLesson.words.length) * 100) : 0;
-  document.getElementById("resultScore").textContent = `${score} / ${currentLesson.words.length}`;
-  let stars = "★★★", msg = "Excellent! Perfect pronunciation!";
-  if (pct < 80) { stars = "★★☆"; msg = "Good effort! Keep practicing your pronunciation."; }
-  if (pct < 50) { stars = "★☆☆"; msg = "Keep going! Say each word clearly and try again."; }
+  const total = currentLesson.words.length;
+  const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+  const roundNames = { 3: "Round 3 — Speak", 4: "Round 4 — Write" };
+  document.getElementById("resultTitle").textContent = (roundNames[currentRound] || "Round") + " Complete!";
+  document.getElementById("resultScore").textContent = `${score} / ${total}`;
+  const msgs3 = ["Keep going! Say each word clearly and try again.", "Good effort! Keep practicing your pronunciation.", "Excellent! Perfect pronunciation!"];
+  const msgs4 = ["Keep going! Study the words and try again.", "Good effort! Keep practicing your spelling.", "Excellent! Perfect spelling!"];
+  const msgs = currentRound === 4 ? msgs4 : msgs3;
+  let stars = "★★★", msg = msgs[2];
+  if (pct < 80) { stars = "★★☆"; msg = msgs[1]; }
+  if (pct < 50) { stars = "★☆☆"; msg = msgs[0]; }
   document.getElementById("resultStars").textContent = stars;
   document.getElementById("resultMsg").textContent = msg;
+
+  const actions = document.getElementById("resultActions");
+  actions.innerHTML = currentRound === 3
+    ? `<button class="btn-primary btn-large" onclick="startRound(4)">Continue to Round 4 &#8594;</button><br>
+       <button class="btn-secondary" style="margin-top:6px" onclick="startRound(1)">Start Over</button>`
+    : `<button class="btn-primary btn-large" onclick="startRound(1)">Start Over</button>`;
+
   show("resultScreen");
 }
 
@@ -418,7 +480,7 @@ function renderLessonList() {
       <div class="lesson-info">
         <div class="l-title">Lesson ${l.id}: ${l.titleEn}</div>
         <div class="l-subtitle">${l.title}</div>
-        <div class="l-count">${l.words.length} words &bull; 3 rounds</div>
+        <div class="l-count">${l.words.length} words &bull; 4 rounds</div>
       </div>
     </div>`).join("");
 }
