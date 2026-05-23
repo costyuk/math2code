@@ -223,7 +223,11 @@ function startRound(n) {
 // ── word rendering ───────────────────────────────────────────────────────────
 function renderWord() {
   answered = false;
-  document.getElementById("feedback").textContent = "";
+  const fb = document.getElementById("feedback");
+  fb.textContent = "";
+  // remove any injected answer element from previous round 4 wrong answer
+  const prev = fb.nextElementSibling;
+  if (prev && prev.classList.contains("word-fr") && !prev.id) prev.remove();
   document.getElementById("nextBtn").style.display = "none";
 
   const word = currentLesson.words[wordIdx];
@@ -421,7 +425,12 @@ function checkTypeAnswer() {
     document.getElementById("score").textContent = score;
     fb.style.color = "#4caf50"; fb.textContent = "Correct!";
   } else {
-    fb.style.color = "#f44336"; fb.textContent = `Wrong! Expected: "${expected}"`;
+    fb.style.color = "#f44336"; fb.textContent = "Wrong!";
+    const answer = document.createElement("div");
+    answer.className = "word-fr";
+    answer.style.marginTop = "6px";
+    answer.textContent = expected;
+    fb.after(answer);
   }
   const nb = document.getElementById("nextBtn");
   nb.style.display = "inline-block"; nb.focus();
