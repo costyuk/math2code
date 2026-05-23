@@ -431,7 +431,8 @@ function checkTypeAnswer() {
     area.appendChild(div);
   }
   const nb = document.getElementById("nextBtn");
-  nb.style.display = "inline-block"; nb.focus();
+  nb.style.display = "inline-block";
+  setTimeout(() => nb.focus(), 0);
 }
 
 function nextWord() {
