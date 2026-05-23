@@ -422,8 +422,13 @@ function checkTypeAnswer() {
     document.getElementById("score").textContent = score;
     fb.style.color = "#4caf50"; fb.textContent = "Correct!";
   } else {
-    fb.innerHTML = `<span style="color:#f44336">Wrong!</span><br>
-      <span style="color:#1a237e;font-size:28px;font-weight:bold">${expected}</span>`;
+    fb.style.color = "#f44336"; fb.textContent = "Wrong!";
+    const area = document.getElementById("wordArea");
+    const div = document.createElement("div");
+    div.className = "word-fr";
+    div.style.cssText = "margin-top:10px;color:#c62828";
+    div.textContent = expected;
+    area.appendChild(div);
   }
   const nb = document.getElementById("nextBtn");
   nb.style.display = "inline-block"; nb.focus();
