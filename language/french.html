@@ -287,7 +287,7 @@ function renderWord() {
       ${imgBlock}
       <div class="type-prompt">${word.en}</div>
       <input type="text" id="typeInput" placeholder="Type in French..."
-             onkeydown="if(event.key==='Enter')checkTypeAnswer()">
+             onkeydown="if(event.key==='Enter'){event.preventDefault();checkTypeAnswer();}">
       <button class="btn-primary" onclick="checkTypeAnswer()">Check</button>`;
     continueRow.innerHTML = `<button class="btn-secondary" onclick="showLessons()">&#8592; Back to Lessons</button>`;
     setTimeout(() => { const el = document.getElementById("typeInput"); if (el) el.focus(); }, 50);
