@@ -163,38 +163,19 @@ let currentSpeakAnswer = null;
 
 // ── speech synthesis ─────────────────────────────────────────────────────────
 let ttsTimer = null;
-let ttsResumeInterval = null;
 
 function pronounce(text) {
-  // cancel any pending scheduled speak
   if (ttsTimer) { clearTimeout(ttsTimer); ttsTimer = null; }
-  if (ttsResumeInterval) { clearInterval(ttsResumeInterval); ttsResumeInterval = null; }
   window.speechSynthesis.cancel();
-
   ttsTimer = setTimeout(() => {
     const utt = new SpeechSynthesisUtterance(text);
     utt.lang = "fr-FR";
     utt.rate = 0.82;
-
-    utt.onstart = () => {
-      console.log("[TTS] speaking:", text);
-      // Chrome bug workaround: keep synthesis alive with periodic resume()
-      ttsResumeInterval = setInterval(() => {
-        if (window.speechSynthesis.speaking) window.speechSynthesis.resume();
-      }, 5000);
-    };
-    utt.onend = () => {
-      console.log("[TTS] done");
-      if (ttsResumeInterval) { clearInterval(ttsResumeInterval); ttsResumeInterval = null; }
-    };
-    utt.onerror = (e) => {
-      console.error("[TTS] error:", e.error);
-      if (ttsResumeInterval) { clearInterval(ttsResumeInterval); ttsResumeInterval = null; }
-    };
-
+    utt.onstart = () => console.log("[TTS] speaking:", text);
+    utt.onend   = () => console.log("[TTS] done");
+    utt.onerror = (e) => console.error("[TTS] error:", e.error);
     window.speechSynthesis.speak(utt);
-    if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-  }, 200);
+  }, 150);
 }
 
 // ── speech recognition ───────────────────────────────────────────────────────
