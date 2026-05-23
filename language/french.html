@@ -486,6 +486,18 @@ function renderLessonList() {
 }
 
 window.addEventListener("DOMContentLoaded", renderLessonList);
+
+document.addEventListener("keydown", (e) => {
+  if (currentRound === 1 || currentRound === 2) {
+    if (e.key === "ArrowLeft")  navigate(-1);
+    if (e.key === "ArrowRight") navigate(1);
+  } else if (currentRound === 3 || currentRound === 4) {
+    if (e.key === "ArrowRight") {
+      const nb = document.getElementById("nextBtn");
+      if (nb && nb.style.display !== "none") nextWord();
+    }
+  }
+});
 </script>
 
 <script src="lessons/lesson1.js"></script>
