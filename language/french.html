@@ -334,9 +334,16 @@ function navigate(delta) {
 
 // ── round 3: speak ───────────────────────────────────────────────────────────
 let listenTimer = null;
+let retryCount = 0;
+const MAX_RETRIES = 3;
 
 function startListening() {
-  console.log("[SR] startListening called, SR available:", !!SpeechRecognition, "answered:", answered);
+  retryCount = 0;
+  doStartListening();
+}
+
+function doStartListening() {
+  console.log("[SR] doStartListening, attempt:", retryCount + 1, "SR:", !!SpeechRecognition, "answered:", answered);
   if (!SpeechRecognition || answered) return;
 
   const micBtn = document.getElementById("micBtn");
@@ -381,7 +388,14 @@ function startListening() {
 
   recognition.onerror = (e) => {
     clearTimeout(listenTimer);
-    console.error("[SR] onerror:", e.error, e.message);
+    console.error("[SR] onerror:", e.error, e.message, "retry:", retryCount);
+    if (e.error === "aborted" && retryCount < MAX_RETRIES) {
+      retryCount++;
+      console.log("[SR] aborted — retrying attempt", retryCount);
+      micStatus.textContent = "Retrying...";
+      setTimeout(doStartListening, 300);
+      return;
+    }
     micBtn.classList.remove("listening");
     micBtn.disabled = false;
     const msgs = { "no-speech": "No speech detected. Try again.", "not-allowed": "Microphone access denied." };
