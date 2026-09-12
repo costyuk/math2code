@@ -216,6 +216,7 @@
     if (unlockedLevels[l - 1]) { startQuiz(l); return }
     requestedLevel = l
     document.getElementById("pinPanel").style.display = "block"
+    document.getElementById("pinInput").focus()
   }
 
   function checkPin() {
@@ -240,6 +241,7 @@
     document.getElementById("score").innerText = 0
     document.getElementById("quiz").style.display = "block"
     document.getElementById("levelSelect").style.display = "none"
+    document.getElementById("pinPanel").style.display = "none"
 
     let titles = [
       "",
