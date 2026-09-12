@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recall Practice</title>
+
+  <style>
+    body{
+      font-family:Arial;
+      background:#eef2ff;
+      text-align:center;
+      margin:0;
+    }
+
+    header{
+      background:#3f51b5;
+      color:white;
+      padding:15px;
+      font-size:24px;
+    }
+
+    .container{
+      background:white;
+      max-width:900px;
+      margin:20px auto;
+      padding:25px;
+      border-radius:10px;
+      box-shadow:0 0 10px rgba(0,0,0,0.1);
+    }
+
+    button{
+      padding:12px 20px;
+      margin:6px;
+      border:none;
+      border-radius:6px;
+      font-size:18px;
+      cursor:pointer;
+    }
+
+    .levelBtn{
+      background:#3f51b5;
+      color:white;
+    }
+
+    .locked{
+      background:#bdbdbd;
+      color:#444;
+    }
+
+    .code{
+      background:#f4f4f4;
+      padding:20px;
+      border-radius:6px;
+      font-family:monospace;
+      font-size:24px;
+      line-height:1.6;
+      display:inline-block;
+      margin:20px;
+      white-space:pre-line;
+    }
+
+    .option{
+      display:inline-block;
+      margin:6px;
+      padding:12px 20px;
+      border-radius:8px;
+      background:#eee;
+      cursor:pointer;
+      font-size:18px;
+    }
+
+    .option.selected{
+      background:#3f51b5;
+      color:white;
+    }
+
+    input[type="text"]{
+      padding:10px;
+      font-size:18px;
+      width:160px;
+    }
+
+    #feedback{
+      font-size:20px;
+      font-weight:bold;
+      margin-top:10px;
+    }
+
+    #pinPanel{
+      display:none;
+      margin-top:20px;
+      background:#fff3cd;
+      padding:15px;
+      border-radius:6px;
+    }
+
+    .sign-input{
+      font-size:2em;
+      width:80px;
+      text-align:center;
+      border:3px solid #90caf9;
+      border-radius:14px;
+      padding:8px 0;
+      outline:none;
+      font-family:inherit;
+      color:#1565c0;
+      background:#f9fffe;
+    }
+
+    .symbol-btns{
+      display:flex;
+      justify-content:center;
+      gap:14px;
+      margin:10px 0;
+    }
+
+    .sym-btn{
+      font-size:1.8em;
+      width:66px;
+      height:66px;
+      border-radius:14px;
+      border:none;
+      cursor:pointer;
+      font-weight:bold;
+    }
+
+    .sym-btn.gt{background:#fff9c4;color:#f57f17}
+    .sym-btn.lt{background:#fce4ec;color:#c62828}
+    .sym-btn.eq{background:#e8f5e9;color:#2e7d32}
+
+    .compare-row{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+
+    .side-box{
+      background:#e3f2fd;
+      border-radius:14px;
+      padding:14px 18px;
+      min-width:80px;
+      font-size:2em;
+      font-weight:bold;
+      color:#0d47a1;
+      display:inline-block;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>Recall Practice</header>
+
+<div class="container">
+
+  <div id="levelSelect">
+    <h3>Select Topic</h3>
+
+    <button class="levelBtn" onclick="selectLevel(1)">Level 1 — Primitives</button>
+    <button class="levelBtn locked" onclick="selectLevel(2)" id="btn2">Level 2 — Comparison</button>
+    <button class="levelBtn locked" onclick="selectLevel(3)" id="btn3">Level 3 — Conditions</button>
+    <button class="levelBtn locked" onclick="selectLevel(4)" id="btn4">Level 4 — Chained Conditions</button>
+
+    <p>Get 15 correct to unlock next level, or use teacher PIN</p>
+  </div>
+
+  <div id="pinPanel">
+    <p>Enter Teacher PIN to unlock this level</p>
+    <input id="pinInput" type="password" placeholder="Enter PIN"
+           onkeypress="if(event.key==='Enter'){checkPin()}">
+    <button onclick="checkPin()">Unlock</button>
+  </div>
+
+  <div id="quiz" style="display:none">
+
+    <h3 id="levelTitle"></h3>
+
+    <div id="question" class="code"></div>
+
+    <div id="answers"></div>
+
+    <div id="feedback"></div>
+
+    <p>Correct: <span id="score">0</span> / 20</p>
+
+    <button onclick="nextQuestion()">Next Question</button>
+    <button onclick="goBack()">Back</button>
+
+  </div>
+
+</div>
+
+<script>
+
+  const GOOGLE_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbwqW5pL7IkOWEzhxphMfOWYhltA1n8HCSOQG7dFDicG0wPr0rR4NwilotAVOGk4TqL9/exec";
+
+  let level = 1
+  let score = 0
+  let questionCount = 0
+  let correctAnswer = null
+  let answered = false
+  let selectedAnswer = ""
+  let studentName = localStorage.getItem("javaStudent") || ""
+
+  let unlockedLevels = [true, false, false, false]
+  let requestedLevel = null
+
+  // ── Level select / PIN ──
+
+  function selectLevel(l) {
+    if (unlockedLevels[l - 1]) { startQuiz(l); return }
+    requestedLevel = l
+    document.getElementById("pinPanel").style.display = "block"
+  }
+
+  function checkPin() {
+    let input = document.getElementById("pinInput")
+    let pin = input.value
+    input.value = ""
+    if (pin === "1502") {
+      unlockedLevels[requestedLevel - 1] = true
+      let btn = document.getElementById("btn" + requestedLevel)
+      if (btn) { btn.classList.remove("locked") }
+      document.getElementById("pinPanel").style.display = "none"
+      startQuiz(requestedLevel)
+    } else {
+      alert("Wrong PIN")
+    }
+  }
+
+  function startQuiz(l) {
+    level = l
+    score = 0
+    questionCount = 0
+    document.getElementById("score").innerText = 0
+    document.getElementById("quiz").style.display = "block"
+    document.getElementById("levelSelect").style.display = "none"
+
+    let titles = [
+      "",
+      "Level 1 — Primitives Recall",
+      "Level 2 — Comparison Recall",
+      "Level 3 — Conditions Recall",
+      "Level 4 — Chained Conditions Recall"
+    ]
+    document.getElementById("levelTitle").innerText = titles[l]
+    nextQuestion()
+  }
+
+  function goBack() {
+    document.getElementById("quiz").style.display = "none"
+    document.getElementById("levelSelect").style.display = "block"
+  }
+
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min
+  }
+
+  // ── Question dispatch ──
+
+  function nextQuestion() {
+    answered = false
+    selectedAnswer = ""
+    questionCount++
+
+    if (questionCount > 200) { alert("200 questions done!"); goBack(); return }
+
+    document.getElementById("feedback").innerText = ""
+
+    if (level === 1) primitivesRecall()
+    if (level === 2) comparisonRecall()
+    if (level === 3) conditionsRecall()
+    if (level === 4) chainedRecall()
+  }
+
+  // ── LEVEL 1: PRIMITIVES RECALL ──
+  // Mix of: pick the type for a value, pick the type for a variable name, true/false about bug fixes
+
+  const primitivesQuestions = [
+    // From Level 1 — what type stores this value?
+    { q: "What Java type stores: 3.14", type: "mc", options: ["int","double","String","char","boolean","long"], a: "double" },
+    { q: "What Java type stores: 25", type: "mc", options: ["int","double","String","char","boolean","long"], a: "int" },
+    { q: "What Java type stores: true", type: "mc", options: ["int","double","String","char","boolean","long"], a: "boolean" },
+    { q: "What Java type stores: \"Hello\"", type: "mc", options: ["int","double","String","char","boolean","long"], a: "String" },
+    { q: "What Java type stores: 'A'", type: "mc", options: ["int","double","String","char","boolean","long"], a: "char" },
+    { q: "What Java type stores: 10000000000", type: "mc", options: ["int","double","String","char","boolean","long"], a: "long" },
+    { q: "What Java type stores: 0.5", type: "mc", options: ["int","double","String","char","boolean","long"], a: "double" },
+    { q: "What Java type stores: false", type: "mc", options: ["int","double","String","char","boolean","long"], a: "boolean" },
+    { q: "What Java type stores: 3000000000000", type: "mc", options: ["int","double","String","char","boolean","long"], a: "long" },
+    { q: "What Java type stores: '?'", type: "mc", options: ["int","double","String","char","boolean","long"], a: "char" },
+
+    // From Level 2 — what type for this variable name?
+    { q: "What type for variable: firstName", type: "mc", options: ["int","double","String","char","boolean","BigDecimal"], a: "String" },
+    { q: "What type for variable: isAccountActive", type: "mc", options: ["int","double","String","char","boolean","BigDecimal"], a: "boolean" },
+    { q: "What type for variable: priceOfCoffee", type: "mc", options: ["int","double","String","char","boolean","BigDecimal"], a: "BigDecimal" },
+    { q: "What type for variable: userInitial", type: "mc", options: ["int","double","String","char","boolean","BigDecimal"], a: "char" },
+    { q: "What type for variable: temperatureOutside", type: "mc", options: ["int","double","String","char","boolean","BigDecimal"], a: "double" },
+    { q: "What type for variable: numberOfStudents", type: "mc", options: ["int","double","String","char","boolean","BigDecimal"], a: "int" },
+    { q: "What type for variable: isDoorOpen", type: "mc", options: ["int","double","String","char","boolean","BigDecimal"], a: "boolean" },
+    { q: "What type for variable: studentQuizGrade", type: "mc", options: ["int","double","String","char","boolean","BigDecimal"], a: "char" },
+
+    // From Level 3 — true/false about bugs
+    { q: 'int age = "25";\n\nIs this code correct?', type: "tf", a: false },
+    { q: "char grade = \"A\";\n\nIs this code correct?", type: "tf", a: false },
+    { q: "boolean active = true;\n\nIs this code correct?", type: "tf", a: true },
+    { q: "int temperature = 36.6;\n\nIs this code correct?", type: "tf", a: false },
+    { q: "double temperature = 36.6;\n\nIs this code correct?", type: "tf", a: true },
+    { q: "char grade = 'A';\n\nIs this code correct?", type: "tf", a: true },
+    { q: "String name = \"Bob\";\n\nIs this code correct?", type: "tf", a: true },
+    { q: "int speedOfLight = 300000000;\n\nIs this code correct?", type: "tf", a: false },
+    { q: "long speedOfLight = 300000000;\n\nIs this code correct?", type: "tf", a: true },
+    { q: "boolean active = \"true\";\n\nIs this code correct?", type: "tf", a: false },
+  ]
+
+  function primitivesRecall() {
+    let q = primitivesQuestions[rand(0, primitivesQuestions.length - 1)]
+    document.getElementById("question").innerText = q.q
+
+    if (q.type === "mc") {
+      correctAnswer = q.a
+      renderOptions(q.options)
+    } else {
+      correctAnswer = q.a
+      renderTrueFalse()
+    }
+  }
+
+  // ── LEVEL 2: COMPARISON RECALL ──
+  // Mix: compare two numbers, compare expression vs number, compare expression vs expression
+
+  const comparisonQuestions = [
+    // Level 2 style — compare two numbers
+    { q: null, type: "compare-nums" },
+    { q: null, type: "compare-nums" },
+    { q: null, type: "compare-nums" },
+    { q: null, type: "compare-nums" },
+    { q: null, type: "compare-nums" },
+    // Level 4 style — expression vs number
+    { q: null, type: "compare-expr-num" },
+    { q: null, type: "compare-expr-num" },
+    { q: null, type: "compare-expr-num" },
+    { q: null, type: "compare-expr-num" },
+    { q: null, type: "compare-expr-num" },
+    // Level 5 style — expression vs expression
+    { q: null, type: "compare-expr-expr" },
+    { q: null, type: "compare-expr-expr" },
+    { q: null, type: "compare-expr-expr" },
+    { q: null, type: "compare-expr-expr" },
+    { q: null, type: "compare-expr-expr" },
+    // More variety
+    { q: null, type: "compare-nums" },
+    { q: null, type: "compare-expr-num" },
+    { q: null, type: "compare-expr-expr" },
+    { q: null, type: "compare-nums" },
+    { q: null, type: "compare-expr-num" },
+  ]
+
+  function randExpr() {
+    let op = Math.random() > 0.5 ? "+" : "-"
+    let a, b, val
+    if (op === "+") { a = rand(1, 5); b = rand(1, 5); val = a + b }
+    else { a = rand(2, 9); b = rand(1, a - 1); val = a - b }
+    return { expr: a + " " + op + " " + b, val: val }
+  }
+
+  function comparisonRecall() {
+    let types = ["compare-nums", "compare-expr-num", "compare-expr-expr"]
+    let type = types[rand(0, types.length - 1)]
+
+    let leftText, rightText, leftVal, rightVal
+
+    if (type === "compare-nums") {
+      leftVal = rand(1, 20)
+      rightVal = rand(1, 20)
+      leftText = String(leftVal)
+      rightText = String(rightVal)
+    } else if (type === "compare-expr-num") {
+      let e = randExpr()
+      leftText = e.expr
+      leftVal = e.val
+      rightVal = rand(1, 10)
+      rightText = String(rightVal)
+    } else {
+      let L = randExpr()
+      let R = randExpr()
+      leftText = L.expr
+      leftVal = L.val
+      rightText = R.expr
+      rightVal = R.val
+    }
+
+    correctAnswer = leftVal > rightVal ? ">" : leftVal < rightVal ? "<" : "=="
+
+    document.getElementById("question").innerHTML = ""
+
+    let html = '<div class="compare-row">' +
+      '<div class="side-box">' + leftText + '</div>' +
+      '<input class="sign-input" id="signInput" maxlength="2" placeholder="?" autocomplete="off"' +
+      ' onkeydown="if(event.key===\'Enter\') submitComparison()">' +
+      '<div class="side-box">' + rightText + '</div>' +
+      '</div>' +
+      '<div class="symbol-btns">' +
+      '<button class="sym-btn gt" onclick="fillSign(\'>\')">></button>' +
+      '<button class="sym-btn eq" onclick="fillSign(\'==\')">=</button>' +
+      '<button class="sym-btn lt" onclick="fillSign(\'<\')"><</button>' +
+      '</div>'
+
+    document.getElementById("answers").innerHTML = html +
+      '<button onclick="submitComparison()">Submit</button>'
+  }
+
+  function fillSign(s) {
+    document.getElementById("signInput").value = s
+    document.getElementById("signInput").focus()
+  }
+
+  function submitComparison() {
+    if (answered) return
+    answered = true
+
+    let input = document.getElementById("signInput").value.trim()
+    if (!["<", ">", "=="].includes(input)) {
+      document.getElementById("feedback").innerText = "Type >, < or =="
+      answered = false
+      return
+    }
+
+    if (input === correctAnswer) {
+      score++
+      document.getElementById("feedback").innerText = "Correct!"
+    } else {
+      document.getElementById("feedback").innerText = "Wrong — answer: " + correctAnswer
+    }
+
+    document.getElementById("signInput").disabled = true
+    document.getElementById("score").innerText = score
+    if (score >= 20) unlockNext()
+  }
+
+  // ── LEVEL 3: CONDITIONS RECALL ──
+  // From conditions.html levels 1-5: number comparisons, boolean logic, string equality, arithmetic conditions
+
+  const conditionsQuestions = [
+    // Level 1 style — simple number comparison
+    { q: "int a = 7;\n\nif (a > 5)", a: true },
+    { q: "int a = 3;\n\nif (a > 5)", a: false },
+    { q: "int a = 10;\n\nif (a <= 10)", a: true },
+    { q: "int a = 15;\n\nif (a == 10)", a: false },
+    { q: "int a = 8;\n\nif (a != 8)", a: false },
+    { q: "int a = 4;\n\nif (a >= 4)", a: true },
+
+    // Level 2 style — two variables
+    { q: "int a = 12;\nint b = 7;\n\nboolean result = (a > b);", a: true },
+    { q: "int a = 3;\nint b = 9;\n\nboolean result = (a > b);", a: false },
+
+    // Level 3 style — string equality
+    { q: 'String word = "cat";\n\nif (word.equals("cat"))', a: true },
+    { q: 'String word = "dog";\n\nif (word.equals("cat"))', a: false },
+    { q: 'let word = "5";\n\nif (word === 5)', a: false },
+    { q: 'let word = 5;\n\nif (word === 5)', a: true },
+    { q: 'let word = "5";\n\nif (word == 5)', a: true },
+    { q: 'String a = new String("cat");\nString b = new String("cat");\n\nif (a == b)', a: false },
+
+    // Level 5 style — booleans and arithmetic
+    { q: "boolean isOn = true;\n\nif (isOn)", a: true },
+    { q: "boolean isOn = false;\n\nif (isOn)", a: false },
+    { q: "boolean hasKey = true;\n\nif (!hasKey)", a: false },
+    { q: "boolean hasKey = false;\n\nif (!hasKey)", a: true },
+    { q: "int num = 7;\n\nif (num + 3 == 10)", a: true },
+    { q: "int num = 5;\n\nif (num + 4 == 10)", a: false },
+    { q: "int x = 10;\n\nif (x >= 10)", a: true },
+    { q: "int x = 3;\n\nif (x <= 2)", a: false },
+    { q: "boolean b = false;\n\nif (b == true)", a: false },
+    { q: "int value = 0;\n\nif (value - 1 < 0)", a: true },
+  ]
+
+  function conditionsRecall() {
+    let q = conditionsQuestions[rand(0, conditionsQuestions.length - 1)]
+    document.getElementById("question").innerText = q.q
+    correctAnswer = q.a
+    renderTrueFalse()
+  }
+
+  // ── LEVEL 4: CHAINED CONDITIONS RECALL ──
+  // From conditionsChained.html levels 1-5: negation, &&, ||, combined
+
+  const chainedQuestions = [
+    // Level 1 style — negation of comparison
+    { q: "if (!(3 > 5))", a: true },
+    { q: "if (!(7 > 2))", a: false },
+    { q: "if (!(4 == 4))", a: false },
+    { q: "if (!(6 < 1))", a: true },
+    { q: "if (!(8 != 8))", a: true },
+
+    // Level 2 style — negation with variable
+    { q: "int a = 3;\n\nif (!(a > 5))", a: true },
+    { q: "int a = 10;\n\nif (!(a > 5))", a: false },
+    { q: "int a = 7;\n\nif (!(a == 7))", a: false },
+    { q: "int a = 4;\n\nif (!(a <= 3))", a: true },
+
+    // Level 5 style — && and || combinations
+    { q: "let x = 5;\nlet y = 10;\n\nif (x < 10 && y > 5)", a: true },
+    { q: "let x = 7;\nlet y = 3;\n\nif (x < 5 || y > 5)", a: false },
+    { q: "let a = 2;\nlet b = 8;\n\nif (!(a + b == 10))", a: false },
+    { q: "let score = 8;\nlet passed = true;\n\nif (score >= 5 && passed)", a: true },
+    { q: "let isOn = true;\nlet hasKey = false;\n\nif (isOn && hasKey)", a: false },
+    { q: "let a = true;\nlet b = false;\n\nif (!a || b)", a: false },
+    { q: "let a = false;\nlet b = false;\n\nif (!a && !b)", a: true },
+    { q: "let flag1 = false;\nlet flag2 = true;\n\nif (!flag1 || flag2)", a: true },
+    { q: "let x = 5;\nlet y = 10;\n\nif (!(x > 10 || y < 5))", a: true },
+    { q: "let a = true;\nlet b = false;\n\nif (a || !b)", a: true },
+    { q: "let x = 0;\nlet y = 1;\n\nif (x != 0 && y == 1)", a: false },
+    { q: "let a = true;\nlet b = true;\n\nif (!(a && b))", a: false },
+    { q: "let x = 10;\nlet y = 5;\n\nif (x > 5 && y < 10)", a: true },
+    { q: "let word = \"dog\";\nlet pet = true;\n\nif (word === \"cat\" || !pet)", a: false },
+    { q: "let flag1 = false;\nlet flag2 = false;\n\nif (!flag1 || flag2)", a: true },
+  ]
+
+  function chainedRecall() {
+    let q = chainedQuestions[rand(0, chainedQuestions.length - 1)]
+    document.getElementById("question").innerText = q.q
+    correctAnswer = q.a
+    renderTrueFalse()
+  }
+
+  // ── Shared renderers ──
+
+  function renderTrueFalse() {
+    document.getElementById("answers").innerHTML =
+      '<button onclick="checkAnswer(true)">TRUE</button>' +
+      '<button onclick="checkAnswer(false)">FALSE</button>'
+  }
+
+  function renderOptions(opts) {
+    let html = ""
+    opts.forEach(function(o) {
+      html += '<div class="option" onclick="pickOption(this,\'' + o + '\')">' + o + '</div>'
+    })
+    html += '<br><button onclick="submitOption()">Submit</button>'
+    document.getElementById("answers").innerHTML = html
+  }
+
+  function pickOption(el, val) {
+    document.querySelectorAll(".option").forEach(function(o) { o.classList.remove("selected") })
+    el.classList.add("selected")
+    selectedAnswer = val
+  }
+
+  function submitOption() {
+    if (answered) return
+    if (!selectedAnswer) return
+    answered = true
+
+    if (selectedAnswer === correctAnswer) {
+      score++
+      document.getElementById("feedback").innerText = "Correct!"
+    } else {
+      document.getElementById("feedback").innerText = "Wrong — answer: " + correctAnswer
+    }
+
+    disableAnswers()
+    document.getElementById("score").innerText = score
+    if (score >= 20) unlockNext()
+  }
+
+  function checkAnswer(ans) {
+    if (answered) return
+    answered = true
+
+    if (ans === correctAnswer) {
+      score++
+      document.getElementById("feedback").innerText = "Correct!"
+    } else {
+      document.getElementById("feedback").innerText = "Wrong — answer: " + String(correctAnswer)
+    }
+
+    disableAnswers()
+    document.getElementById("score").innerText = score
+    if (score >= 20) unlockNext()
+  }
+
+  function disableAnswers() {
+    document.querySelectorAll("#answers button").forEach(function(b) { b.disabled = true })
+    document.querySelectorAll(".option").forEach(function(o) { o.style.pointerEvents = "none" })
+    let inp = document.getElementById("signInput")
+    if (inp) inp.disabled = true
+  }
+
+  function unlockNext() {
+    sendResult()
+    alert("Level complete!")
+
+    if (level < 4) {
+      unlockedLevels[level] = true
+      let btn = document.getElementById("btn" + (level + 1))
+      if (btn) btn.classList.remove("locked")
+    }
+
+    goBack()
+  }
+
+  function sendResult() {
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        name: studentName,
+        level: "Recall Level " + level,
+        mode: "recall",
+        correct: score,
+        attempts: questionCount,
+        accuracy: Math.round((score / questionCount) * 100)
+      })
+    }).catch(function(e) { console.log("Sheet send failed:", e) })
+  }
+
+</script>
+
+</body>
+</html>
