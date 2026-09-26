@@ -575,10 +575,22 @@ const L7_CHALLENGES = [
     tests: [[5, 3, 8], [2, 7, 9], [4, 4, 8], [10, 1, 11]],
   },
   {
-    desc: 'If a is less than b, increment a using ++ until a equals b (use a loop or repeated ++). Return a. If a >= b, just return a.',
-    sig: 'int catchUp(int a, int b)',
-    params: ['a', 'b'],
-    tests: [[3, 5, 5], [5, 5, 5], [7, 3, 7], [1, 4, 4]],
+    desc: 'If n > 5, append "big" to s using +=. Otherwise append "small" to s using +=. Return s.',
+    sig: 'String label(int n, String s)',
+    params: ['n', 's'],
+    tests: [[7, "it is ", "it is big"], [3, "it is ", "it is small"], [5, "val: ", "val: small"], [10, "size: ", "size: big"]],
+  },
+  {
+    desc: 'Increment n using ++. Then append n to s using +=. If n > 5, append "!" to s using +=. Return s.',
+    sig: 'String incLabel(int n, String s)',
+    params: ['n', 's'],
+    tests: [[4, "n=", "n=5"], [5, "n=", "n=6!"], [9, "val:", "val:10!"], [2, "x=", "x=3"]],
+  },
+  {
+    desc: 'If n > 0, append "positive" to s using +=. If n < 0, append "negative" to s using +=. If n equals 0, append "zero" to s using +=. Return s.',
+    sig: 'String sign(int n, String s)',
+    params: ['n', 's'],
+    tests: [[5, "it is ", "it is positive"], [-3, "it is ", "it is negative"], [0, "it is ", "it is zero"]],
   },
   {
     desc: 'If a > 5, add b to a using +=. Otherwise subtract b from a using -=. Return a.',
