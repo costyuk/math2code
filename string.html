@@ -337,7 +337,7 @@ function generateL2() {
   const words = ["banana", "apple", "tomato", "pepper", "cookie", "coffee", "butter", "mango",
                  "bottle", "little", "hello", "java", "letter", "pizza", "rabbit", "soccer"];
 
-  const qType = r(9);
+  const qType = r(12);
   const w = words[r(words.length)];
   let code, ans;
 
@@ -397,13 +397,33 @@ function generateL2() {
     code = `String s = "${w}";\nint result = s.indexOf("${sub}");\n// What is result?`;
     ans = String(w.indexOf(sub));
     return { type: "input", code, ans };
-  } else {
+  } else if (qType === 8) {
     // .lastIndexOf(substring)
     const start = r(w.length - 2);
     const sub = w.substring(start, start + 2);
     code = `String s = "${w}";\nint result = s.lastIndexOf("${sub}");\n// What is result?`;
     ans = String(w.lastIndexOf(sub));
     return { type: "input", code, ans };
+  } else if (qType === 9) {
+    // .contains(substring) — true
+    const start = r(w.length - 2);
+    const sub = w.substring(start, start + 2);
+    code = `String s = "${w}";\nboolean result = s.contains("${sub}");\n// What is result?`;
+    ans = true;
+    return { type: "tf", code, ans };
+  } else if (qType === 10) {
+    // .contains(substring) — false
+    const fakeSubs = ["zx", "qw", "xk", "jz", "vq"];
+    const sub = fakeSubs[r(fakeSubs.length)];
+    code = `String s = "${w}";\nboolean result = s.contains("${sub}");\n// What is result?`;
+    ans = false;
+    return { type: "tf", code, ans };
+  } else {
+    // .contains(single char as string) — true
+    const ch = w.charAt(r(w.length));
+    code = `String s = "${w}";\nboolean result = s.contains("${ch}");\n// What is result?`;
+    ans = true;
+    return { type: "tf", code, ans };
   }
 }
 
@@ -468,6 +488,21 @@ const L3_CHALLENGES = [
     desc: 'Return true if s contains the character "z", false otherwise. Use indexOf.',
     sig: 'boolean hasZ(String s)',
     tests: [["pizza", true], ["hello", false], ["jazz", true], ["zero", true]],
+  },
+  {
+    desc: 'Return true if s contains "an", false otherwise.',
+    sig: 'boolean hasAn(String s)',
+    tests: [["banana", true], ["mango", false], ["orange", true], ["apple", false]],
+  },
+  {
+    desc: 'Return true if s contains "pp", false otherwise.',
+    sig: 'boolean hasPP(String s)',
+    tests: [["apple", true], ["pepper", true], ["hello", false], ["happy", true]],
+  },
+  {
+    desc: 'Return true if s contains "java", false otherwise.',
+    sig: 'boolean hasJava(String s)',
+    tests: [["I love java", true], ["javascript", true], ["python", false], ["java is fun", true]],
   },
 ];
 
