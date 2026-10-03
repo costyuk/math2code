@@ -45,7 +45,8 @@
   <div id="levelSelect">
     <h3>Select Level</h3>
     <button class="levelBtn" onclick="selectLevel(1)">Level 1 &mdash; .length() / .isEmpty() / .isBlank()</button><br>
-    <p style="color:#888;font-size:14px">Pass level 1 with 30 correct. Or ask your teacher for the PIN.</p>
+    <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 &mdash; .charAt() / .indexOf() / .lastIndexOf()</button><br>
+    <p style="color:#888;font-size:14px">Pass level 1 with 30, level 2 with 25. Or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
       <input id="pinInput" type="password" placeholder="PIN"
@@ -73,7 +74,7 @@ let level = 1;
 let score = 0;
 let answered = false;
 let requestedLevel = null;
-let unlockedLevels = [true];
+let unlockedLevels = [true, false];
 let currentQ = null;
 
 function selectLevel(l) {
@@ -90,6 +91,8 @@ function checkPin() {
   document.getElementById("pinInput").value = "";
   if (pin === "1502") {
     unlockedLevels[requestedLevel - 1] = true;
+    const btn = document.getElementById("btn" + requestedLevel);
+    if (btn) { btn.classList.remove("locked"); }
     document.getElementById("pinPanel").style.display = "none";
     startQuiz(requestedLevel);
   } else {
@@ -98,11 +101,12 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return [".length() / .isEmpty() / .isBlank()"][l - 1] || "";
+  return [".length() / .isEmpty() / .isBlank()", ".charAt() / .indexOf() / .lastIndexOf()"][l - 1] || "";
 }
 
 function passScore() {
-  return 30;
+  if (level === 1) return 30;
+  return 25;
 }
 
 function startQuiz(l) {
@@ -128,11 +132,14 @@ function nextQuestion() {
 
   if (level === 1) {
     currentQ = generateL1();
-    if (currentQ.type === "tf") {
-      renderTF();
-    } else {
-      renderInputQ("What does this return?");
-    }
+  } else if (level === 2) {
+    currentQ = generateL2();
+  }
+
+  if (currentQ.type === "tf") {
+    renderTF();
+  } else {
+    renderInputQ("What does this return?");
   }
 }
 
@@ -174,7 +181,14 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  document.getElementById("feedback").innerText += "  You completed all levels!";
+  if (level < 2) {
+    unlockedLevels[level] = true;
+    const btn = document.getElementById("btn" + (level + 1));
+    if (btn) { btn.classList.remove("locked"); }
+    document.getElementById("feedback").innerText += "  Level " + (level + 1) + " unlocked!";
+  } else {
+    document.getElementById("feedback").innerText += "  You completed all levels!";
+  }
 }
 
 function check() {
@@ -261,6 +275,83 @@ function generateL1() {
     const w2 = words[r(words.length)];
     code = `String s = "${w1}" + "${w2}";\nint result = s.length();\n// What is result?`;
     ans = String(w1.length + w2.length);
+    return { type: "input", code, ans };
+  }
+}
+
+// ── level 2 generator: .charAt(), .indexOf(), .lastIndexOf() ─────────────────
+function generateL2() {
+  const r = (m) => Math.floor(Math.random() * m);
+
+  const words = ["banana", "apple", "tomato", "pepper", "cookie", "coffee", "butter", "mango",
+                 "bottle", "little", "hello", "java", "letter", "pizza", "rabbit", "soccer"];
+
+  const qType = r(9);
+  const w = words[r(words.length)];
+  let code, ans;
+
+  if (qType === 0) {
+    // .charAt(i) — random valid index
+    const i = r(w.length);
+    code = `String s = "${w}";\nchar result = s.charAt(${i});\n// What is result?`;
+    ans = w.charAt(i);
+    return { type: "input", code, ans };
+  } else if (qType === 1) {
+    // .charAt(0) — first char
+    code = `String s = "${w}";\nchar result = s.charAt(0);\n// What is result?`;
+    ans = w.charAt(0);
+    return { type: "input", code, ans };
+  } else if (qType === 2) {
+    // .charAt(s.length() - 1) — last char
+    code = `String s = "${w}";\nchar result = s.charAt(s.length() - 1);\n// What is result?`;
+    ans = w.charAt(w.length - 1);
+    return { type: "input", code, ans };
+  } else if (qType === 3) {
+    // .indexOf(char) — char exists
+    const i = r(w.length);
+    const ch = w.charAt(i);
+    code = `String s = "${w}";\nint result = s.indexOf('${ch}');\n// What is result?`;
+    ans = String(w.indexOf(ch));
+    return { type: "input", code, ans };
+  } else if (qType === 4) {
+    // .indexOf(char) — char does NOT exist
+    const missing = "zxqw".charAt(r(4));
+    code = `String s = "${w}";\nint result = s.indexOf('${missing}');\n// What is result?`;
+    ans = String(w.indexOf(missing));
+    return { type: "input", code, ans };
+  } else if (qType === 5) {
+    // .lastIndexOf(char) — char that appears more than once
+    const charCounts = {};
+    for (const ch of w) charCounts[ch] = (charCounts[ch] || 0) + 1;
+    let ch = null;
+    for (const c in charCounts) { if (charCounts[c] > 1) { ch = c; break; } }
+    if (!ch) ch = w.charAt(0); // fallback
+    code = `String s = "${w}";\nint result = s.lastIndexOf('${ch}');\n// What is result?`;
+    ans = String(w.lastIndexOf(ch));
+    return { type: "input", code, ans };
+  } else if (qType === 6) {
+    // .lastIndexOf(char) — char that appears once
+    const charCounts = {};
+    for (const ch of w) charCounts[ch] = (charCounts[ch] || 0) + 1;
+    let ch = null;
+    for (const c in charCounts) { if (charCounts[c] === 1) { ch = c; break; } }
+    if (!ch) ch = w.charAt(0);
+    code = `String s = "${w}";\nint result = s.lastIndexOf('${ch}');\n// What is result?`;
+    ans = String(w.lastIndexOf(ch));
+    return { type: "input", code, ans };
+  } else if (qType === 7) {
+    // .indexOf(substring)
+    const start = r(w.length - 2);
+    const sub = w.substring(start, start + 2);
+    code = `String s = "${w}";\nint result = s.indexOf("${sub}");\n// What is result?`;
+    ans = String(w.indexOf(sub));
+    return { type: "input", code, ans };
+  } else {
+    // .lastIndexOf(substring)
+    const start = r(w.length - 2);
+    const sub = w.substring(start, start + 2);
+    code = `String s = "${w}";\nint result = s.lastIndexOf("${sub}");\n// What is result?`;
+    ans = String(w.lastIndexOf(sub));
     return { type: "input", code, ans };
   }
 }
