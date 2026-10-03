@@ -49,7 +49,8 @@
     <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 &mdash; Write: 1-Line</button><br>
     <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 &mdash; Write: 2-Line</button><br>
     <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 &mdash; Write: Multi-Line</button><br>
-    <p style="color:#888;font-size:14px">Pass levels 1/2/3 with 30/25/15, levels 4/5 with 12/10. Or ask your teacher for the PIN.</p>
+    <button class="levelBtn locked" id="btn6" onclick="selectLevel(6)">Level 6 &mdash; Write: Full Method</button><br>
+    <p style="color:#888;font-size:14px">Pass levels 1/2/3 with 30/25/15, levels 4/5/6 with 12/10/8. Or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
       <input id="pinInput" type="password" placeholder="PIN"
@@ -77,7 +78,7 @@ let level = 1;
 let score = 0;
 let answered = false;
 let requestedLevel = null;
-let unlockedLevels = [true, false, false, false, false];
+let unlockedLevels = [true, false, false, false, false, false];
 let challengeIdx = 0;
 let currentQ = null;
 
@@ -105,7 +106,7 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return [".length() / .isEmpty() / .isBlank()", ".charAt() / .indexOf() / .lastIndexOf()", "Write: 1-Line", "Write: 2-Line", "Write: Multi-Line"][l - 1] || "";
+  return [".length() / .isEmpty() / .isBlank()", ".charAt() / .indexOf() / .lastIndexOf()", "Write: 1-Line", "Write: 2-Line", "Write: Multi-Line", "Write: Full Method"][l - 1] || "";
 }
 
 function passScore() {
@@ -113,7 +114,8 @@ function passScore() {
   if (level === 2) return 25;
   if (level === 3) return 15;
   if (level === 4) return 12;
-  return 10;
+  if (level === 5) return 10;
+  return 8;
 }
 
 function startQuiz(l) {
@@ -143,10 +145,14 @@ function nextQuestion() {
   } else if (level === 2) {
     currentQ = generateL2();
   } else if (level >= 3) {
-    const challenges = level === 3 ? L3_CHALLENGES : level === 4 ? L4_CHALLENGES : L5_CHALLENGES;
+    const challenges = level === 3 ? L3_CHALLENGES : level === 4 ? L4_CHALLENGES : level === 5 ? L5_CHALLENGES : L6_CHALLENGES;
     currentQ = { ...challenges[challengeIdx % challenges.length], type: "write" };
     challengeIdx++;
-    renderWriteChallenge(currentQ);
+    if (level === 6) {
+      renderFullMethodChallenge(currentQ);
+    } else {
+      renderWriteChallenge(currentQ);
+    }
     return;
   }
 
@@ -195,7 +201,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 5) {
+  if (level < 6) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); }
@@ -242,11 +248,61 @@ function renderWriteChallenge(challenge) {
   setTimeout(() => { const el = document.getElementById(focusId); if (el) el.focus(); }, 50);
 }
 
+function renderFullMethodChallenge(challenge) {
+  const area = document.getElementById("questionArea");
+  const testsHtml = challenge.tests.map(test => {
+    return `("${test[0]}") &rarr; ${JSON.stringify(test[1])}`;
+  }).join(',  ');
+  area.innerHTML = `
+    <p class="q-label">${challenge.desc}</p>
+    <p class="q-label" style="color:#999;font-size:12px">Write the complete method: signature + body + closing brace</p>
+    <textarea id="codeTA" rows="6" placeholder="String myMethod(String s) {\n  ...\n  return ...;\n}"
+      style="display:block;width:90%;max-width:680px;margin:0 auto;border-radius:0;
+             background:#f4f4f4;border:none;border-left:4px solid #3f51b5;
+             padding:6px 14px;resize:vertical;font-family:monospace;font-size:13px;
+             line-height:1.5;box-sizing:border-box;"></textarea>
+    <p class="q-label">Test cases: ${testsHtml}</p>
+    <button onclick="check()">Check</button>`;
+  setTimeout(() => { const el = document.getElementById("codeTA"); if (el) el.focus(); }, 50);
+}
+
 function checkWrite() {
   const challenge = currentQ;
   const el = document.getElementById("codeInput") || document.getElementById("codeTA");
-  const code = el.value.trim();
+  let code = el.value.trim();
   if (!code) return;
+
+  if (level === 6) {
+    // Extract body from full method: remove signature line and closing brace
+    const sigMatch = code.match(/^\s*\w+\s+\w+\s*\(\s*\w+\s+(\w+)\s*\)\s*\{/);
+    if (!sigMatch) {
+      document.getElementById("feedback").style.color = "#f44336";
+      document.getElementById("feedback").innerText = 'Could not parse method signature. Expected format: ReturnType methodName(String paramName) { ... }';
+      return;
+    }
+    const paramName = sigMatch[1];
+    // Remove signature and closing brace
+    code = code.replace(/^\s*\w+\s+\w+\s*\([^)]*\)\s*\{/, '').replace(/\}\s*$/, '').trim();
+    try {
+      const fn = new Function(paramName, code);
+      for (const test of challenge.tests) {
+        const result = fn(test[0]);
+        if (String(result) !== String(test[1])) {
+          document.getElementById("feedback").style.color = "#f44336";
+          document.getElementById("feedback").innerText =
+            `Test failed: ("${test[0]}") \u2192 got "${result}", expected "${test[1]}"`;
+          return;
+        }
+      }
+      answered = true;
+      onCorrect();
+    } catch(e) {
+      document.getElementById("feedback").style.color = "#f44336";
+      document.getElementById("feedback").innerText = `Error: ${e.message}`;
+    }
+    return;
+  }
+
   try {
     const fn = new Function('s', code);
     for (const test of challenge.tests) {
@@ -626,6 +682,58 @@ const L5_CHALLENGES = [
     desc: 'Get the character at index 0 and at index 1 of s. Return "" + second + first (swap the first two characters).',
     sig: 'String swapTwo(String s)',
     tests: [["hello", "eh"], ["java", "aj"], ["ab", "ba"], ["dog", "od"]],
+  },
+];
+
+// ── level 6 challenges: write full method (signature + body) ──────────────────
+const L6_CHALLENGES = [
+  {
+    desc: 'Write a method that takes a String and returns its length.',
+    tests: [["hello", 5], ["java", 4], ["", 0], ["a", 1]],
+  },
+  {
+    desc: 'Write a method that takes a String and returns its first character as a String (use "" + charAt).',
+    tests: [["hello", "h"], ["java", "j"], ["apple", "a"]],
+  },
+  {
+    desc: 'Write a method that takes a String and returns true if it is empty, false otherwise.',
+    tests: [["", true], ["hi", false], [" ", false]],
+  },
+  {
+    desc: 'Write a method that takes a String and returns true if it contains "java", false otherwise.',
+    tests: [["I love java", true], ["python", false], ["javascript", true]],
+  },
+  {
+    desc: 'Write a method that takes a String and returns the last character as a String (use "" + charAt).',
+    tests: [["hello", "o"], ["java", "a"], ["dog", "g"]],
+  },
+  {
+    desc: 'Write a method that takes a String. If it is blank, return "blank". Otherwise return "not blank".',
+    tests: [["", "blank"], [" ", "blank"], ["hi", "not blank"], ["  ", "blank"]],
+  },
+  {
+    desc: 'Write a method that takes a String and returns the index of the first "a". Return -1 if not found.',
+    tests: [["banana", 1], ["hello", -1], ["apple", 0], ["java", 1]],
+  },
+  {
+    desc: 'Write a method that takes a String. If its length is greater than 3, return "long". Otherwise return "short".',
+    tests: [["hi", "short"], ["java", "long"], ["abc", "short"], ["hello", "long"]],
+  },
+  {
+    desc: 'Write a method that takes a String and returns the first and last characters joined as a String (use "" + first + last).',
+    tests: [["hello", "ho"], ["java", "ja"], ["banana", "ba"]],
+  },
+  {
+    desc: 'Write a method that takes a String. If it contains a space " ", return "has space". Otherwise return "no space".',
+    tests: [["hello world", "has space"], ["java", "no space"], ["a b", "has space"]],
+  },
+  {
+    desc: 'Write a method that takes a String. Return the indexOf the last "o" using lastIndexOf. Return -1 if not found.',
+    tests: [["tomato", 5], ["hello", 4], ["java", -1], ["oo", 1]],
+  },
+  {
+    desc: 'Write a method that takes a String. If it is empty, return 0. Otherwise return the length minus 1.',
+    tests: [["hello", 4], ["", 0], ["a", 0], ["java", 3]],
   },
 ];
 
