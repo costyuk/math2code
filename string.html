@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>String Methods Practice</title>
+  <style>
+    body { font-family: Arial; background: #eef2ff; text-align: center; margin: 0; padding: 6px; }
+    .container { background: white; max-width: 860px; margin: auto; padding: 16px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { color: #333; font-size: 18px; margin: 6px 0; }
+    h3 { font-size: 15px; margin: 6px 0; }
+    button { padding: 7px 14px; margin: 4px; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; }
+    .levelBtn { background: #3f51b5; color: white; }
+    .locked    { background: #bdbdbd; color: #444; }
+    pre.code {
+      background: #f4f4f4; padding: 10px 14px; border-radius: 8px;
+      font-family: monospace; font-size: 13px; line-height: 1.5;
+      text-align: left; display: block; margin: 8px auto;
+      max-width: 680px; overflow-x: auto; white-space: pre;
+      border-left: 4px solid #3f51b5;
+    }
+    .q-label { font-size: 16px; color: #333; margin-bottom: 8px; }
+    input[type="text"] {
+      padding: 7px 10px; font-size: 14px; width: 200px;
+      border: 2px solid #ccc; border-radius: 8px; margin: 6px;
+      font-family: monospace;
+    }
+    input[type="text"]:focus { outline: none; border-color: #3f51b5; }
+    #feedback { font-size: 15px; font-weight: bold; margin: 6px 0; min-height: 22px; }
+    .score-bar { font-size: 13px; color: #555; margin: 5px 0; }
+    .next-btn { background: #3f51b5; color: white; font-size: 13px; padding: 7px 22px; border-radius: 8px; margin-top: 6px; }
+    .back-btn { background: #9e9e9e; color: white; }
+    .tf-btn { font-size: 16px; padding: 10px 30px; border-radius: 8px; font-weight: bold; }
+    .tf-true  { background: #4caf50; color: white; }
+    .tf-false { background: #f44336; color: white; }
+    .tf-true:hover  { background: #388e3c; }
+    .tf-false:hover { background: #c62828; }
+    #pinPanel { display: none; margin-top: 12px; background: #fff3cd; padding: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h2>String Methods Practice</h2>
+
+  <div id="levelSelect">
+    <h3>Select Level</h3>
+    <button class="levelBtn" onclick="selectLevel(1)">Level 1 &mdash; .length() / .isEmpty() / .isBlank()</button><br>
+    <p style="color:#888;font-size:14px">Pass level 1 with 30 correct. Or ask your teacher for the PIN.</p>
+    <div id="pinPanel">
+      <p>Enter Teacher PIN to unlock:</p>
+      <input id="pinInput" type="password" placeholder="PIN"
+             onkeypress="if(event.key==='Enter')checkPin()" style="font-size:17px;width:100px;padding:8px;border-radius:6px;border:1px solid #ccc">
+      <button onclick="checkPin()">Unlock</button>
+    </div>
+    <br>
+    <a href="index.html"><button class="back-btn">&#8592; Main Menu</button></a>
+  </div>
+
+  <div id="quiz" style="display:none">
+    <h3 id="levelTitle"></h3>
+    <div id="questionArea"></div>
+    <div id="feedback"></div>
+    <div class="score-bar">Correct: <span id="score">0</span> / <span id="passScore">30</span></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()" style="display:none">Next &#8594;</button>
+    <br>
+    <button class="back-btn" onclick="goBack()">&#8592; Back</button>
+  </div>
+
+</div>
+
+<script>
+let level = 1;
+let score = 0;
+let answered = false;
+let requestedLevel = null;
+let unlockedLevels = [true];
+let currentQ = null;
+
+function selectLevel(l) {
+  if (!unlockedLevels[l - 1]) {
+    requestedLevel = l;
+    document.getElementById("pinPanel").style.display = "block";
+    return;
+  }
+  startQuiz(l);
+}
+
+function checkPin() {
+  const pin = document.getElementById("pinInput").value;
+  document.getElementById("pinInput").value = "";
+  if (pin === "1502") {
+    unlockedLevels[requestedLevel - 1] = true;
+    document.getElementById("pinPanel").style.display = "none";
+    startQuiz(requestedLevel);
+  } else {
+    alert("Wrong PIN");
+  }
+}
+
+function levelLabel(l) {
+  return [".length() / .isEmpty() / .isBlank()"][l - 1] || "";
+}
+
+function passScore() {
+  return 30;
+}
+
+function startQuiz(l) {
+  level = l;
+  score = 0;
+  document.getElementById("score").innerText = 0;
+  document.getElementById("passScore").innerText = passScore();
+  document.getElementById("quiz").style.display = "block";
+  document.getElementById("levelSelect").style.display = "none";
+  document.getElementById("levelTitle").innerText = "Level " + l + " \u2014 " + levelLabel(l);
+  nextQuestion();
+}
+
+function goBack() {
+  document.getElementById("quiz").style.display = "none";
+  document.getElementById("levelSelect").style.display = "block";
+}
+
+function nextQuestion() {
+  answered = false;
+  document.getElementById("feedback").innerText = "";
+  document.getElementById("nextBtn").style.display = "none";
+
+  if (level === 1) {
+    currentQ = generateL1();
+    if (currentQ.type === "tf") {
+      renderTF();
+    } else {
+      renderInputQ("What does this return?");
+    }
+  }
+}
+
+function renderInputQ(label) {
+  const area = document.getElementById("questionArea");
+  area.innerHTML = `
+    <p class="q-label">${label}</p>
+    <pre class="code" id="codeBlock"></pre>
+    <input type="text" id="ansI" placeholder="type answer..."
+           onkeypress="if(event.key==='Enter')check()">
+    <button onclick="check()">Check</button>`;
+  document.getElementById("codeBlock").textContent = currentQ.code;
+  setTimeout(() => { const el = document.getElementById("ansI"); if (el) el.focus(); }, 50);
+}
+
+function renderTF() {
+  const area = document.getElementById("questionArea");
+  area.innerHTML = `
+    <p class="q-label">True or False?</p>
+    <pre class="code" id="codeBlock"></pre>
+    <button class="tf-btn tf-true" onclick="checkTF(true)">True</button>
+    <button class="tf-btn tf-false" onclick="checkTF(false)">False</button>`;
+  document.getElementById("codeBlock").textContent = currentQ.code;
+}
+
+function onCorrect() {
+  score++;
+  document.getElementById("score").innerText = score;
+  document.getElementById("feedback").style.color = "#4caf50";
+  document.getElementById("feedback").innerText = "Correct!";
+  if (score >= passScore()) unlockNext();
+  const nb = document.getElementById("nextBtn"); nb.style.display = "inline-block"; nb.focus();
+}
+
+function onWrong(correctVal) {
+  document.getElementById("feedback").style.color = "#f44336";
+  document.getElementById("feedback").innerText = `Wrong! Answer: "${correctVal}"`;
+  const nb = document.getElementById("nextBtn"); nb.style.display = "inline-block"; nb.focus();
+}
+
+function unlockNext() {
+  document.getElementById("feedback").innerText += "  You completed all levels!";
+}
+
+function check() {
+  if (answered) return;
+  answered = true;
+  const val = document.getElementById("ansI").value.trim();
+  if (!val) { answered = false; return; }
+  if (val === String(currentQ.ans)) onCorrect();
+  else onWrong(currentQ.ans);
+}
+
+function checkTF(userAns) {
+  if (answered) return;
+  answered = true;
+  if (userAns === currentQ.ans) onCorrect();
+  else onWrong(currentQ.ans);
+}
+
+// ── level 1 generator: .length(), .isEmpty(), .isBlank() ─────────────────────
+function generateL1() {
+  const r = (m) => Math.floor(Math.random() * m);
+
+  const words = ["hello", "java", "cat", "dog", "pizza", "sun", "apple", "code", "test", "book",
+                 "hi", "a", "ab", "xyz", "open", "red", "blue", "green", "fish", "moon"];
+  const blanks = ["", " ", "  ", "   "];
+
+  const qType = r(10);
+  let code, ans;
+
+  if (qType === 0) {
+    // .length() on a normal string
+    const w = words[r(words.length)];
+    code = `String s = "${w}";\nint result = s.length();\n// What is result?`;
+    ans = String(w.length);
+    return { type: "input", code, ans };
+  } else if (qType === 1) {
+    // .length() on empty string
+    code = `String s = "";\nint result = s.length();\n// What is result?`;
+    ans = "0";
+    return { type: "input", code, ans };
+  } else if (qType === 2) {
+    // .length() on string with spaces
+    const sp = blanks[r(blanks.length - 1) + 1]; // at least 1 space
+    code = `String s = "${sp}";\nint result = s.length();\n// What is result?`;
+    ans = String(sp.length);
+    return { type: "input", code, ans };
+  } else if (qType === 3) {
+    // .isEmpty() on empty string → true
+    code = `String s = "";\nboolean result = s.isEmpty();\n// What is result?`;
+    ans = true;
+    return { type: "tf", code, ans };
+  } else if (qType === 4) {
+    // .isEmpty() on non-empty string → false
+    const w = words[r(words.length)];
+    code = `String s = "${w}";\nboolean result = s.isEmpty();\n// What is result?`;
+    ans = false;
+    return { type: "tf", code, ans };
+  } else if (qType === 5) {
+    // .isEmpty() on spaces → false (spaces are not empty)
+    const sp = blanks[r(blanks.length - 1) + 1];
+    code = `String s = "${sp}";\nboolean result = s.isEmpty();\n// What is result?`;
+    ans = false;
+    return { type: "tf", code, ans };
+  } else if (qType === 6) {
+    // .isBlank() on empty string → true
+    code = `String s = "";\nboolean result = s.isBlank();\n// What is result?`;
+    ans = true;
+    return { type: "tf", code, ans };
+  } else if (qType === 7) {
+    // .isBlank() on spaces → true
+    const sp = blanks[r(blanks.length - 1) + 1];
+    code = `String s = "${sp}";\nboolean result = s.isBlank();\n// What is result?`;
+    ans = true;
+    return { type: "tf", code, ans };
+  } else if (qType === 8) {
+    // .isBlank() on non-empty string → false
+    const w = words[r(words.length)];
+    code = `String s = "${w}";\nboolean result = s.isBlank();\n// What is result?`;
+    ans = false;
+    return { type: "tf", code, ans };
+  } else {
+    // .length() on concatenated string
+    const w1 = words[r(words.length)];
+    const w2 = words[r(words.length)];
+    code = `String s = "${w1}" + "${w2}";\nint result = s.length();\n// What is result?`;
+    ans = String(w1.length + w2.length);
+    return { type: "input", code, ans };
+  }
+}
+
+nextQuestion();
+</script>
+</body>
+</html>
