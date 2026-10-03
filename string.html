@@ -46,8 +46,10 @@
     <h3>Select Level</h3>
     <button class="levelBtn" onclick="selectLevel(1)">Level 1 &mdash; .length() / .isEmpty() / .isBlank()</button><br>
     <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 &mdash; .charAt() / .indexOf() / .lastIndexOf()</button><br>
-    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 &mdash; Write: String Methods</button><br>
-    <p style="color:#888;font-size:14px">Pass level 1 with 30, level 2 with 25, level 3 with 15. Or ask your teacher for the PIN.</p>
+    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 &mdash; Write: 1-Line</button><br>
+    <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 &mdash; Write: 2-Line</button><br>
+    <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 &mdash; Write: Multi-Line</button><br>
+    <p style="color:#888;font-size:14px">Pass levels 1/2/3 with 30/25/15, levels 4/5 with 12/10. Or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
       <input id="pinInput" type="password" placeholder="PIN"
@@ -75,7 +77,7 @@ let level = 1;
 let score = 0;
 let answered = false;
 let requestedLevel = null;
-let unlockedLevels = [true, false, false];
+let unlockedLevels = [true, false, false, false, false];
 let challengeIdx = 0;
 let currentQ = null;
 
@@ -103,13 +105,15 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return [".length() / .isEmpty() / .isBlank()", ".charAt() / .indexOf() / .lastIndexOf()", "Write: String Methods"][l - 1] || "";
+  return [".length() / .isEmpty() / .isBlank()", ".charAt() / .indexOf() / .lastIndexOf()", "Write: 1-Line", "Write: 2-Line", "Write: Multi-Line"][l - 1] || "";
 }
 
 function passScore() {
   if (level === 1) return 30;
   if (level === 2) return 25;
-  return 15;
+  if (level === 3) return 15;
+  if (level === 4) return 12;
+  return 10;
 }
 
 function startQuiz(l) {
@@ -138,8 +142,9 @@ function nextQuestion() {
     currentQ = generateL1();
   } else if (level === 2) {
     currentQ = generateL2();
-  } else if (level === 3) {
-    currentQ = { ...L3_CHALLENGES[challengeIdx % L3_CHALLENGES.length], type: "write" };
+  } else if (level >= 3) {
+    const challenges = level === 3 ? L3_CHALLENGES : level === 4 ? L4_CHALLENGES : L5_CHALLENGES;
+    currentQ = { ...challenges[challengeIdx % challenges.length], type: "write" };
     challengeIdx++;
     renderWriteChallenge(currentQ);
     return;
@@ -190,7 +195,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 3) {
+  if (level < 5) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); }
@@ -215,22 +220,32 @@ function renderWriteChallenge(challenge) {
   const testsHtml = challenge.tests.map(test => {
     return `("${test[0]}") &rarr; ${JSON.stringify(test[1])}`;
   }).join(',  ');
+  const useTextarea = level >= 4;
+  const inputHtml = useTextarea
+    ? `<textarea id="codeTA" rows="${level === 4 ? 3 : 5}" placeholder="write method body here..."
+        style="display:block;width:90%;max-width:680px;margin:0 auto;border-radius:0;
+               background:#f4f4f4;border:none;border-left:4px solid #3f51b5;
+               padding:6px 14px;resize:vertical;font-family:monospace;font-size:13px;
+               line-height:1.5;box-sizing:border-box;"></textarea>`
+    : `<input type="text" id="codeInput" placeholder="return ...;"
+             style="width:90%;max-width:680px;font-family:monospace;font-size:13px;padding:7px 10px;"
+             onkeypress="if(event.key==='Enter')check()">`;
   area.innerHTML = `
     <p class="q-label">${challenge.desc}</p>
     <pre class="code" id="sigBlock"></pre>
-    <input type="text" id="codeInput" placeholder="return ...;"
-           style="width:90%;max-width:680px;font-family:monospace;font-size:13px;padding:7px 10px;"
-           onkeypress="if(event.key==='Enter')check()">
+    ${inputHtml}
     <pre class="code">}</pre>
     <p class="q-label">Test cases: ${testsHtml}</p>
     <button onclick="check()">Check</button>`;
   document.getElementById("sigBlock").textContent = challenge.sig + " {";
-  setTimeout(() => { const el = document.getElementById("codeInput"); if (el) el.focus(); }, 50);
+  const focusId = useTextarea ? "codeTA" : "codeInput";
+  setTimeout(() => { const el = document.getElementById(focusId); if (el) el.focus(); }, 50);
 }
 
 function checkWrite() {
   const challenge = currentQ;
-  const code = document.getElementById("codeInput").value.trim();
+  const el = document.getElementById("codeInput") || document.getElementById("codeTA");
+  const code = el.value.trim();
   if (!code) return;
   try {
     const fn = new Function('s', code);
@@ -503,6 +518,114 @@ const L3_CHALLENGES = [
     desc: 'Return true if s contains "java", false otherwise.',
     sig: 'boolean hasJava(String s)',
     tests: [["I love java", true], ["javascript", true], ["python", false], ["java is fun", true]],
+  },
+];
+
+// ── level 4 challenges: 2-line solutions ──────────────────────────────────────
+const L4_CHALLENGES = [
+  {
+    desc: 'Get the first character of s and store it in a variable. Return that character as a String (use "" + char).',
+    sig: 'String firstAsString(String s)',
+    tests: [["hello", "h"], ["java", "j"], ["apple", "a"]],
+  },
+  {
+    desc: 'Get the length of s and store it in a variable. Return length - 1.',
+    sig: 'int lastIndex(String s)',
+    tests: [["hello", 4], ["java", 3], ["a", 0], ["banana", 5]],
+  },
+  {
+    desc: 'Find the index of "a" in s using indexOf. Return that index + 1.',
+    sig: 'int afterA(String s)',
+    tests: [["java", 2], ["banana", 2], ["cat", 2], ["apple", 1]],
+  },
+  {
+    desc: 'Get the last character of s using charAt(s.length() - 1). Return "" + that character + "!".',
+    sig: 'String lastBang(String s)',
+    tests: [["hello", "o!"], ["java", "a!"], ["dog", "g!"]],
+  },
+  {
+    desc: 'Find the index of the first space " " in s. Return the character right after the space using charAt(index + 1), as a String (use "" + char).',
+    sig: 'String charAfterSpace(String s)',
+    tests: [["hello world", "w"], ["hi there", "t"], ["a b", "b"]],
+  },
+  {
+    desc: 'Get the length of s. If the length is 0, return true. Otherwise return false.',
+    sig: 'boolean isZeroLength(String s)',
+    tests: [["", true], ["hi", false], ["a", false]],
+  },
+  {
+    desc: 'Find the indexOf "e" in s. Return the character at that index using charAt, as a String (use "" + char). (All test strings contain "e".)',
+    sig: 'String findE(String s)',
+    tests: [["hello", "e"], ["yes", "e"], ["pepper", "e"]],
+  },
+  {
+    desc: 'Get the first and last characters of s using charAt. Return them joined as a String (use "" + first + last).',
+    sig: 'String firstAndLast(String s)',
+    tests: [["hello", "ho"], ["java", "ja"], ["banana", "ba"], ["dog", "dg"]],
+  },
+  {
+    desc: 'Find the lastIndexOf "a" in s. Return the character at that position using charAt, as a String (use "" + char).',
+    sig: 'String charAtLastA(String s)',
+    tests: [["banana", "a"], ["java", "a"], ["abracadabra", "a"]],
+  },
+  {
+    desc: 'Check if s contains "ing". If yes, return the index of "ing" using indexOf. If no, return -1.',
+    sig: 'int findIng(String s)',
+    tests: [["running", 4], ["coding", 3], ["hello", -1], ["sing", 1]],
+  },
+];
+
+// ── level 5 challenges: multi-line solutions (3+ lines) ──────────────────────
+const L5_CHALLENGES = [
+  {
+    desc: 'Get the first char, middle char (at index length/2), and last char of s. Return them as a String (use "" + first + middle + last).',
+    sig: 'String threeChars(String s)',
+    tests: [["hello", "hlo"], ["banana", "aba"], ["abcde", "ace"]],
+  },
+  {
+    desc: 'Find the index of the first space in s. Get the character before the space and after the space. Return "" + charBefore + charAfter.',
+    sig: 'String aroundSpace(String s)',
+    tests: [["hello world", "ow"], ["hi there", "it"], ["a bc", "ab"]],
+  },
+  {
+    desc: 'If s is empty, return "empty". If s is blank (only spaces), return "blank". Otherwise return "has text".',
+    sig: 'String classify(String s)',
+    tests: [["", "empty"], [" ", "blank"], ["  ", "blank"], ["hi", "has text"], [" a", "has text"]],
+  },
+  {
+    desc: 'Find the index of "a" in s. If not found (-1), return "no a". Otherwise get the char at that index and return "found " + that char.',
+    sig: 'String searchA(String s)',
+    tests: [["banana", "found a"], ["hello", "no a"], ["java", "found a"], ["xyz", "no a"]],
+  },
+  {
+    desc: 'Get the length of s. If length > 5, return the first char + "..." + last char (using charAt). Otherwise return s itself.',
+    sig: 'String shorten(String s)',
+    tests: [["hello", "hello"], ["banana", "b...a"], ["abcdefgh", "a...h"], ["hi", "hi"]],
+  },
+  {
+    desc: 'If s contains "java", return "yes: " + indexOf("java"). Otherwise return "no".',
+    sig: 'String findJava(String s)',
+    tests: [["I love java", "yes: 7"], ["javascript", "yes: 0"], ["python", "no"], ["java!", "yes: 0"]],
+  },
+  {
+    desc: 'Count how many of these are true: s.isEmpty(), s.isBlank(), s.length() == 0. Return the count.',
+    sig: 'int countTrue(String s)',
+    tests: [["", 3], [" ", 1], ["hi", 0], ["  ", 1]],
+  },
+  {
+    desc: 'Get the first char and last char of s. If they are the same, return "match". Otherwise return "no match". Use charAt and compare with ==.',
+    sig: 'String matchEnds(String s)',
+    tests: [["aba", "match"], ["hello", "no match"], ["aa", "match"], ["abcda", "match"], ["dog", "no match"]],
+  },
+  {
+    desc: 'Find indexOf "o" and lastIndexOf "o" in s. If they are the same, return "one o". If different, return "many o". If indexOf is -1, return "no o".',
+    sig: 'String countO(String s)',
+    tests: [["hello", "one o"], ["tomato", "many o"], ["java", "no o"], ["oo", "many o"]],
+  },
+  {
+    desc: 'Get the character at index 0 and at index 1 of s. Return "" + second + first (swap the first two characters).',
+    sig: 'String swapTwo(String s)',
+    tests: [["hello", "eh"], ["java", "aj"], ["ab", "ba"], ["dog", "od"]],
   },
 ];
 
