@@ -46,7 +46,8 @@
     <h3>Select Level</h3>
     <button class="levelBtn" onclick="selectLevel(1)">Level 1 &mdash; .length() / .isEmpty() / .isBlank()</button><br>
     <button class="levelBtn locked" id="btn2" onclick="selectLevel(2)">Level 2 &mdash; .charAt() / .indexOf() / .lastIndexOf()</button><br>
-    <p style="color:#888;font-size:14px">Pass level 1 with 30, level 2 with 25. Or ask your teacher for the PIN.</p>
+    <button class="levelBtn locked" id="btn3" onclick="selectLevel(3)">Level 3 &mdash; Write: String Methods</button><br>
+    <p style="color:#888;font-size:14px">Pass level 1 with 30, level 2 with 25, level 3 with 15. Or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
       <input id="pinInput" type="password" placeholder="PIN"
@@ -74,7 +75,8 @@ let level = 1;
 let score = 0;
 let answered = false;
 let requestedLevel = null;
-let unlockedLevels = [true, false];
+let unlockedLevels = [true, false, false];
+let challengeIdx = 0;
 let currentQ = null;
 
 function selectLevel(l) {
@@ -101,17 +103,19 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return [".length() / .isEmpty() / .isBlank()", ".charAt() / .indexOf() / .lastIndexOf()"][l - 1] || "";
+  return [".length() / .isEmpty() / .isBlank()", ".charAt() / .indexOf() / .lastIndexOf()", "Write: String Methods"][l - 1] || "";
 }
 
 function passScore() {
   if (level === 1) return 30;
-  return 25;
+  if (level === 2) return 25;
+  return 15;
 }
 
 function startQuiz(l) {
   level = l;
   score = 0;
+  challengeIdx = 0;
   document.getElementById("score").innerText = 0;
   document.getElementById("passScore").innerText = passScore();
   document.getElementById("quiz").style.display = "block";
@@ -134,6 +138,11 @@ function nextQuestion() {
     currentQ = generateL1();
   } else if (level === 2) {
     currentQ = generateL2();
+  } else if (level === 3) {
+    currentQ = { ...L3_CHALLENGES[challengeIdx % L3_CHALLENGES.length], type: "write" };
+    challengeIdx++;
+    renderWriteChallenge(currentQ);
+    return;
   }
 
   if (currentQ.type === "tf") {
@@ -181,7 +190,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 2) {
+  if (level < 3) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); }
@@ -193,11 +202,53 @@ function unlockNext() {
 
 function check() {
   if (answered) return;
+  if (currentQ.type === "write") { checkWrite(); return; }
   answered = true;
   const val = document.getElementById("ansI").value.trim();
   if (!val) { answered = false; return; }
   if (val === String(currentQ.ans)) onCorrect();
   else onWrong(currentQ.ans);
+}
+
+function renderWriteChallenge(challenge) {
+  const area = document.getElementById("questionArea");
+  const testsHtml = challenge.tests.map(test => {
+    return `("${test[0]}") &rarr; ${JSON.stringify(test[1])}`;
+  }).join(',  ');
+  area.innerHTML = `
+    <p class="q-label">${challenge.desc}</p>
+    <pre class="code" id="sigBlock"></pre>
+    <input type="text" id="codeInput" placeholder="return ...;"
+           style="width:90%;max-width:680px;font-family:monospace;font-size:13px;padding:7px 10px;"
+           onkeypress="if(event.key==='Enter')check()">
+    <pre class="code">}</pre>
+    <p class="q-label">Test cases: ${testsHtml}</p>
+    <button onclick="check()">Check</button>`;
+  document.getElementById("sigBlock").textContent = challenge.sig + " {";
+  setTimeout(() => { const el = document.getElementById("codeInput"); if (el) el.focus(); }, 50);
+}
+
+function checkWrite() {
+  const challenge = currentQ;
+  const code = document.getElementById("codeInput").value.trim();
+  if (!code) return;
+  try {
+    const fn = new Function('s', code);
+    for (const test of challenge.tests) {
+      const result = fn(test[0]);
+      if (String(result) !== String(test[1])) {
+        document.getElementById("feedback").style.color = "#f44336";
+        document.getElementById("feedback").innerText =
+          `Test failed: ("${test[0]}") \u2192 got "${result}", expected "${test[1]}"`;
+        return;
+      }
+    }
+    answered = true;
+    onCorrect();
+  } catch(e) {
+    document.getElementById("feedback").style.color = "#f44336";
+    document.getElementById("feedback").innerText = `Error: ${e.message}`;
+  }
 }
 
 function checkTF(userAns) {
@@ -355,6 +406,70 @@ function generateL2() {
     return { type: "input", code, ans };
   }
 }
+
+// ── level 3 challenges: write single-line solutions using string methods ──────
+const L3_CHALLENGES = [
+  {
+    desc: 'Return the length of string s.',
+    sig: 'int getLength(String s)',
+    tests: [["hello", 5], ["java", 4], ["a", 1], ["", 0]],
+  },
+  {
+    desc: 'Return the first character of string s.',
+    sig: 'char firstChar(String s)',
+    tests: [["hello", "h"], ["java", "j"], ["apple", "a"], ["zoo", "z"]],
+  },
+  {
+    desc: 'Return the last character of string s.',
+    sig: 'char lastChar(String s)',
+    tests: [["hello", "o"], ["java", "a"], ["dog", "g"], ["quiz", "z"]],
+  },
+  {
+    desc: 'Return true if the string s is empty, false otherwise.',
+    sig: 'boolean checkEmpty(String s)',
+    tests: [["", true], ["hello", false], [" ", false]],
+  },
+  {
+    desc: 'Return true if the string s is blank (empty or only spaces), false otherwise.',
+    sig: 'boolean checkBlank(String s)',
+    tests: [["", true], [" ", true], ["  ", true], ["hi", false]],
+  },
+  {
+    desc: 'Return the index of the first occurrence of the character "a" in s. Return -1 if not found.',
+    sig: 'int findA(String s)',
+    tests: [["banana", 1], ["apple", 0], ["hello", -1], ["java", 1]],
+  },
+  {
+    desc: 'Return the index of the last occurrence of the character "a" in s.',
+    sig: 'int lastA(String s)',
+    tests: [["banana", 5], ["apple", 0], ["java", 3], ["abracadabra", 10]],
+  },
+  {
+    desc: 'Return the character at index 2 of string s.',
+    sig: 'char thirdChar(String s)',
+    tests: [["hello", "l"], ["java", "v"], ["apple", "p"], ["cookie", "o"]],
+  },
+  {
+    desc: 'Return the index of the first occurrence of "ll" in s. Return -1 if not found.',
+    sig: 'int findLL(String s)',
+    tests: [["hello", 2], ["yellow", 2], ["ball", 2], ["java", -1]],
+  },
+  {
+    desc: 'Return true if the length of s is greater than 5, false otherwise.',
+    sig: 'boolean isLong(String s)',
+    tests: [["hello", false], ["banana", true], ["hi", false], ["cookie", true]],
+  },
+  {
+    desc: 'Return the index of the first space character " " in s. Return -1 if not found.',
+    sig: 'int findSpace(String s)',
+    tests: [["hello world", 5], ["hi there", 2], ["java", -1], ["a b", 1]],
+  },
+  {
+    desc: 'Return true if s contains the character "z", false otherwise. Use indexOf.',
+    sig: 'boolean hasZ(String s)',
+    tests: [["pizza", true], ["hello", false], ["jazz", true], ["zero", true]],
+  },
+];
 
 nextQuestion();
 </script>
