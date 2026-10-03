@@ -50,7 +50,8 @@
     <button class="levelBtn locked" id="btn4" onclick="selectLevel(4)">Level 4 &mdash; Write: 2-Line</button><br>
     <button class="levelBtn locked" id="btn5" onclick="selectLevel(5)">Level 5 &mdash; Write: Multi-Line</button><br>
     <button class="levelBtn locked" id="btn6" onclick="selectLevel(6)">Level 6 &mdash; Write: Full Method</button><br>
-    <p style="color:#888;font-size:14px">Pass levels 1/2/3 with 30/25/15, levels 4/5/6 with 12/10/8. Or ask your teacher for the PIN.</p>
+    <button class="levelBtn locked" id="btn7" onclick="selectLevel(7)">Level 7 &mdash; Write: Full Method + If/Else</button><br>
+    <p style="color:#888;font-size:14px">Pass levels 1/2/3 with 30/25/15, levels 4/5/6/7 with 12/10/8/8. Or ask your teacher for the PIN.</p>
     <div id="pinPanel">
       <p>Enter Teacher PIN to unlock:</p>
       <input id="pinInput" type="password" placeholder="PIN"
@@ -78,7 +79,7 @@ let level = 1;
 let score = 0;
 let answered = false;
 let requestedLevel = null;
-let unlockedLevels = [true, false, false, false, false, false];
+let unlockedLevels = [true, false, false, false, false, false, false];
 let challengeIdx = 0;
 let currentQ = null;
 
@@ -106,7 +107,7 @@ function checkPin() {
 }
 
 function levelLabel(l) {
-  return [".length() / .isEmpty() / .isBlank()", ".charAt() / .indexOf() / .lastIndexOf()", "Write: 1-Line", "Write: 2-Line", "Write: Multi-Line", "Write: Full Method"][l - 1] || "";
+  return [".length() / .isEmpty() / .isBlank()", ".charAt() / .indexOf() / .lastIndexOf()", "Write: 1-Line", "Write: 2-Line", "Write: Multi-Line", "Write: Full Method", "Write: Full Method + If/Else"][l - 1] || "";
 }
 
 function passScore() {
@@ -115,7 +116,7 @@ function passScore() {
   if (level === 3) return 15;
   if (level === 4) return 12;
   if (level === 5) return 10;
-  return 8;
+  return 8; // levels 6 and 7
 }
 
 function startQuiz(l) {
@@ -145,10 +146,10 @@ function nextQuestion() {
   } else if (level === 2) {
     currentQ = generateL2();
   } else if (level >= 3) {
-    const challenges = level === 3 ? L3_CHALLENGES : level === 4 ? L4_CHALLENGES : level === 5 ? L5_CHALLENGES : L6_CHALLENGES;
+    const challenges = level === 3 ? L3_CHALLENGES : level === 4 ? L4_CHALLENGES : level === 5 ? L5_CHALLENGES : level === 6 ? L6_CHALLENGES : L7_CHALLENGES;
     currentQ = { ...challenges[challengeIdx % challenges.length], type: "write" };
     challengeIdx++;
-    if (level === 6) {
+    if (level >= 6) {
       renderFullMethodChallenge(currentQ);
     } else {
       renderWriteChallenge(currentQ);
@@ -201,7 +202,7 @@ function onWrong(correctVal) {
 }
 
 function unlockNext() {
-  if (level < 6) {
+  if (level < 7) {
     unlockedLevels[level] = true;
     const btn = document.getElementById("btn" + (level + 1));
     if (btn) { btn.classList.remove("locked"); }
@@ -272,7 +273,7 @@ function checkWrite() {
   let code = el.value.trim();
   if (!code) return;
 
-  if (level === 6) {
+  if (level >= 6) {
     // Extract body from full method: remove signature line and closing brace
     const sigMatch = code.match(/^\s*\w+\s+\w+\s*\(\s*\w+\s+(\w+)\s*\)\s*\{/);
     if (!sigMatch) {
@@ -734,6 +735,58 @@ const L6_CHALLENGES = [
   {
     desc: 'Write a method that takes a String. If it is empty, return 0. Otherwise return the length minus 1.',
     tests: [["hello", 4], ["", 0], ["a", 0], ["java", 3]],
+  },
+];
+
+// ── level 7 challenges: full method + if/else + 3+ lines ──────────────────────
+const L7_CHALLENGES = [
+  {
+    desc: 'Write a method that takes a String. If it contains "hello", return "greeting". If it contains "bye", return "farewell". Otherwise return "unknown".',
+    tests: [["hello world", "greeting"], ["bye now", "farewell"], ["java", "unknown"], ["say hello", "greeting"]],
+  },
+  {
+    desc: 'Write a method that takes a String. If it is empty, return "empty". If its length is less than 4, return "short". Otherwise return "long".',
+    tests: [["", "empty"], ["hi", "short"], ["abc", "short"], ["java", "long"], ["hello", "long"]],
+  },
+  {
+    desc: 'Write a method that takes a String. Find the indexOf "a". If it is -1, return "no a". If it is 0, return "starts with a". Otherwise return "a at " + the index.',
+    tests: [["apple", "starts with a"], ["banana", "a at 1"], ["hello", "no a"], ["abc", "starts with a"]],
+  },
+  {
+    desc: 'Write a method that takes a String. If the first character equals the last character, return "same". Otherwise return the first char + " and " + the last char (use "" + char).',
+    tests: [["aba", "same"], ["hello", "h and o"], ["aa", "same"], ["dog", "d and g"]],
+  },
+  {
+    desc: 'Write a method that takes a String. If it is blank, return 0. If its length is greater than 5, return the length. Otherwise return -1.',
+    tests: [["", 0], [" ", 0], ["banana", 6], ["hi", -1], ["java", -1], ["abcdef", 6]],
+  },
+  {
+    desc: 'Write a method that takes a String. If it contains a space, get the index of the first space and return the char before it as a String (use "" + char). If no space, return "no space".',
+    tests: [["hello world", "o"], ["a b", "a"], ["java", "no space"], ["hi there", "i"]],
+  },
+  {
+    desc: 'Write a method that takes a String. If indexOf "o" equals lastIndexOf "o", return "one or zero". Otherwise return "multiple".',
+    tests: [["hello", "one or zero"], ["tomato", "multiple"], ["java", "one or zero"], ["oo", "multiple"]],
+  },
+  {
+    desc: 'Write a method that takes a String. If its length is even, return the character at index length/2 as a String (use "" + char). If odd, return "odd".',
+    tests: [["java", "a"], ["hello", "odd"], ["ab", "b"], ["abcdef", "d"], ["abc", "odd"]],
+  },
+  {
+    desc: 'Write a method that takes a String. If it contains "cat" and contains "dog", return "both". If it contains only "cat", return "cat". If it contains only "dog", return "dog". Otherwise return "none".',
+    tests: [["my cat and dog", "both"], ["I have a cat", "cat"], ["nice dog", "dog"], ["hello", "none"]],
+  },
+  {
+    desc: 'Write a method that takes a String. Get the first char. If it is "a", return "starts with a". If the last char is "z", return "ends with z". Otherwise return the length of the string.',
+    tests: [["apple", "starts with a"], ["jazz", "ends with z"], ["hello", 5], ["az", "starts with a"], ["bz", "ends with z"]],
+  },
+  {
+    desc: 'Write a method that takes a String. If it is empty, return "". If its length is 1, return the string itself. Otherwise return "" + the last char + the first char.',
+    tests: [["", ""], ["a", "a"], ["hello", "oh"], ["java", "aj"], ["ab", "ba"]],
+  },
+  {
+    desc: 'Write a method that takes a String. If it contains "ing", return "verb". If it contains "tion", return "noun". If it contains "ly", return "adverb". Otherwise return "other".',
+    tests: [["running", "verb"], ["nation", "noun"], ["quickly", "adverb"], ["hello", "other"], ["singing", "verb"]],
   },
 ];
 
