@@ -267,6 +267,44 @@ function renderFullMethodChallenge(challenge) {
   setTimeout(() => { const el = document.getElementById("codeTA"); if (el) el.focus(); }, 50);
 }
 
+// Java-to-JS: polyfill Java string methods and strip type declarations
+function javaToJs(code) {
+  // .contains() → .includes()
+  code = code.replace(/\.contains\s*\(/g, '.includes(');
+  // .isEmpty() → (=== "")
+  code = code.replace(/(\w+)\.isEmpty\s*\(\s*\)/g, '($1 === "")');
+  // .isBlank() → (.trim() === "")
+  code = code.replace(/(\w+)\.isBlank\s*\(\s*\)/g, '($1.trim() === "")');
+  // .length() → .length
+  code = code.replace(/\.length\s*\(\s*\)/g, '.length');
+  // .equals("...") → (=== "...")
+  code = code.replace(/(\w+)\.equals\s*\(\s*("(?:[^"\\]|\\.)*")\s*\)/g, '($1 === $2)');
+  // Strip Java type declarations: int x, String x, char x, boolean x
+  code = code.replace(/\b(int|String|char|boolean|double|float|long)\s+(?=\w+\s*=)/g, 'let ');
+  return code;
+}
+
+function runTests(code, paramName, tests) {
+  code = javaToJs(code);
+  try {
+    const fn = new Function(paramName, code);
+    for (const test of tests) {
+      const result = fn(test[0]);
+      if (String(result) !== String(test[1])) {
+        document.getElementById("feedback").style.color = "#f44336";
+        document.getElementById("feedback").innerText =
+          `Test failed: ("${test[0]}") \u2192 got "${result}", expected "${test[1]}"`;
+        return false;
+      }
+    }
+    return true;
+  } catch(e) {
+    document.getElementById("feedback").style.color = "#f44336";
+    document.getElementById("feedback").innerText = `Error: ${e.message}`;
+    return false;
+  }
+}
+
 function checkWrite() {
   const challenge = currentQ;
   const el = document.getElementById("codeInput") || document.getElementById("codeTA");
@@ -274,7 +312,6 @@ function checkWrite() {
   if (!code) return;
 
   if (level >= 6) {
-    // Extract body from full method: remove signature line and closing brace
     const sigMatch = code.match(/^\s*\w+\s+\w+\s*\(\s*\w+\s+(\w+)\s*\)\s*\{/);
     if (!sigMatch) {
       document.getElementById("feedback").style.color = "#f44336";
@@ -282,44 +319,17 @@ function checkWrite() {
       return;
     }
     const paramName = sigMatch[1];
-    // Remove signature and closing brace
     code = code.replace(/^\s*\w+\s+\w+\s*\([^)]*\)\s*\{/, '').replace(/\}\s*$/, '').trim();
-    try {
-      const fn = new Function(paramName, code);
-      for (const test of challenge.tests) {
-        const result = fn(test[0]);
-        if (String(result) !== String(test[1])) {
-          document.getElementById("feedback").style.color = "#f44336";
-          document.getElementById("feedback").innerText =
-            `Test failed: ("${test[0]}") \u2192 got "${result}", expected "${test[1]}"`;
-          return;
-        }
-      }
+    if (runTests(code, paramName, challenge.tests)) {
       answered = true;
       onCorrect();
-    } catch(e) {
-      document.getElementById("feedback").style.color = "#f44336";
-      document.getElementById("feedback").innerText = `Error: ${e.message}`;
     }
     return;
   }
 
-  try {
-    const fn = new Function('s', code);
-    for (const test of challenge.tests) {
-      const result = fn(test[0]);
-      if (String(result) !== String(test[1])) {
-        document.getElementById("feedback").style.color = "#f44336";
-        document.getElementById("feedback").innerText =
-          `Test failed: ("${test[0]}") \u2192 got "${result}", expected "${test[1]}"`;
-        return;
-      }
-    }
+  if (runTests(code, 's', challenge.tests)) {
     answered = true;
     onCorrect();
-  } catch(e) {
-    document.getElementById("feedback").style.color = "#f44336";
-    document.getElementById("feedback").innerText = `Error: ${e.message}`;
   }
 }
 
